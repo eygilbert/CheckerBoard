@@ -1,0 +1,544 @@
+<html>
+
+<head>
+<title>CheckerBoard Help</title>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" topmargin="0"
+leftmargin="0">
+
+<table border="0" cellpadding="20" cellspacing="0" width="100%"
+bgcolor="#0080C0">
+<tr>
+<td>
+<font color="#FFFFFF" size="6" face="Ventura"><b>
+CheckerBoard help</b> </font>
+</td>
+</tr>
+</table>
+
+
+<table border="0" cellpadding="20" cellspacing="0" width="100%"
+bgcolor="#FFFFFF">
+<tr>
+<td>
+<font color="red">
+What's new in CheckerBoard 1.64? <br>There is a new feature called <em>Analyze PDN</em>, there is a new language
+option which allows you to select the menu language, and the directory structure has changed: there
+are two new subdirectories in the CB directory, <em>engines</em> and <em>analysis</em>. All engines for
+CB reside in the engines directory, and all analysis output (from <em>analyze game</em>, and <em>analyze PDN</em>) is put
+in the analysis directory.
+</font>
+<p>
+
+<font color="#000000" size="3" face="Ventura">
+CheckerBoard is updated frequently. The newest version of CheckerBoard can probably be found on the
+<a href="http://www.fierz.ch/checkers.htm">CheckerBoard homepage</a>. Any news about new versions 
+of CheckerBoard or engines for CheckerBoard are also posted there. Visit often :-)
+
+
+
+
+<h3>Index of topics</h3>
+<UL>
+<li><a href = #quickstart>Getting started</a>
+<li><a href = #whatis>What is CheckerBoard?</a>
+<li><a href = #toolbar>Toolbar commands</a>
+<li><a href = #menu>Menu commands</a>
+<li><a href = #typical>Some typical tasks explained</a>
+<li><a href = #rules>Rules of checkers</a>
+<li><a href = #developers>For Developers: how to make CheckerBoard use your own checkers engine</a>
+</UL>
+
+<h3><a name="quickstart">Getting started</a></h3>
+
+Are you ready for your first game of checkers with CheckerBoard? Here's what you need to know to 
+get started quickly. Start up CheckerBoard. The initial position will be set up on the board, 
+and it is your turn to move. To play, click first on the piece you want to move (the outline of the
+square you clicked is highlighted), 
+and then click on the square you want to move it to. The checkers engine will start thinking 
+about its move and should respond pretty quickly. Your turn again. In English checkers, 
+you <em>must</em> capture if you can. If there is a possible capture move for you, CheckerBoard 
+will not let you play another move, and tell you in the status bar that you must capture. 
+To play a capture move, follow the same procedure as for a normal move: click on the 
+piece you want to move, and then on its destination square. Do not click any intermediate 
+squares!
+<br>
+That's already all you need to know to play a game - good luck!
+
+<H3><a name="whatis"></a>What is CheckerBoard?</H3>
+CheckerBoard is an <b>interface to a checkers engine</b>. CheckerBoard allows you to load and save games
+in the standard PDN format, to set up and search for positions in a PDN database, and to replay games. 
+You can also save games as HTML to publish your favorite games on the internet.
+CheckerBoard itself cannot play checkers; for this it uses a so-called <em>checkers engine</em>. CheckerBoard
+communicates with the engine and tells it to think about a move. Don't worry, this all happens behind the
+scenes, you won't notice that there are actually two separate programs at work! The engine will 
+tell CheckerBoard what move it wants to make, and give it some information about its thinking 
+process which CheckerBoard will display in the status bar. The name of the engine is displayed in 
+the CheckerBoard window title bar. Normally, will you play against an engine, 
+but you can also have two engines play each other, or have an engine analyze a game.
+<br>
+CheckerBoard comes with three engines: Cake, one of the best checkers programs for 
+the win32 platform, Simple Checkers (with source code), and Dama Italiana (also with source code), 
+which plays the Italian version of checkers. CheckerBoard plays the English/American variation 
+of checkers by default. At the end of this page there is documentation on how CheckerBoard 
+interfaces to checkers engines, so you can easily write your own engine if you want to. 
+All engines which come with the default CheckerBoard installation were programmed by me, but other 
+people have also programmed engines for CheckerBoard. For an up-to-date list of CheckerBoard 
+engines, go to the <a href="http://www.fierz.ch/checkers.htm">CheckerBoard homepage</a> on the internet.
+
+
+<h3><a name="toolbar"></a>Toolbar commands</H3>
+<img src="toolbar.bmp">
+<br>
+The toolbar has buttons for some of the most commonly used commands. From left to right, they are
+<UL>
+
+<LI>Game section
+<UL>
+<LI>New game: resets the current game. You will not be asked if you want to save it!
+<LI>Save game: saves a game to a PDN database
+<LI>Load game: opens a game from a PDN database
+<LI>Find game: searches for the current position in a PDN database
+</UL>
+
+<LI>Moves section
+<UL>
+<LI>Takeback all: go to the start of the game
+<LI>Takeback: go back one move
+<LI>Forward: go forward one move
+<LI>Forward all: go to end of game
+</UL>
+
+<LI>Engine section
+<UL>
+<LI>Go: Start engine or force move if the engine is already thinking
+<LI>Book mode: Cycles through the 4 different book settings an engine can have - book off, all kinds
+of moves, good moves, or best moves only. All kinds of moves is represented by a small question mark
+in the toolbar icon, best moves with a star in the icon.
+<LI>Engine: switch from primary to secondary engine and back.
+</UL>
+
+<LI>Miscellaneous section
+<UL>
+<LI>Side to move: this button displays whether it's black's or white's turn - click on it to change
+	the side to move
+<LI>Flip: flips the board so white is at the bottom
+<LI>Mode: switches from normal to two-player mode and back
+</UL>
+
+<LI>User book section
+<UL>
+
+<LI>View user book: use the forward/backward buttons to go through the user book
+<LI>Add moves to user book: enter moves which will be added to the user book
+<LI>Delete move from user book: deletes the current position from the user book - this only works 
+	when in 'view user book' mode
+</UL>
+</UL>
+
+<H3><a name="menu"></a>Menu commands</H3>
+This section lists and explains all menu commands of CheckerBoard. Most of them are self-explanatory.
+<h4>The <b>file</b> menu</h4>
+<UL>
+<LI><b>New</b> starts a new game. You will not be asked if you want to save the current game! 
+	If you choose new, the current game will be lost.
+
+<LI><b>New 3-move</b> chooses one of the 3-move openings of the ACF deck. Use 'Options -&gt; 
+	3-move deck...' to specify which openings CheckerBoard will include in the ballot.
+
+<LI><b>Select database</b> lets you choose the current PDN database to load games from and search games in. 
+	PDN is the standard file format for checkers games (Portable Draughts Notation). PDN is a lightly
+	structured text file format. You can look at your PDN database with any text editor.
+	
+<LI><b>Select user book</b> lets you choose the current user book that CheckerBoard uses.
+	
+<li><b>Open game</b> displays a list of games in the current PDN database, from which you can select
+	one to open. If you want to load a game from a different PDN database, you first have
+	to use the 'select database' command to choose the other database, and then 'load game'.
+
+<LI><b>Save game</b> saves the current game. You can choose the PDN database to save your game to, 
+	and it will be appended to the database. You can specify additional information about 
+	the game, such as who played, and the result. This information is visible in the 'load game'
+	dialog box and helps you find games.
+
+<li><b>Save game as HTML</b> will create a webpage with a javascript replay of the current game. 
+	The webpage contains just that one game, on the left there is a board with forward/backward 
+	buttons to play through the game, on the right, the PDN of the game is displayed. The last 
+	move played on the board is highlighted in the PDN. The move score is given in PDN rather than in some 
+	plain text version, because this way, when somebody loads this page in his browser, he can 
+	just select the PDN in the window, copy it, and paste it into his favorite checkers 
+	program if it supports this (CheckerBoard does, of course). <br>
+	The webpage will only function properly if there is a directory named "gif" in the same 
+	directory as the webpage, and in the "gif" directory, there must be 6 gifs named dark.gif, 
+	light.gif, lightbm.gif, lightbk.gif, lightwm.gif, lightwk.gif, which are just gifs with
+	empty light and dark squares, and gifs of all piece types. Such a gif-folder is included 
+	in the installation of CB, it is installed in the "games" directory inside the CheckerBoard 
+	folder. You can just copy this folder to your webserver and everything should work. If you 
+	do not like the board style, you can replace the gifs with others you like better. 
+
+
+<li><b>Replace game</b> will replace the game you loaded last in the database with the current game. 
+	You can use this to add moves to an existing game by loading it, adding the moves and 
+	then replacing the game. You can also add comments to an existing game, by loading it, 
+	playing through it, adding comments, and finally replacing it. Make sure you don't change
+	the database after you load the game before replacing it, or CheckerBoard will replace
+	a game in the new current database!
+
+<LI><b>Info</b> displays the information belonging to the current game.
+
+
+<LI><b>Analyze</b> makes the checkers engine analyze the current game. In every position, 
+	CheckerBoard will call its primary engine to get an evaluation of the position. 
+	The current level determines how long the engine will calculate on average. 
+	When CheckerBoard is finished it writes the analysis to a file called 'analysis.htm' (which it
+	places in the 'analysis' subdirectory in the CB-directory)
+	and opens this file with the default .htm-viewer - usually internet explorer. Use this feature
+	to search for errors and improvements in games.
+
+<LI><b>Analyze PDN</b> will analyze all games from your last search, starting at the game you selected
+from the search (see the search commands below). CheckerBoard produces and displays the files
+ analysis1.htm, analysis2.htm, ... analysisN.htm if there are N games to analyze. All files
+are saved in the analysis directory. The way this works is a bit confusing, but it is very powerful.
+As an example, enter the starting moves of the white doctor 10-14 22-18 12-16 24-20 and do a
+search for Tinsley, with the check mark in search with position enabled. If you are using tinsley.pdn
+as your database, CheckerBoard will come up with 5 games. Load the 3rd game in the list. Now when you
+choose analyze PDN, CheckerBoard will analyze the games starting from the 3rd game to the end in the 
+search result list. You can use this to analyze entire PDN databases, by simply searching for the
+starting position and selecting the first game in the list, and then starting the PDN analysis.
+
+<LI><b>Quit</b> exits the program and saves (most of) your current settings.
+</UL>
+
+
+<h4>The <b>Edit</b> menu</h4>
+<ul>
+<LI><b>PDN to Clipboard</b> prints the PDN notation of the current game to the clipboard. 
+	PDN is plain text formatted lightly to make it machine-readable. You can paste the 
+	content of the clipboard in your word processor to print a game, of paste it into
+	an email message to send it to a checkers friend, who can then use...
+
+<LI><b>PDN from Clipboard</b> loads a PDN game which has been previously pasted to the clipboard. 
+	If you get a PDN game by mail, select the text in your mail program, press Ctrl-C to copy 
+	it to the clipboard, switch to CheckerBoard and press Ctrl-V to load the game.
+
+<LI><b>FEN to Clipboard</b> prints the FEN notation of the current position to the clipboard. 
+	You can paste the content of the clipboard into
+	an email message to send it to a checkers friend, who can then use...
+
+<LI><b>FEN from Clipboard</b> loads a FEN string which has been previously pasted to the clipboard. 
+	If you get a FEN string by mail, select the text in your mail program, press Ctrl-C to copy 
+	it to the clipboard, switch to CheckerBoard and press Alt-V to load the position.
+
+<LI><b>Diagram to clipboard</b> copies a bitmap of the current position to the clipboard. You can
+	then paste the diagram into your favorite graphics program or in a word processor like
+	microsoft word. You cannot print games or diagrams directly from CheckerBoard, but you 
+	can use the clipboard functions to get moves and diagrams into programs which allow you 
+	much better control over what and how to print than I could ever implement in CheckerBoard.  
+
+<LI><b>Setup Mode</b> enters and exits the setup mode. In setup mode, you can left-click 
+	on squares to cycle through black pieces, and you can right-click to cycle through the white pieces. 
+	The first click turns a free square into a man, the second click into a king and the third click makes an 
+	empty square again. Don't forget to exit the setup mode before playing, CheckerBoard will be confused if
+	you don't exit the setup mode.
+
+<LI><b>Clear Board</b> clears the board.
+</UL>
+
+<h4>The <b>Search</b> menu </h4>
+<ul>
+<li><b>Search Mask</b> searches the current PDN database for a combination of things you can specify:
+You can search for the name of a player, the name of the event, the year the game was played, any arbitrary
+text in the comments to the game, and you can also include the current board position in the search. 
+The search is case-sensitive, i.e. if you search for "tinsley", you will not find games
+	by "Tinsley" and vice versa. You may also abbreviate a name, e.g. "Tin" will also find games by
+	Tinsley, but would also find games by Tinman if such a player existed. For example, if you wish
+	to find all games by Tinsley in the Double Cross opening, you would enter the moves 9-14 23-18
+	in 2-player mode, invoke the search mask, type Tinsley in the name field, and check the box
+	labelled <i>search with position</i>.
+
+<li><b>Search Position</b> searches the current PDN database for the current position and displays 
+	a list of games to 
+	load which all feature the current position. If you played a game and want to know if a certain
+	position 
+	has ever come up before, just search for it in a large reference database. 
+<li><b>Re-Search</b> brings up the results of the last search. CheckerBoard remembers the search
+results of the last search and doesn't have to perform the search a 2nd time if you use Re-Search.
+<li><b>Load previous</b> loads the previous game from the current search result list - the game list
+you got from the search. Instead of repeatedly using Re-search and selecting the next game from
+the list, you can simply use load previous and load next to quickly view all games in the search
+result.
+<li><b>Load next</b> loads the next game from the current search result list.
+<li><b>Search CR position</b> searches for the current board position with colors reversed.
+Sometimes a position comes up which is known with colors reversed, CB will help you find such
+positions.
+
+
+<li><b>Search Similar</b> searches for a certain theme in the database. Set up a position which 
+	contains the theme you want to search for, e.g. black men on 1,2,6,10,15 and 19, 
+	the "long dyke" formation. CheckerBoard will look through the database for
+	all games where this situation occurs, that is, it will find all games where 
+	these 6 men are in these exact locations, however, only if they are present for at least 4 plies. 
+	The reason for this limitation is that often a pattern appears during an exchange, and you 
+	don't want to find it in these cases.
+
+
+</ul>
+
+<h4>The <b>Moves</b> menu</h4>
+
+<UL>
+<LI><b>Play</b> sends a "play now" command to the checkers engine if it is currently 
+	calculating its next move, which will make it move immediately (However, if the engine does 
+	not support the "play now" command, nothing might happen). If it is your turn to move, and 
+	you choose "play", the engine will start calculating. You can also use this in the two-player
+	mode to have the engine start thinking about the current position and make a move for you.
+
+<LI><b>Back</b> (or the left arrow key) takes back one move.
+
+<LI><b>Back all</b> (or the up arrow key) takes back all moves and goes back to the start of the game.
+
+<LI><b>Forward</b> (or the right arrow key) moves one move forward in the game.
+
+<LI><b>Forward all</b> (or the down arrow key) goes to the end of the game.
+
+<LI><b>Add comment</b> allows you to add a short (limited to 1024 characters) text comment to a move. 
+	This is saved along with the game and displayed in the status bar when you move through 
+	the game move with the forward control. The comment will also appear in the clipboard copy
+	and in the HTML output. <b>Do not use braces ( ), { }, in your comments, they are part
+	of the PDN specification and will confuse CheckerBoard's PDN parser if you use them,
+	possibly rendering your game illegible to CheckerBoard. </b>
+</UL>
+
+
+<h4>The Options Menu</h4>
+<UL>
+<LI><b>Mode</b>: CheckerBoard can be in several different modes. These are:
+	<UL>
+	<LI><b>Normal</b>: this mode lets
+	you enter one move, then it calls the engine to play the next move. In this mode, you 
+	just play games against the engine.
+	
+	<LI><b>Autoplay</b>, where CheckerBoard will repeatedly call the primary
+	engine so that it will play out a game against itself from the current position.
+	<LI><b>Analysis</b>, where you can enter moves without the computer	playing. CheckerBoard
+	will still call the engine, so it will display moves and search information in the status bar while
+	you are entering the moves, but it wont play. This mode is supposed to help you to go over
+	a game and have the engine suggest moves to you.
+	
+	<LI><b>2 Players</b> lets you enter moves without the engine distracting you. Use this to enter
+	games in CheckerBoard you want to save.
+
+	<LI><b>Engine - Engine</b> works exactly like 'Autoplay', except that this time CheckerBoard lets 
+	the primary engine play a game against the secondary engine, from the current board position.
+	You can watch two engines battle it out this way.
+	If you have chosen anything else than 'Normal' and would
+	like to stop an engine-engine game or the game analysis, just choose 'Normal' again 
+	(or press 'Esc').
+	<LI><b>View User Book</b> allows you to review the user book. The user book is a collection of 
+	positions and moves, which CheckerBoard will play without consulting the engine if the
+	user book is turned on. You can use this to either improve the book of the engine, or to
+	force it to play certain lines you want to practice. Note that you can access this menu
+	point with the toolbar. While you review the user book moves, you can use the 'Delete
+	from User Book' button in the toolbar to remove a user book move. You have to be in the
+	view user book mode to do this.
+	<LI><b>Edit user book</b> allows you to add moves to the user book. If you add a move in a position
+	which already exists in the user book, you will overwrite the old move. 
+	The user book is limited to 1000 moves. However, you can have multiple user books and load any one
+	of them with the "select user book" menu item.
+	</UL>
+
+<LI><b>Level</b> sets the time the computer will think about its move. The time indicated 
+	is only an average time which the computer should use. How long it will really calculate is up
+	to the checkers engine. If you want you can also choose 'exact', then the engine should play
+	exactly after the specified time has been reached. Again, this may not be supported by the engine.
+	The longer you let your engine think about its moves, the stronger it will play. However,
+	the default checkers engine, Cake, is very strong, and will probably beat you most of the time
+	even on the low levels. You can choose the 'instant' level to make the computer play very fast
+	and much worse than normal. For the weakest possible opponent, make 'simple checkers' your
+	primary engine and set the level to 'instant'.
+
+<LI><b>Display</b>: here you can invert the board, have the last move highlighted and 
+	toggle board number display on and off.
+
+<LI><b>Colors</b> allows you to configure the colors of the board numbers and the highlighting around
+	the selected square.
+	
+<LI><b>Language</b> lets you select the language of the menu. It has no effect on the dialog boxes.
+
+<LI><b>Sound</b> toggles a beep on or off. CheckerBoard beeps when the engine makes a move, if this is
+	enabled.
+
+<LI><b>3-move deck...</b> opens a dialog where you can choose which parts of the 3-move openings 
+	should be included when balloting a new 3-move game.
+
+<LI><b>Directories</b> lets you specify default directories for CheckerBoard to save its games to.
+
+<LI><b>Low priority mode</b> give the checkers engine less computing time. If you want to analyze a
+	position for hours, and want to use your computer for other tasks, it can be a bit sluggish, 
+	because the checkers engine requires a lot of CPU time. By lowering the priority of the 
+	engine thread, the checkers engine will get less CPU time if you are doing something else 
+	with the computer, and will only work when it is idle. If you are not working with your computer,
+	it will be just as fast as in the normal mode.
+<LI><b>User Book</b> turns on the user book; if this is selected, CheckerBoard will first look up the
+	current position in the user book before asking the engine to select a move. If it finds the position,
+	it will play the user book move without invoking the engine.
+
+</UL>
+
+<h4>Engine</h4>
+<UL>
+<LI><b>Select...</b> opens a dialog in which you can choose your primary and secondary engine.
+	During normal play, CheckerBoard uses the primary engine. In an engine match, it lets 
+	the primary engine play against the secondary engine. When analysing a game it uses the primary
+	engine.
+
+<LI><b>Options...</b> allows you to set common engine options for the primary or secondary engine. 
+	Note that you can select the book setting on the toolbar. The engine settings are: 
+		<UL>
+		<LI>Display all scores: Instead of displaying just the best move, the engine will
+			display scores for all moves in the status bar. Great for analysis!
+		<LI>Book strength: You can select from book off to optimal moves. However, the engine
+			decides what to do with this parameter and may not do as you like.
+		<LI>Memory settings: the checkers engine typically uses large blocks of memory for the
+			hashtable and for the endgame database cache. You can set preferred sizes for
+			these here. Again, this does not mean the engine will do as you say. CheckerBoard
+			will not allow you to use all memory of your system, as this would result in 
+			lots of paging. 
+		</UL>
+	You can set all of these options even if the engine does not support them; 
+	refer to the engine help file to find out how it will respond to these settings. 
+
+	
+<LI><b>Command...</b> gives you a popup box to type in a command which will be passed on to the engine.
+	The reason for this is that although the common engine options will probably cover most 
+	options an engine has, there may be additional options an engine programmer has thought
+	of that are not covered. If this is the case, you can type in a command to the engine directly
+	here.
+
+<LI><b>About and Help</b> show an about box and a help file for the current engine.
+	</UL>
+
+
+
+
+<h4>The Help Menu</h4>
+<UL>
+<LI><b>About CheckerBoard</b> displays an about box with the version number of CheckerBoard.
+<LI><b>CheckerBoard help</b> displays this file.
+<LI><b>Checkers in a Nutshell</b> is a short introduction to the strategy of the game of
+checkers by Richard Pask. Richard is a checkers grandmaster and has written a number of books
+on checkers both for beginners and experts.
+<LI><b>CheckerBoard homepage</b> goes to the CheckerBoard homepage in the internet.
+</UL> 
+
+<h4>The Database Menu</h4>
+If you want to improve the playing strength of Cake 'Sans Souci', you can build the Cake 
+6-piece database. To simplify this task, I have
+added a menu item to build the database. Just choose <b>Build 6-piece database</b>, and 
+the database will be created on your computer. The database generator is a separate program,
+which is invoked by this command. You will see a black window pop up, with rapidly scrolling
+text in it - a DOS box. Close CheckerBoard, and wait for the generator to complete - you know
+it is finished when the black window has disappeared. Note that this will take a while: on a fast computer
+it takes 4 hours (Athlon 1.4GHz), so you best do this over night. You will also need roughly 
+200MB free disk space temporarily. After the database generator is finished, the database menu
+item should disappear 
+on the next start of CheckerBoard  if you have successfully built the 6-piece database. If
+you use Cake 'Sans Souci' after building the endgame database, it will tell you that it is
+using it in the engine about box.
+
+<H3><a name="typical"></a>Some typical tasks explained</a></H3>
+This section gives you a step-by-step guide to some things you might want to do with CheckerBoard.
+<H4>Send a game by email to a friend</H4>
+You just played this great game and want to share it with somebody? If you both have CheckerBoard,
+no problem! Just press Ctrl+C in CheckerBoard, which copies the game notation and any comments you 
+may have added to the game to the clipboard. A popup window will pop up, and display what has been
+copied to the clipboard. Press ok to make that popup window disappear again. 
+Switch to your email program, and start a new email to
+your friend. Once you have that email window open, just press Ctrl+V to paste the game into your email.
+Send the email. Once your friend receives the email, he can select the text in the email with the 
+mouse, and press Ctrl+C to copy it to the clipboard. Next, he opens CheckerBoard and presses Ctrl+V to
+paste the game into CheckerBoard. A small popup appears with the game information. Now he can use 
+the forward and backward buttons to replay your game and view your comments on it. 
+Below is a sample you can try to copy it and then paste it into CheckerBoard:
+
+<em>Select from the next line...</em><br><br>
+[Event "Banks ladder, Wilderness 1"]
+[Black "Wyllie"]
+[White "Cake++ 1.3 beta v7"]
+[Result "0-1"]
+1. 9-13 22-18 2. 11-16 18-14 3. 10x17 21x14 4. 16-20 24-19 5. 6-10 25-21 6. 10x17 21x14 7. 
+2-6 29-25 8. 6-10 25-21 9. 10x17 21x14 10. 1-6 30-25 11. 13-17 25-21 12. 8-11 23-18 13. 5-9 
+14x5 14. 11-16 21x14 15. 16x30 5-1 16. 6-10 14-9 17. 7-11 9-6 18. 12-16 6-2 19. 10-15 18-14 
+20. 16-19 1-6 21. 19-23 27x18 22. 15x22 14-10 23. 3-8 2-7 24. 11-16 6-9 25. 30-26 9-14 0-1
+<br><br>
+<em>...to the line above and press Ctrl+C, then, go to CheckerBoard and press Ctrl+V</em>
+
+
+<H4>Add comments to an existing game</H4>
+If you have saved a game in your PDN database, and would later like to add comments to it, do
+the following: First, load the game as usual. Then, step through the game with the forward and
+backward buttons in the toolbar (or, as I prefer, using the right and left arrow key on the
+keyboard). Whenever you get to a position you would like to add a comment to, hit the space 
+bar, and a small window will pop up where you can enter your comment. Just type in anything
+you have to say about this position (there is a limit of 256 characters to this comment, so
+be brief!), and hit return. Continue through the game, until you are done. Now, choose Game-&gt;Replace
+from the menu (or press Ctrl+R) and a dialog to replace the game will pop up. Just hit return, and
+the game is replaced.
+
+<H4>Publishing a game on the internet</H4>
+If you want to make game of yours or notes to a game available to a larger audience, then
+CheckerBoard's 'save as HTML' feature is for you. Just enter (or load) the game you wish
+to publish, add any comments you have to the game, and select 'save as HTML'. CheckerBoard
+will produce a fully functioning webpage for you which uses JavaScript to let you play
+through the game on any web browser. You should save the game into the 'games' folder
+inside CheckerBoard (the save as HTML dialog should default to that folder). Make sure
+you add the correct file extension, such as .htm or .html to the file name, for example,
+call it 'game1.htm'. To look at your newly created web page, navigate to the 'games' folder 
+in your windows explorer, and double-click on the newly created file - game1.htm in this example. 
+This will open the file in internet explorer, and you can see if you like the result. For this to
+work properly, there must be a folder named 'gif' with the six images you need to display a 
+board inside the directory where the file game1.htm is located. If you save the game to the
+default folder, this is already the case. <br>
+To publish the game on the internet, you will have to first upload the images to display the
+board. These are contained in the 'gif' folder inside the 'games' folder inside the CheckerBoard
+folder. The 'gif' folder will have to reside in the same directory on your web server as 
+the HTML files you want to publish, in this case, 'game1.htm'. If you already have a folder 
+called 'gif' on your webpage, just copy the 6 gif images in the 'gif' filder into your 'gif' 
+folder on your web server. Now you can upload the HTML file(s), like 'game1.htm'. Once the images
+are on your web server, you can upload any number of HTML files which use them. If the page 
+does not display properly, i.e. if the board is not displayed, then you have most likely made
+a mistake with the 'gif' directory. 
+
+<H3><a name="rules"></a>Rules of the game</H3>
+The rules of checkers are simple, but there are many different variations of these rules.
+The rules of the English/American version are: You play on a 8-by-8
+board, and the kings can only move one square. 
+There are two kinds of stones in checkers: men and kings. At the beginning of the game,
+you only have 12 men. Both kinds of pieces can only move diagonally and only one square, 
+however, men can only move forward, whereas kings can also move backward. Besides
+making normal moves, you can also capture other pieces: if the piece of the opponent is in
+front of your piece, and the square behind the opponent's piece is free, you can jump onto 
+this free square and remove the opponent's piece. Multiple jumps are also possible. The
+most important rule in english checkers is that <b>if you can jump, you must.</b> This leads to many
+tactical possibilities. For further information about the game of checkers, I recommend you
+visit <a herf="http://www.jimloy.com">Jim Loy's excellent website</a>, which has a lot 
+of material on checkers. If you get addicted to checkers, you can consider joining either
+the american checkers federation, or the english draughts association. Since both organisations
+may change their web address in the near future, just do a search on Google for them.
+
+
+<H3><a name="developers"></a>For Developers</H3>
+CheckerBoard is explicitly only designed as an interface. CheckerBoard is free. CheckerBoard is a 
+good choice for an interface if you want to develop an engine, because it relieves you from the 
+hassle of interface programming, and because it gives you the capability to test your engine 
+against other engines with the engine-engine mode. If you would like to program an engine
+for CheckerBoard or if you have already written a checkers program and want to adapt it to 
+run as engine in CheckerBoard, there is a documentation of the CheckerBoard API on the
+CheckerBoard website.
+<P>
+Once you have finished your engine, you must copy the dll into the CheckerBoard folder and select your engine with 'engine-&gt;select...'. 
+Of course I would love to hear from you if you do write an engine for CheckerBoard. If you do, please 
+send me a mail to <i>nospam1 at fierz dot ch</i>. I would like to link to your page, or, if you don't have one, I would put your engine on my server.
+<HR>
+<address>Last modified by Martin Fierz on September 17, 2005</Address>

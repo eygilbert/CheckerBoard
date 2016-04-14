@@ -1,0 +1,1067 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+
+// instead of #include afxres.h use the following two lines:
+#include <windows.h>
+#define IDC_STATIC (-1) 
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+101                     BITMAP                  "Bitmap_1.bmp"
+102                     BITMAP                  "Bitmap_2.bmp"
+105                     BITMAP                  "Bitmap_3.bmp"
+111                     BITMAP                  "Bitmap_4.bmp"
+300                     BITMAP                  "Bitmap_5.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+MENUDEUTSCH MENU 
+BEGIN
+    POPUP "Datei"
+    BEGIN
+        MENUITEM "&Neue Partie\tCtrl+N",        101
+        MENUITEM "Neue 3-Zug-Partie\tCtrl+3",   102
+        MENUITEM SEPARATOR
+        MENUITEM "Datenbank wählen...",         110
+        MENUITEM "Benutzerbuch wählen...",      122
+        MENUITEM "Partie öffnen...\tCtrl+O",    103
+        MENUITEM "Partie speichern...\tCtrl+S", 104
+        MENUITEM "Partie als HTML speichern...", 116
+        MENUITEM "Partie ersetzen...\tCtrl+R",  113
+        MENUITEM "Partieinfo\tCtrl+I",          105
+        MENUITEM "Partie analysieren\tCtrl+A",  106
+        MENUITEM "PDN analysieren",             127
+        MENUITEM SEPARATOR
+        MENUITEM "Programm beenden\tCtlr+Q",    109
+    END
+    POPUP "Bearbeiten"
+    BEGIN
+        MENUITEM "PDN kopieren\tCtrl+C",        107
+        MENUITEM "PDN einfügen\tCtrl+V",        108
+        MENUITEM "FEN kopieren\tAlt+C",         120
+        MENUITEM "FEN einfügen\tAlt+V",         121
+        MENUITEM "Diagramm kopieren\tCtrl+D",   118
+        MENUITEM SEPARATOR
+        MENUITEM "Stellung eingeben",           501
+        MENUITEM "Brett leeren",                502
+    END
+    POPUP "Suche"
+    BEGIN
+        MENUITEM "Suchmaske...\tCtrl+M",        119
+        MENUITEM "Suche Stellung\tCtrl+F",      114
+        MENUITEM "Suche wiederholen\tF10",      124
+        MENUITEM "Vorhergehende Partie\tF11",   126
+        MENUITEM "Nachfolgende Partie\tF12",    125
+        MENUITEM "Suche Stellung mit vertauschten Farben", 123
+        MENUITEM "Suche ähnliche Stellungen",   115
+    END
+    POPUP "Züge"
+    BEGIN
+        MENUITEM "Ziehe jetzt!\tCtrl+P",        201
+        MENUITEM "Zurück\t<-",                  202
+        MENUITEM "Partieanfang\tup-arrow",      204
+        MENUITEM "Vorwärts\t->",                203
+        MENUITEM "Partieende\tdown-arrow",      205
+        MENUITEM "Kommentar hinzufügen\tSpace", 207
+    END
+    POPUP "Optionen"
+    BEGIN
+        POPUP "Modus"
+        BEGIN
+            MENUITEM "Normal\tEsc",                 310, CHECKED
+            MENUITEM "Selbstspiel",                 313
+            MENUITEM "Analyse",                     311
+            MENUITEM "2 Spieler\tCtrl+2",           315
+            MENUITEM "Motor - Motor",               316
+            MENUITEM "Benutzerbuch anzeigen",       360
+            MENUITEM "Benutzerbuch bearbeiten",     361
+        END
+        POPUP "Spielstufe"
+        BEGIN
+            MENUITEM "Exakt",                       340
+            MENUITEM "Sofort",                      341
+            MENUITEM "1 Sekunde",                   342
+            MENUITEM "2 Sekunden",                  343
+            MENUITEM "5 Sekunden",                  344, CHECKED
+            MENUITEM "10 Sekunden",                 356
+            MENUITEM "15 Sekunden",                 345
+            MENUITEM "30 Sekunden",                 346
+            MENUITEM "1 Minute",                    347
+            MENUITEM "2 Minuten",                   348
+            MENUITEM "5 Minuten",                   349
+            MENUITEM "15 Minuten",                  350
+            MENUITEM "30 Minuten",                  351
+            MENUITEM "Unendlich",                   352
+            MENUITEM "Inkrement",                   353
+            MENUITEM "Zeit hinzufügen\t+",          354
+            MENUITEM "Zeit abziehen\t-",            355
+        END
+        POPUP "Anzeige"
+        BEGIN
+            MENUITEM "Brettnummern",                309
+            MENUITEM "letzten Zug markieren",       322
+            MENUITEM "Invertieren\tAlt+I",          308
+            MENUITEM "Spiegeln",                    3091
+        END
+        POPUP "Spielsteine"
+        BEGIN
+            MENUITEM "standard",                    112
+        END
+        POPUP "Farben"
+        BEGIN
+            MENUITEM "Brettnummern",                330
+            MENUITEM "Markierung",                  331
+        END
+        POPUP "Sprache"
+        BEGIN
+            MENUITEM "English",                     370
+            MENUITEM "Espanol",                     371
+            MENUITEM "Italiano",                    372
+            MENUITEM "Deutsch",                     373
+            MENUITEM "Francais",                    374
+        END
+        MENUITEM "Ton",                         323
+        MENUITEM "3-Zug Einstellung...",        40001
+        MENUITEM "Verzeichnisse...",            40002
+        MENUITEM "Tiefe Priorität",             324
+        MENUITEM "Benutzerbuch",                325
+        MENUITEM "Kommentarfenster",            326
+    END
+    POPUP "Motor"
+    BEGIN
+        MENUITEM "Auswählen...",                600
+        MENUITEM "Optionen...",                 604
+        MENUITEM "Kommando...",                 804
+        MENUITEM "Info",                        602
+        MENUITEM "Hilfe",                       603
+    END
+    POPUP "Hilfe"
+    BEGIN
+        MENUITEM "CheckerBoard Info",           402
+        MENUITEM "CheckerBoard Hilfe",          401
+        MENUITEM "Dame für Anfänger",           403
+        MENUITEM SEPARATOR
+        MENUITEM "CheckerBoard Homepage",       405
+    END
+    POPUP "Entwickler"
+    BEGIN
+        MENUITEM "Engine Match",                800
+        MENUITEM "Add Comments to PDN",         802
+        MENUITEM "Static Evaluation",           803
+        MENUITEM "Run Test Set",                805
+        MENUITEM "Handicap Mode",               806
+    END
+ END
+
+MENUENGLISH MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New Game\tCtrl+N",           101
+        MENUITEM "New 3-move Game\tCtrl+3",     102
+        MENUITEM SEPARATOR
+        MENUITEM "Select Database...",          110
+        MENUITEM "Select User Book...",         122
+        MENUITEM "&Open Game...\tCtrl+O",       103
+        MENUITEM "&Save Game...\tCtrl+S",       104
+        MENUITEM "Save Game as HTML...",        116
+        MENUITEM "&Replace Game...\tCtrl+R",    113
+        MENUITEM "&Info\tCtrl+I",               105
+        MENUITEM "Analyze Game\tCtrl+A",        106
+        MENUITEM "Analyze PDN",                 127
+        MENUITEM SEPARATOR
+        MENUITEM "Quit\tCtlr+Q",                109
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "PDN to clipboard\tCtrl+C",    107
+        MENUITEM "PDN from clipboard\tCtrl+V",  108
+        MENUITEM "FEN to clipboard\tAlt+C",     120
+        MENUITEM "FEN from clipboard\tAlt+V",   121
+        MENUITEM "Diagram to clipboard\tCtrl+D", 118
+        MENUITEM SEPARATOR
+        MENUITEM "Setup Mode",                  501
+        MENUITEM "Clear Board",                 502
+    END
+    POPUP "&Search"
+    BEGIN
+        MENUITEM "Search Mask...\tCtrl+M",      119
+        MENUITEM "Search Position\tCtrl+F",     114
+        MENUITEM "Re-Search\tF10",              124
+        MENUITEM "Load previous\tF11",          126
+        MENUITEM "Load next\tF12",              125
+        MENUITEM "Search CR Position",          123
+        MENUITEM "Search Similar",              115
+    END
+    POPUP "&Moves"
+    BEGIN
+        MENUITEM "&Play\tCtrl+P",               201
+        MENUITEM "Back\t<-",                    202
+        MENUITEM "Back all\tup-arrow",          204
+        MENUITEM "Forward\t->",                 203
+        MENUITEM "Forward all\tdown-arrow",     205
+        MENUITEM "Add comment\tSpace",          207
+    END
+    POPUP "&Options"
+    BEGIN
+        POPUP "Mode"
+        BEGIN
+            MENUITEM "Normal\tEsc",                 310, CHECKED
+            MENUITEM "Autoplay",                    313
+            MENUITEM "Analysis",                    311
+            MENUITEM "2 Players\tCtrl+2",           315
+            MENUITEM "Engine - Engine",             316
+            MENUITEM "View User Book",              360
+            MENUITEM "Edit User Book",              361
+        END
+        POPUP "Level"
+        BEGIN
+            MENUITEM "Exact",                       340
+            MENUITEM "Instant",                     341
+            MENUITEM "1 second",                    342
+            MENUITEM "2 seconds",                   343
+            MENUITEM "5 seconds",                   344, CHECKED
+            MENUITEM "10 seconds",                  356
+            MENUITEM "15 seconds",                  345
+            MENUITEM "30 seconds",                  346
+            MENUITEM "1 minute",                    347
+            MENUITEM "2 minutes",                   348
+            MENUITEM "5 minutes",                   349
+            MENUITEM "15 minutes",                  350
+            MENUITEM "30 minutes",                  351
+            MENUITEM "Infinite",                    352
+            MENUITEM "Increment",                   353
+            MENUITEM "add time\t+",                 354
+            MENUITEM "subtract time\t-",            355
+        END
+        POPUP "Display"
+        BEGIN
+            MENUITEM "Board Numbers",               309
+            MENUITEM "Highlight last move",         322
+            MENUITEM "Invert\tAlt+I",               308
+            MENUITEM "Mirror",                      3091
+        END
+        POPUP "Piece Set"
+        BEGIN
+            MENUITEM "standard",                    117
+        END
+        POPUP "Colors"
+        BEGIN
+            MENUITEM "Board Numbers",               330
+            MENUITEM "Highlighting",                331
+        END
+        POPUP "Language"
+        BEGIN
+            MENUITEM "English",                     370
+            MENUITEM "Espanol",                     371
+            MENUITEM "Italiano",                    372
+            MENUITEM "Deutsch",                     373
+            MENUITEM "Francais",                    374
+        END
+        MENUITEM "Sound",                       323
+        MENUITEM "3-move deck...",              40001
+        MENUITEM "Directories...",              40002
+        MENUITEM "Low priority mode",           324
+        MENUITEM "User book",                   325
+    END
+    POPUP "En&gine"
+    BEGIN
+        MENUITEM "Select...",                   600
+        MENUITEM "Options...",                  604
+        MENUITEM "Command...",                  804
+        MENUITEM "About",                       602
+        MENUITEM "Help",                        603
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "About CheckerBoard",          402
+        MENUITEM "CheckerBoard Help",           401
+        MENUITEM "Checkers in a Nutshell",      403
+        MENUITEM SEPARATOR
+        MENUITEM "CheckerBoard Homepage",       405
+    END
+    POPUP "Developer"
+    BEGIN
+        MENUITEM "Engine Match",                800
+        MENUITEM "Add Comments to PDN",         802
+        MENUITEM "Static Evaluation",           803
+        MENUITEM "Run Test Set",                805
+        MENUITEM "Handicap Mode",               806
+    END
+END
+
+MENUFRANCAIS MENU 
+BEGIN
+    POPUP "&Fichier"
+    BEGIN
+        MENUITEM "&Nouvelle Partie\tCtrl+N",    101
+        MENUITEM "Lancer une partie en 3 coups\tCtrl+3", 102
+        MENUITEM SEPARATOR
+        MENUITEM "Ouvrir la base de données...", 110
+        MENUITEM "Charger une overture...",     122
+        MENUITEM "&Charger und partie...\tCtrl+O", 103
+        MENUITEM "&Sauver la partie...\tCtrl+S", 104
+        MENUITEM "Sauver la partie en HTML...", 116
+        MENUITEM "&Remplacer la partie...\tCtrl+R", 113
+        MENUITEM "&Info\tCtrl+I",               105
+        MENUITEM "Analyser une partie\tCtrl+A", 106
+        MENUITEM "Analyser PDN",                127
+        MENUITEM SEPARATOR
+        MENUITEM "Quitter\tCtlr+Q",             109
+    END
+    POPUP "&Editer"
+    BEGIN
+        MENUITEM "Copier le texte PDN\tCtrl+C", 107
+        MENUITEM "Coller le texte PDN\tCtrl+V", 108
+        MENUITEM "Copier le texte FEN\tAlt+C",  120
+        MENUITEM "Coller le texte FEN\tAlt+V",  121
+        MENUITEM "Copier image du damier\tCtrl+D", 118
+        MENUITEM SEPARATOR
+        MENUITEM "Changer la position",         501
+        MENUITEM "Vider le damier",             502
+    END
+    POPUP "&Recherche"
+    BEGIN
+        MENUITEM "Editer une recherche...\tCtrl+M", 119
+        MENUITEM "Rechercher une position\tCtrl+F", 114
+        MENUITEM "Relancer la recherche\tF10",  124
+        MENUITEM "Charger la précedente\tF11",  126
+        MENUITEM "Charger la suivante\tF12",    125
+        MENUITEM "Rechercher une position CR",  123
+        MENUITEM "Recherche similaire",         115
+    END
+    POPUP "&Coups"
+    BEGIN
+        MENUITEM "Jouer",                       201
+        MENUITEM "Revenir\t<-",                 202
+        MENUITEM "Début de partie\tflèche du haut", 204
+        MENUITEM "Avancer\t->",                 203
+        MENUITEM "Fin de partie\tflèche du bas", 205
+        MENUITEM "Ajouter des commentaires\tEspace", 207
+    END
+    POPUP "&Options"
+    BEGIN
+        POPUP "Mode"
+        BEGIN
+            MENUITEM "Normal\tEchap",               310, CHECKED
+            MENUITEM "Jeu automatique",             313
+            MENUITEM "Analyse",                     311
+            MENUITEM "2 Joueurs\tCtrl+2",           315
+            MENUITEM "Moteur - Moteur",             316
+            MENUITEM "Voir l'ouverture",            360
+            MENUITEM "Editer l'ouverture",          361
+        END
+        POPUP "Niveau"
+        BEGIN
+            MENUITEM "Exact",                       340
+            MENUITEM "Instantané",                  341
+            MENUITEM "1 seconde",                   342
+            MENUITEM "2 secondes",                  343
+            MENUITEM "5 secondes",                  344, CHECKED
+            MENUITEM "10 secondes",                 356
+            MENUITEM "15 secondes",                 345
+            MENUITEM "30 secondes",                 346
+            MENUITEM "1 minute",                    347
+            MENUITEM "2 minutes",                   348
+            MENUITEM "5 minutes",                   349
+            MENUITEM "15 minutes",                  350
+            MENUITEM "30 minutes",                  351
+            MENUITEM "Infini",                      352
+            MENUITEM "Increment",                   353
+            MENUITEM "add time\t+",                 354
+            MENUITEM "subtract time\t-",            355
+        END
+        POPUP "Damier"
+        BEGIN
+            MENUITEM "Numéroter",                   309
+            MENUITEM "Voir le dernier coup",        322
+            MENUITEM "Tourner\tAlt+I",              308
+            MENUITEM "Miroir",                      3091
+        END
+        POPUP "Pièces"
+        BEGIN
+            MENUITEM "standard",                    117
+        END
+        POPUP "Couleurs"
+        BEGIN
+            MENUITEM "Numéroter le damier",         330
+            MENUITEM "Highlighting",                331
+        END
+        POPUP "Langage"
+        BEGIN
+            MENUITEM "English",                     370
+            MENUITEM "Espanol",                     371
+            MENUITEM "Italiano",                    372
+            MENUITEM "Deutsch",                     373
+            MENUITEM "Francais",                    374
+        END
+        MENUITEM "Son",                         323
+        MENUITEM "Début en 3 coups...",         40001
+        MENUITEM "Dossier...",                  40002
+        MENUITEM "Mode faible priorité",        324
+        MENUITEM "Ouverture",                   325
+    END
+    POPUP "Moteur"
+    BEGIN
+        MENUITEM "Sélection...",                600
+        MENUITEM "Options...",                  604
+        MENUITEM "Commande...",                 804
+        MENUITEM "Info",                        602
+        MENUITEM "Aide",                        603
+    END
+    POPUP "&Aide"
+    BEGIN
+        MENUITEM "Info CheckerBoard",           402
+        MENUITEM "CheckerBoard Aide",           401
+        MENUITEM "Checkers en bref",            403
+        MENUITEM SEPARATOR
+        MENUITEM "Site web CheckerBoard",       405
+    END
+    POPUP "Developer"
+    BEGIN
+        MENUITEM "Lancer un Match",             800
+        MENUITEM "Ajouter des commentaires au PDN", 802
+        MENUITEM "Evaluation statique",         803
+        MENUITEM "Lancer le test",              805
+        MENUITEM "Mode Handicap",               806
+    END
+END
+
+MENUESPANOL MENU 
+BEGIN
+    POPUP "Archivo"
+    BEGIN
+        MENUITEM "&Nueva Partida\tCtrl+N",      101
+        MENUITEM "Nueva Partida 3-jugadas\tCtrl+3", 102
+        MENUITEM SEPARATOR
+        MENUITEM "Seleccionar Base de Datos...", 110
+        MENUITEM "Seleccionar Libro de Usuario...", 122
+        MENUITEM "Abrir Partida...\tCtrl+O",    103
+        MENUITEM "Guardar Partida...\tCtrl+S",  104
+        MENUITEM "Guardar Partida como HTML...", 116
+        MENUITEM "Reemplazar Partida...\tCtrl+R", 113
+        MENUITEM "Informacion\tCtrl+I",         105
+        MENUITEM "Analizar Partida\tCtrl+A",    106
+        MENUITEM "Analizar PDN",                127
+        MENUITEM SEPARATOR
+        MENUITEM "Quit\tCtlr+Q",                109
+    END
+    POPUP "Editar"
+    BEGIN
+        MENUITEM "Copiar Partida (PDN)\tCtrl+C", 107
+        MENUITEM "Pegar Partida (PDN)\tCtrl+V", 108
+        MENUITEM "Copiar Posicion (FEN)\tAlt+C", 120
+        MENUITEM "Pegar Posicion (FEN)\tAlt+V", 121
+        MENUITEM "Copiar Diagrama\tCtrl+D",     118
+        MENUITEM SEPARATOR
+        MENUITEM "Modo Edicion",                501
+        MENUITEM "Limpiar Tablero",             502
+    END
+    POPUP "Buscar"
+    BEGIN
+        MENUITEM "Buscar Mascara...\tCtrl+M",   119
+        MENUITEM "Buscar Posicion\tCtrl+F",     114
+        MENUITEM "Repetir busqueda\tF10",       124
+        MENUITEM "Partida anterior\tF11",       126
+        MENUITEM "Partida Siguente\tF12",       125
+        MENUITEM "Buscar con Colores Invertidos", 123
+        MENUITEM "Buscar Similar",              115
+    END
+    POPUP "Jugadas"
+    BEGIN
+        MENUITEM "Mover\tCtrl+P",               201
+        MENUITEM "Anterior\t<-",                202
+        MENUITEM "Primera\tup-arrow",           204
+        MENUITEM "Siguiente\t->",               203
+        MENUITEM "Ultima\tdown-arrow",          205
+        MENUITEM "Añadir comentario\tSpace",    207
+    END
+    POPUP "Opciones"
+    BEGIN
+        POPUP "Modo"
+        BEGIN
+            MENUITEM "Normal\tEsc",                 310, CHECKED
+            MENUITEM "Juego automatico",            313
+            MENUITEM "Analisis",                    311
+            MENUITEM "2 Jugadores\tCtrl+2",         315
+            MENUITEM "Motor - Motor",               316
+            MENUITEM "Ver Libro Usuario",           360
+            MENUITEM "Editar Libro Usuario",        361
+        END
+        POPUP "Nivel"
+        BEGIN
+            MENUITEM "Exacto",                      340
+            MENUITEM "Instantaneo",                 341
+            MENUITEM "1 segundo",                   342
+            MENUITEM "2 segundos",                  343
+            MENUITEM "5 segundos",                  344, CHECKED
+            MENUITEM "10 segundos",                 356
+            MENUITEM "15 segundos",                 345
+            MENUITEM "30 segundos",                 346
+            MENUITEM "1 minuto",                    347
+            MENUITEM "2 minutos",                   348
+            MENUITEM "5 minutos",                   349
+            MENUITEM "15 minutos",                  350
+            MENUITEM "30 minutos",                  351
+            MENUITEM "Infinito",                    352
+            MENUITEM "Incremental",                 353
+            MENUITEM "Añadir tiempo\t+",            354
+            MENUITEM "Restar tiempo\t-",            355
+        END
+        POPUP "Tablero"
+        BEGIN
+            MENUITEM "Numeracion del Tablero",      309
+            MENUITEM "Resaltar ultima jugada",      322
+            MENUITEM "Girar\tAlt+I",                308
+            MENUITEM "Espejo",                      3091
+        END
+        POPUP "Piezas"
+        BEGIN
+            MENUITEM "standard",                    128
+        END
+        POPUP "Colors"
+        BEGIN
+            MENUITEM "Numeracion del Tablero",      330
+            MENUITEM "Resaltado",                   331
+        END
+        POPUP "Language"
+        BEGIN
+            MENUITEM "English",                     370
+            MENUITEM "Espanol",                     371
+            MENUITEM "Italiano",                    372
+            MENUITEM "Deutsch",                     373
+            MENUITEM "Francais",                    374
+        END
+        MENUITEM "Sonido",                      323
+        MENUITEM "Baraja de 3-jugadas...",      40001
+        MENUITEM "Directorios...",              40002
+        MENUITEM "Modo de prioridad baja",      324
+        MENUITEM "Libro de usuario",            325
+    END
+    POPUP "Motor"
+    BEGIN
+        MENUITEM "Seleccionar...",              600
+        MENUITEM "Opciones...",                 604
+        MENUITEM "Comando...",                  804
+        MENUITEM "Informacion",                 602
+        MENUITEM "Ayuda",                       603
+    END
+    POPUP "Ayuda"
+    BEGIN
+        MENUITEM "Informacion sobre CheckerBoard", 402
+        MENUITEM "Ayuda de CheckerBoard",       401
+        MENUITEM "Introduccion a las Damas",    403
+        MENUITEM SEPARATOR
+        MENUITEM "Portal de CheckerBoard",      405
+    END
+    POPUP "Desarrollador"
+    BEGIN
+        MENUITEM "Partida entre Motores",       800
+        MENUITEM "Añadir Comentarios a PDN",    802
+        MENUITEM "Evaluacion Estatica",         803
+        MENUITEM "Ejecutar Conjunto de Pruebas", 805
+        MENUITEM "Modo Desventaja",             806
+    END
+END
+
+MENUITALIANO MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Nuova Partita\tCtrl+N",      101
+        MENUITEM "Sorteggia Apertura\tCtrl+3",  102
+        MENUITEM SEPARATOR
+        MENUITEM "Scegli database PDN...",      110
+        MENUITEM "Scegli Archivio gioco utente...", 122
+        MENUITEM "Apri Gioco...\tCtrl+O",       103
+        MENUITEM "&Salva Gioco...\tCtrl+S",     104
+        MENUITEM "Salva Gioco in HTML...",      116
+        MENUITEM "Sostituisci Partita...\tCtrl+R", 113
+        MENUITEM "Note Partita\tCtrl+I",        105
+        MENUITEM "Analisi Gioco\tCtrl+A",       106
+        MENUITEM "Analisi PDN",                 127
+        MENUITEM SEPARATOR
+        MENUITEM "Chiudi\tCtlr+Q",              109
+    END
+    POPUP "Impostazioni"
+    BEGIN
+        MENUITEM "PDN in memoria\tCtrl+C",      107
+        MENUITEM "PDN dalla memoria\tCtrl+V",   108
+        MENUITEM "FEN in memoria\tAlt+C",       120
+        MENUITEM "FEN dalla memoria\tAlt+V",    121
+        MENUITEM "Diagramma in memoria\tCtrl+D", 118
+        MENUITEM SEPARATOR
+        MENUITEM "Imposta Pezzi",               501
+        MENUITEM "Togli Pezzi",                 502
+    END
+    POPUP "Ricerche"
+    BEGIN
+        MENUITEM "Ricerca dati partita...\tCtrl+M", 119
+        MENUITEM "Ricerca posizione\tCtrl+F",   114
+        MENUITEM "Ripeta Ricerca\tF10",         124
+        MENUITEM "Carica precedente\tF11",      126
+        MENUITEM "Carica successiva\tF12",      125
+        MENUITEM "Posizione colori rovesciati", 123
+        MENUITEM "Posizione similare",          115
+    END
+    POPUP "&Mosse"
+    BEGIN
+        MENUITEM "Gioca Programma\tCtrl+P",     201
+        MENUITEM "Indietro\t<-",                202
+        MENUITEM "Tutto indietro\tup-arrow",    204
+        MENUITEM "Avanti\t->",                  203
+        MENUITEM "Tutto avanti\tdown-arrow",    205
+        MENUITEM "Commento mossa\tSpace",       207
+    END
+    POPUP "&Opzioni"
+    BEGIN
+        POPUP "Modo Gioco"
+        BEGIN
+            MENUITEM "Normale\tEsc",                310, CHECKED
+            MENUITEM "Autogioco",                   313
+            MENUITEM "Analisi",                     311
+            MENUITEM "2 Giocatori\tCtrl+2",         315
+            MENUITEM "Motore - Motore",             316
+            MENUITEM "Vedi Archivio utente",        360
+            MENUITEM "Imposta Archivio utente",     361
+        END
+        POPUP "Tempo risposta"
+        BEGIN
+            MENUITEM "Preciso",                     340
+            MENUITEM "Instantaneo",                 341
+            MENUITEM "1 secondo",                   342
+            MENUITEM "2 secondi",                   343
+            MENUITEM "5 secondi",                   344, CHECKED
+            MENUITEM "10 secondi",                  356
+            MENUITEM "15 secondi",                  345
+            MENUITEM "30 secondi",                  346
+            MENUITEM "1 minuto",                    347
+            MENUITEM "2 minuti",                    348
+            MENUITEM "5 minuti",                    349
+            MENUITEM "15 minuti",                   350
+            MENUITEM "30 minuti",                   351
+            MENUITEM "Infinito",                    352
+            MENUITEM "Increment",                   353
+            MENUITEM "add time\t+",                 354
+            MENUITEM "subtract time\t-",            355
+        END
+        POPUP "Schermata"
+        BEGIN
+            MENUITEM "Numerazione",                 309
+            MENUITEM "Evidenzia ultima mossa",      322
+            MENUITEM "Ruota Damiera\tAlt+I",        308
+            MENUITEM "Posizione speculare",         3091
+        END
+        POPUP "Pezzi"
+        BEGIN
+            MENUITEM "standard",                    130
+        END
+        POPUP "Colori"
+        BEGIN
+            MENUITEM "Numerazione",                 330
+            MENUITEM "Evidenziamento",              331
+        END
+        POPUP "Language"
+        BEGIN
+            MENUITEM "English",                     370
+            MENUITEM "Espanol",                     371
+            MENUITEM "Italiano",                    372
+            MENUITEM "Deutsch",                     373
+            MENUITEM "Francais",                    ID_LANGUAGE_FRANCAIS
+        END
+        MENUITEM "Suono",                       323
+        MENUITEM "Categoria Apertura...",       40001
+        MENUITEM "Cartelle...",                 40002
+        MENUITEM "Risparmio CPU",               324
+        MENUITEM "Usa Archivio Utente",         325
+    END
+    POPUP "Motori di analisi"
+    BEGIN
+        MENUITEM "Scegli Motore...",            600
+        MENUITEM "Parametri...",                604
+        MENUITEM "Comandi per Motore...",       804
+        MENUITEM "Informazioni",                602
+        MENUITEM "Guida motore",                603
+    END
+    POPUP "Guida"
+    BEGIN
+        MENUITEM "Informazioni su CheckerBoard", 402
+        MENUITEM "Guida al CheckerBoard",       401
+        MENUITEM "Guida alle Regole della Dama", 403
+        MENUITEM SEPARATOR
+        MENUITEM "CheckerBoard Homepage",       405
+    END
+    POPUP "Developer"
+    BEGIN
+        MENUITEM "Engine Match",                800
+        MENUITEM "Add Comments to PDN",         802
+        MENUITEM "Static Evaluation",           803
+        MENUITEM "Run Test Set",                805
+        MENUITEM "Handicap Mode",               806
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_3MOVE DIALOGEX 0, 0, 145, 170
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+EXSTYLE WS_EX_STATICEDGE
+CAPTION "3-move deck"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",1,83,148,50,14
+    PUSHBUTTON      "Cancel",2,6,148,50,14
+    CONTROL         "Normal openings            (144)",1000,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,92,109,10
+    CONTROL         "Mail-play openings           (12)",1001,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,107,108,10
+    CONTROL         "Probably lost openings     (18)",1002,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,109,10
+    LTEXT           "openings, which are a win for one side.",-1,5,64,127,13
+    LTEXT           "The American checkers federation (ACF) distinguishes between 3 different kinds of 3-move openings: Normal openings, where good play by both sides results in a draw, openings only suitable for mail-play, which are all thought to draw too, and barred",-1,6,8,124,56
+END
+
+IDD_CBABOUT DIALOGEX 0, 0, 151, 215
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+EXSTYLE WS_EX_DLGMODALFRAME | WS_EX_CONTROLPARENT
+CAPTION "About CheckerBoard"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "OK",1,50,193,50,14,BS_CENTER
+    LTEXT           "This is CheckerBoard 1.72\nCopyright (c) 2000-2011 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
+    CONTROL         101,-1,"Static",SS_BITMAP | SS_REALSIZEIMAGE,4,4,143,80
+END
+
+IDD_COMMENT DIALOGEX 0, 0, 186, 66
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Comment"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",1,40,45,50,14
+    PUSHBUTTON      "Cancel",2,97,45,50,14
+    EDITTEXT        1001,7,7,172,30,ES_MULTILINE | ES_AUTOVSCROLL
+END
+
+IDD_DIALOGENGINES DIALOGEX 0, 0, 135, 127
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+EXSTYLE WS_EX_DLGMODALFRAME | WS_EX_CONTROLPARENT
+CAPTION "Choose your engines"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "OK",1,14,100,50,14,BS_CENTER
+    PUSHBUTTON      "Cancel",2,70,100,50,14,BS_CENTER
+    LTEXT           "primary engine",104,14,7,60,8,NOT WS_GROUP
+    LTEXT           "secondary engine",105,14,51,60,8,NOT WS_GROUP
+    LISTBOX         101,13,17,108,38,LBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         102,13,60,108,39,LBS_SORT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_DIRECTORIES DIALOGEX 0, 0, 350, 85
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Directories"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",1,291,65,50,14
+    PUSHBUTTON      "Cancel",2,226,66,50,14
+    EDITTEXT        1001,7,17,334,12,ES_AUTOHSCROLL
+    EDITTEXT        1002,7,44,334,12,ES_AUTOHSCROLL
+    LTEXT           "User Game Directory",-1,7,7,66,8
+    LTEXT           "Match Game Directory",-1,7,34,72,8
+END
+
+IDD_DOWNLOADPROGRESS DIALOGEX 0, 0, 225, 95
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Download progress"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Cancel",2,83,73,50,14
+    CONTROL         "Progress1",1012,"msctls_progress32",WS_BORDER | 0x1,15,50,198,14
+    LTEXT           "download \n progress status",1010,21,19,188,16
+    GROUPBOX        "Status:",-1,15,7,199,34
+END
+
+IDD_ENGINECOMMAND DIALOGEX 0, 0, 186, 47
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Engine Command"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",1,31,26,50,14
+    PUSHBUTTON      "Cancel",2,99,26,50,14
+    EDITTEXT        1001,7,7,172,13,ES_AUTOHSCROLL
+END
+
+IDD_ENGINEOPTIONS DIALOGEX 0, 0, 181, 253
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Engine Options"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Primary",101,"Button",BS_AUTORADIOBUTTON | BS_NOTIFY | WS_GROUP,14,15,39,10
+    CONTROL         "Secondary",102,"Button",BS_AUTORADIOBUTTON | BS_NOTIFY,62,15,50,10
+    GROUPBOX        "Engine",-1,7,7,166,21,WS_GROUP
+    LTEXT           "Engine name",1004,13,39,145,10
+    GROUPBOX        "Engine Name",-1,7,29,166,21
+    CONTROL         "best moves",1005,"Button",BS_AUTORADIOBUTTON | WS_GROUP,14,66,52,10
+    CONTROL         "good moves",1006,"Button",BS_AUTORADIOBUTTON,14,78,55,10
+    CONTROL         "all kinds of moves",1007,"Button",BS_AUTORADIOBUTTON,14,90,72,10
+    CONTROL         "no book",1008,"Button",BS_AUTORADIOBUTTON,14,102,42,10
+    GROUPBOX        "Opening Book",-1,7,53,166,63
+    CONTROL         "Display All Scores",1001,"Button",BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP,14,129,72,10
+    GROUPBOX        "Display",-1,7,119,166,23
+    LISTBOX         1002,13,166,40,27,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP,WS_EX_RIGHT
+    LTEXT           "Hashtable",-1,17,156,33,8
+    LISTBOX         1003,65,166,40,27,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP,WS_EX_RIGHT
+    LTEXT           "Endgame DB",-1,65,156,43,8
+    GROUPBOX        "Memory",-1,7,144,166,53
+    DEFPUSHBUTTON   "OK",1,7,231,53,14
+    PUSHBUTTON      "Cancel",2,63,231,53,14
+    PUSHBUTTON      "Apply",3,120,231,53,14
+    PUSHBUTTON      "More Options...",IDC_MORE_OPTIONS_BUTTON,7,207,53,14
+END
+
+IDD_ONLINEUPGRADE DIALOGEX 0, 0, 281, 143
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Online upgrade"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",1,78,125,50,14
+    PUSHBUTTON      "Cancel",2,142,125,50,14
+    LISTBOX         100,22,31,236,42,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Select the add-on you would like to download:",-1,23,15,146,8
+    GROUPBOX        "Description",-1,22,77,236,35
+    LTEXT           "",101,27,88,222,18
+END
+
+IDD_SAVEGAME DIALOGEX 0, 0, 207, 138
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Save Game"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        1000,35,16,66,12,ES_AUTOHSCROLL
+    EDITTEXT        1002,131,16,68,12,ES_AUTOHSCROLL
+    EDITTEXT        1004,35,38,164,12,ES_AUTOHSCROLL
+    EDITTEXT        1009,133,61,66,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Cancel",2,150,99,46,13
+    PUSHBUTTON      "OK",1,150,119,46,13
+    LTEXT           "White",-1,108,18,20,8
+    LTEXT           "Black",-1,11,18,19,8
+    LTEXT           "Result:",-1,11,91,23,8
+    LTEXT           "Event",-1,11,40,20,8
+    CONTROL         "1-0",1005,"Button",BS_AUTORADIOBUTTON,40,91,26,10
+    CONTROL         "0-1",1006,"Button",BS_AUTORADIOBUTTON,40,102,26,10
+    CONTROL         "1/2-1/2",1007,"Button",BS_AUTORADIOBUTTON,40,113,41,10
+    CONTROL         "unknown",1008,"Button",BS_AUTORADIOBUTTON,40,124,45,10
+    LTEXT           "Date (Please use YYYY-MM-DD)",-1,11,63,104,8
+END
+
+IDD_SEARCHMASK DIALOGEX 0, 0, 174, 238
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Search Mask"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",1,29,216,50,14
+    PUSHBUTTON      "Cancel",2,89,216,50,14
+    EDITTEXT        1001,5,90,162,12,ES_AUTOHSCROLL
+    LTEXT           "Enter the Name of a Player, of an Event, or a Date which you are searching for. You can combine multiple fields! Warning - the search is case sensitive!",-1,5,41,157,34
+    EDITTEXT        1002,5,120,161,12,ES_AUTOHSCROLL
+    EDITTEXT        1003,5,150,161,12,ES_AUTOHSCROLL
+    LTEXT           "Name (e.g. Tinsley)",-1,5,78,68,8
+    LTEXT           "Event (e.g. Petal)",-1,5,108,62,8
+    LTEXT           "Date (e.g. 1981)",-1,5,138,59,8
+    CONTROL         105,-1,"Static",SS_BITMAP,0,0,174,38
+    EDITTEXT        1004,5,179,161,12,ES_AUTOHSCROLL
+    LTEXT           "Full Text (e.g. a great move)",-1,5,167,96,8
+    CONTROL         "Search with position",1005,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,200,79,10
+END
+
+IDD_SELECTGAME DIALOGEX 0, 0, 355, 207
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
+CAPTION "Select Game"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Load",1,118,184,50,14
+    PUSHBUTTON      "Cancel",2,174,184,50,14
+    LISTBOX         102,0,13,355,135,LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "",101,4,158,348,16,NOT WS_GROUP
+    GROUPBOX        "Move Preview",-1,0,149,355,29
+END
+
+IDD_MORE_ENGINE_OPTIONS_DIALOG DIALOGEX 0, 0, 216, 303
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Additional Engine Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Check",IDC_CHECK_WLD_DIR_BUTTON,79,67,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,159,282,50,14
+    EDITTEXT        IDC_MTC_DIR_EDIT,29,134,158,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,99,282,50,14
+    PUSHBUTTON      "Browse...",IDC_BROWSE_WLD_DIR_BUTTON,137,67,50,14
+    GROUPBOX        "Directory",IDC_STATIC,19,124,177,49
+    CONTROL         "Enable",IDC_WLD_ENAB_CHECK,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,157,23,38,10
+    COMBOBOX        IDC_MAX_PIECES_COMBO,79,21,48,97,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Limit max pieces",IDC_STATIC,20,23,51,8
+    GROUPBOX        "WLD Database",IDC_STATIC,7,7,202,86
+    GROUPBOX        "Directory",IDC_STATIC,18,37,180,49
+    EDITTEXT        IDC_WLD_DIR_EDIT,30,48,157,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Check",IDC_CHECK_MTC_DIR_BUTTON,78,154,50,14
+    PUSHBUTTON      "Browse...",IDC_BROWSE_MTC_DIR_BUTTON,137,154,50,14
+    CONTROL         "Enable",IDC_MTC_ENAB_CHECK,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,158,110,38,10
+    GROUPBOX        "MTC Database",IDC_STATIC,7,97,202,85
+    EDITTEXT        IDC_BOOKFILE_EDIT,20,197,117,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BOOKFILE_BROWSE_BUTTON,146,196,50,14
+    GROUPBOX        "Opening Book File",IDC_STATIC,7,185,202,33
+    EDITTEXT        IDC_CPUS_EDIT,45,249,40,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "CPUs detected",IDC_STATIC,39,238,48,8
+    COMBOBOX        IDC_MAX_SEARCH_THREADS_COMBO,133,250,48,97,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Search threads",IDC_STATIC,131,238,58,8
+    GROUPBOX        "Parallel Search",IDC_STATIC,7,224,202,48
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+ICON1                   ICON                    "Icon_1.ico"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+MENUENGLISH ACCELERATORS 
+BEGIN
+    "N",            101,                    VIRTKEY, CONTROL, NOINVERT
+    "3",            102,                    VIRTKEY, CONTROL, NOINVERT
+    "O",            103,                    VIRTKEY, CONTROL, NOINVERT
+    "S",            104,                    VIRTKEY, CONTROL, NOINVERT
+    "I",            105,                    VIRTKEY, CONTROL, NOINVERT
+    "A",            106,                    VIRTKEY, CONTROL, NOINVERT
+    "C",            107,                    VIRTKEY, CONTROL, NOINVERT
+    "V",            108,                    VIRTKEY, CONTROL, NOINVERT
+    "Q",            109,                    VIRTKEY, CONTROL, NOINVERT
+    "R",            113,                    VIRTKEY, CONTROL, NOINVERT
+    "F",            114,                    VIRTKEY, CONTROL, NOINVERT
+    "D",            118,                    VIRTKEY, CONTROL, NOINVERT
+    "M",            119,                    VIRTKEY, CONTROL, NOINVERT
+    "C",            120,                    VIRTKEY, ALT, NOINVERT
+    "V",            121,                    VIRTKEY, ALT, NOINVERT
+    VK_F10,         124,                    VIRTKEY, NOINVERT
+    VK_F12,         125,                    VIRTKEY, NOINVERT
+    VK_F11,         126,                    VIRTKEY, NOINVERT
+    "T",            128,                    VIRTKEY, CONTROL, NOINVERT
+    "P",            201,                    VIRTKEY, CONTROL, NOINVERT
+    VK_LEFT,        202,                    VIRTKEY, NOINVERT
+    VK_RIGHT,       203,                    VIRTKEY, NOINVERT
+    VK_UP,          204,                    VIRTKEY, NOINVERT
+    VK_DOWN,        205,                    VIRTKEY, NOINVERT
+    VK_SPACE,       207,                    VIRTKEY, NOINVERT
+    "I",            308,                    VIRTKEY, ALT, NOINVERT
+    VK_ESCAPE,      310,                    VIRTKEY, NOINVERT
+    "2",            315,                    VIRTKEY, CONTROL, NOINVERT
+    "+",            354,                    ASCII,  NOINVERT
+    VK_INSERT,      355,                    VIRTKEY, NOINVERT
+    "M",            800,                    VIRTKEY, SHIFT, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_MORE_ENGINE_OPTIONS_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 209
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 296
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    101                     "3move text  espanol"
+    102                     "3move text italiano"
+    103                     "3move text deutsch"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

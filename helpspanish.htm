@@ -1,0 +1,520 @@
+<html>
+<head><title>Ayuda de CheckerBoard</title></head>
+
+<body bgcolor="#FFFFFF" text="#000000" topmargin="0" leftmargin="0">
+
+<table border="0" cellpadding="20" cellspacing="0" width="100%"
+bgcolor="#0080C0">
+<tr><td>
+<font color="#FFFFFF" size="6" face="Ventura"><b>Ayuda de CheckerBoard</b> </font>
+</td></tr>
+</table>
+
+<table border="0" cellpadding="20" cellspacing="0" width="100%" bgcolor="#FFFFFF">
+<tr><td>
+<font color="#000000" size="3" face="Ventura">
+CheckerBoard se actualiza frecuentemente. La versión más nueva de CheckerBoard 
+probablemente pueda encontrarse en el <a href="http://www.fierz.ch/checkers.htm">
+portal de CheckerBoard</a>. Cualquier noticia sobre nuevas versiones
+de CheckerBoard o de los motores para CheckerBoard también es notificada allí. 
+Visítala con asiduidad :-)
+
+<h3>Índice del contenido</h3>
+<ul>
+<li><a href = #quickstart>Comienzos</a>
+<li><a href = #whatis>¿Qué es CheckerBoard?</a>
+<li><a href = #toolbar>Barra de herramientas</a>
+<li><a href = #menu>Menú de comandos</a>
+<li><a href = #typical>Algunas tareas típicas</a>
+<li><a href = #rules>Reglas de las damas</a>
+<li><a href = #developers>Para desarrolladores: Cómo hacer tu propio motor de damas 
+para CheckerBoard</a>
+</ul>
+
+<h3><a name="quickstart">Comienzos</a></h3>
+¿Estás listo para tu primera partida de damas con CheckerBoard? Aquí tienes lo 
+que necesitas para comenzar rápidamente. Ejecuta CheckerBoard. La posición inicial 
+aparecerá en el tablero y es tu turno para mover. Para mover, clica primero en 
+la pieza a mover (el contorno de la casilla quedará resaltado) y luego clica en la 
+casilla adonde quieras moverla. El motor de damas comenzará a pensar sobre su jugada 
+y debería responder rápidamente. Es tu turno otra vez. En las damas inglesas,
+tu <em>debes</em> capturar si puedes hacerlo. Si hay una posible captura para ti, 
+CheckerBoard no te dejará hacer otra jugada y te dirá en la barra de estado que 
+debes capturar. Para hacer una captura, sigue el mismo procedimiento que para 
+un movimiento normal: clica en la pieza que quieras mover y en la casilla destino. 
+¡No cliques en cualquier casilla intermedia!
+<br>
+Esto es todo lo que necesitas saber para jugar una partida. ¡Buena suerte!
+
+<h3><a name="whatis"></a>¿Qué es CheckerBoard?</h3>
+CheckerBoard es una <b>interfície para motores de damas</b>. CheckerBoard te permite
+cargar y guardar partidas en el formato estándar PDN, establecer y buscar posiciones 
+en una base de datos PDN y reproducir partidas. También puedes guardar partidas en 
+formato HTML para publicar tus partidas favoritas en Internet. El programa CheckerBoard, 
+por si sólo, no puede jugar a las damas, por ello usa los llamados <em>motores de damas</em>. 
+CheckerBoard se comunica con el motor y le pide que piense sobre una jugada. No 
+te preocupes, esto sucede detrás del escenario, no notarás que hay dos programas 
+diferentes trabajando. El motor le dirá a CheckerBoard qué jugada quiere realizar 
+y le dará alguna información sobre sus cálculos, los cuales CheckerBoard 
+mostrará en la barra de estado. El nombre del motor se muestra en barra del título 
+de la ventana de CheckerBoard. Normalmente, jugarás contra un motor, pero también 
+puedes tener dos motores jugando entre sí o tener un motor analizando una partida.
+<br>
+CheckerBoard incorpora tres motores: Cake, uno de los mejores programas de damas para
+plataformas Windows, SimpleCheckers (con código fuente) y Dama Italiana (también 
+con código fuente) que juega la variante italiana. CheckerBoard juega la variante 
+inglesa/americana de damas por defecto. Al final de esta página hay documentación 
+sobre cómo CheckerBoard interactúa con los motores, así puedes fácilmente 
+escribir tu propio motor si quieres. Todos los motores que incorpora CheckerBoard 
+en su instalación por defecto fueron programados por mí, pero otras personas también 
+han programado motores para CheckerBoard. Para una lista actualizada de motores para
+CheckerBoard, consulta <a href="http://www.fierz.ch/damas.htm">Portal de CheckerBoard</a> 
+en Internet.
+
+<h3><a name="toolbar"></a>Barra de herramientas</h3>
+<img src="toolbar.bmp">
+<br>
+La barra de herramientas tiene botones para algunos de los comandos mas usados. 
+De izquierda a derecha son:
+<ul>
+<li>Sección partida
+<ul>
+<li>Nueva partida: reinicia la partida actual. ¡No te preguntará si la quieres guardar!
+<li>Guardar partida: guarda la partida a una base de datos PDN.
+<li>Cargar partida: carga una partida desde una base de datos PDN.
+<li>Buscar partida: busca la posición actual en una base de datos PDN.
+</ul>
+<li>Sección jugadas
+<ul>
+<li>Retroceder todas: ir al inicio de la partida.
+<li>Retroceder: retrocede una jugada.
+<li>Avanzar: avanza una jugada.
+<li>Avanzar todas: ir al final de la partida.
+</ul>
+<li>Sección motor
+<ul>
+<li>Ejecutar: Inicia el motor o fuerza la jugada si el motor ya estaba pensando
+<li>Modo libro: Alterna entre las 4 diferentes configuraciones del libro que puede 
+tener un motor: libro desactivado, todas las jugadas, buenas jugadas o sólo las 
+mejores. 'Todas las jugadas' está representada por una pequeño signo de 
+interrogación en el icono de la barra de comandos y 'las mejores jugadas' con una 
+estrella en el icono.
+<li>motor: alterna entre el motor primario y el secundario.
+</ul>
+<li>Sección miscelánea
+<ul>
+<li>Turno de juego: este botón muestra el turno del color negro o blanco: clica 
+para cambiar el turno de juego.
+<li>Girar: gira el tablero para poner las blancas en la parte inferior.
+<li>Modo: alterna entre los modos normal y 2 jugadores.
+</ul>
+<li>Sección libro de usuario
+<ul>
+<li>Ver libro de usuario: usa los botones adelante/atrás para moverte por el libro de usuario
+<li>Añadir jugadas al libro de usuario: entra jugadas que serán añadidas al libro de usuario
+<li>Borrar jugadas del libro de usuario: borra la posición actual del libro de usuario: 
+esto sólo funciona cuando estamos en modo 'ver libro de usuario'
+</ul>
+</ul>
+
+<h3><a name="menu"></a>Menú de comandos</h3>
+Esta sección lista y explica todos los comandos del menú de CheckerBoard. La mayoría 
+de ellos son autoexplicativos.
+<h4>El menú <b>fichero</b></h4>
+<ul>
+<li><b>Nueva</b> comienza una nueva partida. ¡No te preguntará si quieres guardar 
+la actual partida! Si escoges nueva, la partida actual se perderá.
+<li><b>Nueva 3-jugadas</b> escoge una apertura de la lista de 3 jugadas autorizadas 
+por la ACF. Usa 'Opciones -> Lista 3-jugadas...' para especificar que aperturas 
+incluirá CheckerBoard en la selección.
+<li><b>Seleccionar base de datos</b> te permite escoger la actual base de datos PDN 
+para cargar y buscar partidas. PDN es el formato estándar del fichero para las partidas 
+de damas (Portable Draughts Notation, Notación compatible de damas). PDN es un formato
+de texto ligeramente estructurado. Puedes mirar la base de datos PDN con cualquier 
+editor de texto.
+<li><b>Seleccionar libro de usuario</b> te permite escoger el actual libro de 
+usuario para que CheckerBoard lo use.
+<li><b>Abrir partida</b> muestra una lista de partidas de la actual base de datos 
+PDN  donde puedes seleccionar una. Si quieres cargar una partida de otra base 
+de datos PDN diferente, primero debes usar el comando 'seleccionar base de datos' 
+para elegir la otra base de datos y entonces ejecutar 'cargar partida'. 
+<li><b>Guardar partida</b> guarda la partida actual. Puedes escoger la base de 
+datos PDN para guardar la partida y será añadida a la base de datos. Puedes 
+especificar información adicional sobre la partida, tal cómo quien ha jugado y 
+el resultado. Esta información es visible en el diálogo 'cargar partida' y te ayuda 
+a buscar partidas.
+<li><b>Guardar partida cómo HTML</b> creará un documento HTML con código javascript 
+para reproducir la actual partida. El documento HTML contiene solamente una partida; 
+en el lado izquierdo, está el tablero con los botones avanzar/retroceder para reproducir 
+la partida; en la derecha, se muestra la notación PDN de la partida. La última
+jugada ejecutada en el tablero es seleccionada en la notación PDN. La notación 
+de la jugada se muestra en formato PDN en lugar texto plano, porque de esta forma, 
+cuando alguien carga esta página en su navegador, puede seleccionar la notación PDN 
+en la ventana, copiarla y pegarla en su programa favorito de damas si soporta 
+esta funcionalidad (CheckerBoard lo hace, por supuesto). 
+<br>
+El documento HTML sólo funcionará correctamente si hay un subdirectorio 'gif' en el mismo
+directorio del documento HTML y el directorio 'gif' debe tenber 6 ficheros gif 
+llamados dark.gif, light.gif, lightbm.gif, lightbk.gif, lightwm.gif, lightwk.gif, 
+que son imágenes de las casillas negras y blancas, y todos los tipos de piezas. 
+Tal carpeta 'gif' se incluye en la instalación de CB, se instala en el directorio 
+'games' dentro de la carpeta de CheckerBoard. Puedes copiar esta carpeta en tu 
+servidor web y todo debe funcionar. Si no te gusta el estilo del tablero, puedes 
+reemplazar los ficheros gif con otros que te gusten más.
+<li><b>Reemplazar partida</b> reemplazará la partida que cargaste la última vez, 
+de la base de datos, con la partida actual. Puedes usar esto para para añadir jugadas 
+a una partida cargándola, añadiendo las jugadas y entonces reemplazas partida. 
+Puedes también añadir comentarios a la partida existente, cargándola, reproduciéndola, 
+añadiendo comentarios y finalmente reemplazándola. Asegúrate que no cambias la base 
+de datos después de cargar la partida antes de reemplazarla o ¡CheckerBoard reemplazará
+la partida en la actual base de datos!
+<li><b>Info</b> muestra la información perteneciente a la partida actual.
+<li><b>Analizar</b> hace que el motor de damas analice la partida actual. En cada 
+posición, CheckerBoard llamará al motor primario para obtener una evaluación 
+de la posición. El nivel actual determina cuanto tiempo, en promedio, el motor 
+calculará. Cuando CheckerBoard ha acabado, escribe el análisis en un fichero 
+llamado 'analysis.htm' y abre este fichero con el navegador por defecto, normalmente 
+Internet Explorer. Usa esta funcionalidad para buscar errores y mejorar el juego.
+<li><b>Salir</b> sale del programa y guarda (la mayor parte de) de la configuración.
+</ul>
+
+<h4>El menú <b>Editar</b></h4>
+<ul>
+<li><b>Copiar Partida (PDN)</b> copia la notación PDN de la partida actual al 
+portapapeles. PDN es un formato de texto plano ligeramente estructurado para hacerlo 
+entendible al ordenador. Puedes pegar el contenido del portapapeles en tu procesador 
+de textos para imprimir la partida o pegarlo en un mensaje electrónico para enviarlo 
+a un amigo, que entonces puede usarlo...
+<li><b>Pegar Partida (PDN)</b> carga la notación PDN de una partida que ha sido 
+previamente copiada al portapapeles. Si recibes una partida PDN por correo, selecciona 
+el texto en tu programa de correo, pulsa Ctrl-C para copiar al portapapeles, cambia 
+a CheckerBoard y pulsa Ctrl-V para cargar la partida.
+<li><b>Copiar Posición (FEN)</b> copia la notación FEN de la posición actual al 
+portapapeles. Puedes pegar el contenido del portapapeles en un mensaje electrónico 
+para enviarlo a un amigo, que entonces puede usarlo...
+<li><b>Pegar Posición (FEN)</b> carga una notación FEN que ha sido previamente 
+copiada al portapapeles. Si recibes una posición FEN por correo, selecciona el texto 
+en tu programa de correo, pulsa Ctrl-C para copiar al portapapeles, cambia a CheckerBoard 
+y pulsa Alt-V para cargar la posición. 
+<li><b>Copiar Diagrama</b> copia cómo archivo gráfico la posición actual al portapapeles. 
+Puedes entonces pegar el diagrama en tu programa favorito gráficos o en un procesador 
+de textos cómo Microsoft Word. No puedes imprimir partidas o diagramas directamente 
+desde CheckerBoard, pero puedes usar las funciones del portapapeles para obtener 
+jugadas y diagramas para pasarlos a programas que te permitirán un mejor 
+control de la impresión de lo que se pueda implementar nunca en CheckerBoard.
+<li><b>Modo Edición</b> entra y sale del modo edición. En modo edición, puedes 
+clicar el botón izquierdo en las casillas para alternar entre las piezas negras y 
+clicar el botón derecho para alternar entre las piezas blancas. El primer clic cambia 
+una casilla vacía en un peón, el segundo clic en una dama y el tercer clic crea 
+casilla vacía otra vez. No olvides salir del modo edición antes de jugar, CheckerBoard 
+se mostrará confuso si no sales del modo edición.
+<li><b>Limpiar Tablero</b> limpia el tablero.
+</ul>
+
+<h4>El menú <b>Buscar</b></h4>
+<ul>
+<li><b>Máscara de búsqueda</b> busca en la actual base de datos PDN una combinación 
+de criterios que tú especifíques: Puedes buscar por el nombre de un jugador, el nombre 
+de un evento, el año que una partida fue jugada, cualquier texto arbitrario en los 
+comentarios de la partida y puedes también incluir la posición actual del tablero 
+en la búsqueda. La búsqueda es sensible a las minúsculas, es decir, si buscas por 
+"tinsley", no encontrarás partidas con "Tinsley" y viceversa. Puedes también abreviar 
+un nombre, es decir, "Tin" también encontrará partidas con "Tinsley", pero también 
+encontrará partidas con "Tinman" si tal jugador existe. Por ejemplo, si quieres encontrar 
+podas las partidas de Tinsley con la apertura 'Double Cross', debes introducir 
+las jugadas 9-14 23-18 en modo '2-jugadores', invocar el comando 'búsqueda de máscara', 
+escribir "Tinsley" en el campo del nombre y marcar el cuadro etiquetado <i>buscar 
+con posición</i>.
+<li><b>Buscar posición</b> busca en la actual base de datos PDN la actual posición 
+y muestra una lista de partidas para cargar con dicha posición. Si juegas una partida 
+y quieres conocer si cierta posición ha sido jugada antes, sólo busca por ella 
+en una larga base de datos de referencia.
+<li><b>Re-Búsqueda</b> recupera los resultados de la última búsqueda. CheckerBoard 
+recuerda los resultados de la última búsqueda y no hace falta hacer una segunda 
+búsqueda si usas 'Re-búsqueda'.
+<li><b>Cargar previa</b> carga la partida previa desde la lista de resultados buscados, 
+la lista de partidas que obtuviste ejecutando búsqueda. En lugar de repetidamente 
+usar 'Re-búsqueda' y seleccionar la siguiente partida de la lista, puedes simplemente 
+usar 'cargar previa' y 'cargar siguiente' para rápidamente ver todas la partidas 
+en la lista de la búsqueda.
+<li><b>Cargar siguiente</b> carga la siguiente partida de la lista actual de 
+resultados de la búsqueda.
+<li><b>Buscar con colores invertidos</b> busca la posición actual con colores 
+invertidos. Algunas veces surgen posiciones que son conocidas con colores 
+invertidos, CB te ayudará a encontrar tales posiciones.
+<li><b>Búsqueda similar</b> busca un cierto tema en la base de datos. Establece 
+una posición que contiene el tema que quieres buscar, es decir, peones negros 
+en 1,2,6,10,15 y 19, la formación "long dyke". CheckerBoard mirará en la base de datos 
+todas las partidas donde esta situación ocurra, es decir, encontrará todas las partidas 
+donde estos 6 peones están en esas posiciones, sin embargo, sólo si están presentes 
+por un mínimo de 4 turnos (semijugadas). La razón para esta limitación es que 
+frecuentemente un modelo aparece durante un intercambio y no querrás encontrarla 
+en estos casos.
+</ul>
+
+<h4>El menú <b>jugadas</b></h4>
+<ul>
+<li><b>Jugar</b> envía el comando 'jugar ahora' al motor de damas, si está 
+calculando la siguiente jugada, la hará inmediatamente. Sin embargo, si el motor 
+no soporta el comando 'jugar ahora', nada sucederá. Si es tu turno para jugar y 
+seleccionas 'jugar', el motor empezará a calcular. Puedes también usar esto 
+en el modo 2 jugadores para hacer que el motor comience a pensar sobre la posición 
+actual y haga una jugada por tí.
+<li><b>Retroceder</b> (o la tecla dirección izquierda) retrocede una jugada.
+<li><b>Retroceder todas</b> (o la tecla dirección arriba) retrocede todas las jugadas 
+y vuelve al inicio de la partida.
+<li><b>Avanzar</b> (o la tecla dirección derecha) avanza una jugada en la partida.
+<li><b>Avanzar todas</b> (o la tecla dirección abajo) avanza hasta el final de la partida.
+<li><b>Añadir comentario</b> te permite añadir un corto (limitado a 1024 caracteres) 
+texto comentando la jugada. Éste se guarda durante la partida y es mostrado en la barra 
+de estado cuando reproduces la partida con el control de 'avanzar'. El comentario 
+también aparecerá en la copia al portapapeles y en la salida con formato HTML. 
+<b>No uses paréntesis ( ) { } en tus comentarios, forman parte
+de especificación PDN y confundirán al analizador PDN de CheckerBoard si los usas,
+posiblemente haciendo ilegible la partida para CheckerBoard. </b>
+</ul>
+
+<h4>El menú opciones</h4>
+<ul>
+<li><b>Modo</b> CheckerBoard puede funcionar en diferentes modos. Estos son
+<ul>
+<li><b>Normal</b> este modo permite entrar una jugada, entonces llama al motor 
+para jugar la siguiente jugada. En este modo, sólo juegas partidas contra el motor.
+<li><b>Autojuego</b> donde CheckerBoard llamará repetidamente al motor primario 
+de forma que jugará una partida contra el mismo desde la posición actual.
+<li><b>Análisis</b> donde puedes entrar jugadas sin que juegue el ordenador. CheckerBoard
+seguirá llamando al motor, de forma que mostrará las jugadas y buscará información 
+en la barra de estado mientras entras las jugadas, pero el programa no jugará. Este modo está 
+pensado para ayudarte en una partida y que el motor te sugiera jugadas.
+<li><b>2-jugadores</b> permite entrar jugadas sin la intervención del motor. Usa 
+esto para entrar las partidas en CheckerBoard que quieras guardar.
+<li><b>motor-motor</b> funciona igual que 'autojuego', excepto que esta vez CheckerBoard 
+hace que el motor primario juegue una partida contra el motor secundario desde 
+la posición actual. Puedes ver dos motores luchando de esta forma. Si has seleccionado 
+cualquier modo diferente de 'mormal' y quieres parar una partida 'motor-motor' o 
+el análisis de una partida, simplemente selecciona 'normal' otra vez (o pulsa 'Esc').
+<li><b>Ver libro de usuario</b> permite revisar el libro de usuario. El libro 
+de usuario es una colección de posiciones y jugadas, las cuales CheckerBoard jugará 
+sin consultar al motor si el libro de usuario está activado. Puedes usar esto 
+para mejorar el libro del motor o para forzar el juego de ciertas líneas que quieras 
+practicar. Fíjate que puedes acceder a este menú con la barra de herramientas. 
+Mientras revisas el libro de jugadas de usuario, puedes usar el botón 'borrar
+del libro de usuario' en la barra de herramientas para borrar una jugada del libro 
+de usuario. Debes estar en el modo 'ver libro de usuario' para hacer esto.
+<li><b>Editar libro de usuario</b> permite añadir jugadas al libro de usuario. 
+Si añades una jugada en una posición que ya existe en el libro de usuario, 
+sobreescribirás la jugada más antigua. El libro de usuario está limitado a 1000 
+jugadas. Sin embargo, puedes tener múltiples libros de usuarios y cargar cualquiera 
+de ellos con el comando seleccionar libro de usuario'.
+</ul>
+<li><b>Nivel</b> establece el tiempo que el ordenador pensará sobre una jugada. 
+El tiempo indicado es sólo un tiempo promedio de calculo que el ordenador debería usar. 
+Cuánto tiempo calculará realmente está determinado por el motor. Si quieres, puedes 
+escoger también 'exacto', entonces el motor deberá jugar exactamente después 
+del tiempo especificado cuando haya sido alcanzado. Aviso, esto puede no estar 
+soportado por el motor. Cuanto más tiempo dejes al motor pensar sobre las jugadas, 
+más fuerte jugará. Sin embargo, el motor por defecto Cake, es muy fuerte y 
+te vencerá la mayoría de la veces incluso en niveles bajos. Puedes seleccionar 
+el nivel 'instantáneo' para hacer que el ordenador juegue muy rápido y peor de lo 
+normal. Para el más débil oponente posible, haz 'Simple Checkers' tu motor primario 
+y establece el nivel en 'instantáneo'.
+<li><b>Mostrar</b> aquí puedes invertir el tablero, tener la última jugada resaltada y
+alternar entre mostrar o no mostrar la numeración del tablero.
+<li><b>Colores</b> te permite configurar los colores de los números del tablero 
+y el resaltado alrededor de la casilla la seleccionada.
+<li><b>Sonido</b> alterna la activación y desactivación del pitido. CheckerBoard 
+pita cuando el motor hace una jugada, si está habilitado.
+<li><b>3-jugadas</b> abre un diálogo donde puedes escoger qué partes de la selección 
+de 3 jugada de apertura deben estar incluídas cuando se vota por una nueva partida 
+de 3 jugadas.
+<li><b>Directorios</b> permite especificar los directorios por defecto de CheckerBoard 
+para guardar partidas.
+<li><b>Modo de prioridad baja</b> da al motor de damas menos tiempo de computación. 
+Si quieres analizar una posición durante horas y quieres usar tu ordenador para 
+otras tareas, esto puede ser un poco lento porque el motor de damas requiere un montón 
+de tiempo de CPU. Bajando la prioridad del proceso del motor, el motor de damas 
+tendrá menos tiempo de CPU si tu estás haciendo algo con el ordenador y trabajará 
+sólo cuando esté inactivo. Si no estás trabajando con el ordenador, será tan rápido 
+cómo en el modo 'normal'.
+<li><b>Libro de usuario</b> activa el libro de usuario. Si este está seleccionado, 
+CheckerBoard primero mirará la posición actual en el libro de usuario antes 
+de preguntar al motor para seleccionar una jugada. Si encuentra la posición,
+jugará la jugada del libro de usuario sin invocar el motor.
+</ul>
+
+<h4>Motor</h4>
+<ul>
+<li><b>Seleccionar...</b> abre un diálogo para escoger el motor primario y secundario. 
+Durante el juego normal, CheckerBoard usa el motor primario. En una partida entre 
+motores, juega el motor primario contra el secundario. Cuando se analiza una partida, 
+usa el motor primario.
+<li><b>Opciones...</b> permite establecer un conjunto de opciones comunes para 
+los motores primario o secundario. Fíjate que puedes seleccionar la configuración 
+del libro en la barra de herramientas. Opciones del motor:
+<ul>
+<li>Mostrar todos los valores: En lugar de mostrar sólo el de la mejor jugada, 
+el motor mostrará los valores para todas las jugadas en la barra de estado. 
+¡Interesante para los análisis!
+<li>Fuerza del libro: Puedes seleccionar del libro las jugadas óptimas. Sin embargo, 
+el motor decide qué hacer con este parámetro y puede hacerlo diferente de lo que piensas.
+<li>COnfiguración de la memoria: el motor de damas típicamente usa largos bloques 
+de memoria para la tabla hash y para el caché de la base de datos de finales. 
+Puedes establecer tamaños preferidos para estos aquí. Recuerda, esto no significa 
+que el motor haga lo que tu eligas. CheckerBoard no te permitirá usar toda la memoria 
+de tu sistema, pues esto generaría muchas paginaciones de memoria.
+</ul>
+Puedes establecer estas opciones incluso si el motor no las soporta. Lee el fichero 
+de ayuda del motor para encontrar cómo responderá a estas configuraciones.
+<li><b>Comando...</b> proporciona una caja para escribir un comando que será pasado 
+al motor. El motivo de esta opción es que aunque las opciones comunes que proporciona 
+CheckerBoard cubrirán la mayor parte de las opciones del motor, puede haber opciones 
+adicionales que el programador haya pensado y que no estén cubiertas. Si éste es el caso, 
+puedes escribir el comando para pasar al motor directamente aquí.
+<li><b>Información y ayuda</b> muestra una ventana informativa del motor y un fichero 
+de ayuda del motor actual.
+</ul>
+
+<h4>El menú Internet</h4>
+¡Todos los apartados del menú internet funcionarán correctamente si dispones 
+de una conexión a Internet! Los apartados de este menú son solamente enlaces 
+a portales que debes conocer si juegas a las damas.
+<ul>
+<li><b>Portal de CheckerBoard</b> te lleva al portal de CheckerBoard en Internet.
+<li><b>Federación americana de damas (ACF)</b> te lleva al portal de ACF, si eres 
+un serio jugador de damas en EEUU, deberías considerar unirte a la ACF.
+<li><b>Asociación inglesa de damas (EDA)</b> te lleva al portal de la EDA, 
+si eres un serio jugador de damas en Inglaterra, deberías considerar unirte a la EDA.
+</ul>
+
+<h4>El menú ayuda</h4>
+<ul>
+<li><b>Información de CheckerBoard</b> muestra una ventana con la versión de CheckerBoard.
+<li><b>Ayuda de CheckerBoard</b> muestra este fichero.
+<li><b>Introducción a las damas</b> es una corta introducción a la estrategia 
+del juego de damas por Richard Pask. Richard es un gran maestro de damas y ha escrito 
+un buen número de libros de damas tanto para principiantes como para expertos.
+</ul>
+
+<h4>El menú base de datos</h4>
+Si quieres mejorar el nivel de juego de Cake 'Sans Souci', puedes generar la base 
+de datos de finales de 6 piezas. Para simplificar esta tarea, he añadido una opción 
+de menú para generar la base de datos. Escoge <b>'generar base de datos de 6 piezas'</b> 
+y la base de datos será creada en tu ordenador. El generador de la base de datos 
+es un programa aparte que es invocado por este comando. Verás una nueva ventana 
+negra, con texto desplazandose muy rápido en ella, es una ventana de DOS. Cierra 
+CheckerBoard para que el generador acabe, lo sabrás cuando la ventana negra haya 
+desaparecido. Fíjate que esto puede tardar un rato: en un ordenador rápido tarda 
+4 horas (Athlon 1.4GHz), así que lo mejor es que lo hagas por la noche. También 
+necesitarás aproximadamente temporaralmente unos 200MB espacio libre en disco. 
+Después de que el generador de la base de datos haya acabado, la opción de menú 
+de la base de datos debe desaparecer en la siguiente ejecución de CheckerBoard, 
+si se ha construido satisfactoriamente la base de datos de 6 piezas. Si usas Cake 
+'Sans Souci' después de construir base de datos, te dirá que la esta usando en la 
+ventana de información del motor.
+
+<h3><a name="typical"></a>Algunas tareas típicas</a></h3>
+Esta sección es una guia paso a paso para algunas tareas que quieras hacer con CheckerBoard.
+<h4>Enviar una partida por correo electrónico a un amigo</h4>
+¿Acabas de jugar una gran partida y quieres comprtirla con alguien? Si tienes CheckerBoard 
+¡no hay ningún problema! Pulsa Ctrl+C en CheckerBoard, esto copia la notación 
+de la partida y cualquier comentario que puedas haber añadido a la partida 
+en el portapapeles. Una ventana aparecerá y mostrará lo que se ha copiado
+en el portapapeles. Pulsa 'ok' para que cerrar la ventana. Cambia a tu programa 
+de correo y empieza un nuevo mensaje para tu amigo. Una vez que tienes la ventana 
+del mensaje abierta, pulsa Ctrl+V para pegar la partida en el mensaje.
+Envía el correo. Una vez que tu amigo lo reciba, puede seleccionar el texto 
+en el mensaje con el ratón y pulsar Ctrl+C para copiarlo en el portapapeles. 
+A continuación, él abre CheckerBoard y pulsa Ctrl+V para pegar la partida 
+en CheckerBoard. Una ventana aparecerá con la información de la partida. Ahora 
+él puede usar los botones avanzar y retroceder para reproducir la partida y ver 
+los comentarios. Debajo tienes un ejemplo que puedes probar para copiar y pegar 
+en CheckerBoard.
+<br><br>
+<em>Selecciona desde la siguiente línea...</em><br><br>
+[Event "Banks ladder, Wilderness 1"]
+[Black "Wyllie"]
+[White "Cake++ 1.3 beta v7"]
+[Result "0-1"]
+1. 9-13 22-18 2. 11-16 18-14 3. 10x17 21x14 4. 16-20 24-19 5. 6-10 25-21 6. 10x17 21x14 7.
+2-6 29-25 8. 6-10 25-21 9. 10x17 21x14 10. 1-6 30-25 11. 13-17 25-21 12. 8-11 23-18 13. 5-9
+14x5 14. 11-16 21x14 15. 16x30 5-1 16. 6-10 14-9 17. 7-11 9-6 18. 12-16 6-2 19. 10-15 18-14
+20. 16-19 1-6 21. 19-23 27x18 22. 15x22 14-10 23. 3-8 2-7 24. 11-16 6-9 25. 30-26 9-14 0-1
+<br><br>
+<em>...hasta la línea anterior y pulsa Ctrl+C, entonces ves a CheckerBoard y pulsa Ctrl+V</em>
+
+<h4>Añadir comentarios a una partida existente</h4>
+Si tienes una partida guardada en una base de datos PDN y quieres posteriormente 
+añadir comentarios, haz lo siguiente: Primero, carga la partida cómo siempre. 
+Entonces, reproduce la partida con los botones avanzar y retroceder de la barra 
+de herramientas o, si prefieres, usando la flechas de cursor derecha e izquierda
+del teclado. Cuando tengas una posición a la que quieres añadir un comentario, 
+pulsa la barra espaciadora y una pequeña ventana aparecerá donde puedes entrar 
+tu comentario. Escribe lo que quieras decir sobre esta posición (hay un límite 
+de 256 caracteres por comentario, así que ¡se breve!) y pulsa intro. Continua 
+recorriendo la partida hasta que hayas terminado. Ahora, escoge 'partida-reemplazar'
+desde desde el menú (o presiona Ctrl+R) y un diálogo para reemplazar la partida 
+aparecerá. Pulsa retorno y la partida es reemplazada.
+
+<h4>Publicando una partida en Internet</h4>
+Si quieres hacer disponible una partida tuya o notas de una partida, a una 
+mayor audiencia, entonces la funcionalidad de CheckerBoard 'guardar cómo HTML' 
+es para tí. Solamente entra (o carga) la partida que quieras publicar, añade 
+cualquier comentario que tengas sobre la partida y selecciona 'guardar cómo HTML'. 
+CheckerBoard generará una completa página HTML para tí la cual usa JavaScript 
+para permitirte reproducir la partida en cualquier navegador. Debes guardar la 
+partida en la carpeta 'games' dentro de CheckerBoard (el diálogo 'guardar cómo HTML' 
+usa esa carpeta por defecto). Asegúrate que añades la extensión del fichero, 
+tales cómo htm o html al nombre del archivo, por ejemplo, llámalo 'partida1.htm'. 
+Para ver tu nueva página web creada, navega hasta la carpeta 'games' en tu Explorador 
+de Windows y clica 2 veces en el nuevo fichero, partida1.htm en este ejemplo.
+Así se abrirá el fichero en el navegador y podrás ver si te gusta el resultado. 
+Para que esto funcione correctamente, debe haber una carpeta 'gif' (con las 6 imágenes 
+necesarias para mostrar el tablero) dentro del directorio donde está el archivo 
+partida1.htm. Si guardas la partida en la carpeta por defecto estamos en el caso 
+correcto.
+<br>
+Para publicar la partida en Internet, primero tienes que cargar las imágenes para 
+mostrar el tablero. Éstas están contenidas en la carpeta 'gif' dentro de la carpeta 
+'games' dentro de la carpeta de CheckerBoard. La carpeta 'gif' tiene que residir 
+en el mismo directorio del servidor donde estén los archivos HTML que quieras publicar, 
+en este caso, 'partida1.htm'. Si ya tienes una carpeta llamada 'gif' en tu servidor, 
+solamente copia los 6 ficheros gif de la carpeta 'gif' en tu carpeta 'gif' de tu 
+servidor. Ahora puedes poner los ficheros HTML, como 'partida1.htm'. Una vez las 
+imágenes están en el servidor, puedes poner cualquier fichero HTML que los use. 
+Si la página no se muestra correctamente, es decir, si el tablero no se muestra, 
+entonces seguro que has comedido un error creando el directorio 'gif'.
+
+<h3><a name="rules"></a>Reglas de las damas</h3>
+Las reglas de las damas son simples, pero hay muchas variaciones de estas reglas.
+Las reglas de la variante inglesa/americana son: Se juega en un tablero de 8 por 8
+y las damas sólo mueven una casilla por jugada. Hay dos tipos de piezas en las damas: 
+peones y damas. Al principio de la partida, sólo tienes 12 peones. Ambos tipos 
+de piezas mueven diagonalmente y sólo una casilla, sin embargo, los peones sólo 
+avanzan y las damas avanzan y retroceden. Aparte de las jugadas normales, puedes 
+capturar también otras piezas: si la pieza del oponente está enfrente de tu pieza 
+y la casilla de atrás está libre, puedes saltar hasta la casilla libre y retirar 
+la pieza oponente. Múltiples saltos son posibles. La regla más importante en las damas 
+inglesas es que <b>si puedes capturar, estas obligado a hacerlo.</b> Esto lleva 
+a muchas posibilidades tácticas. Para más información sobre el juego de damas, 
+te recomiendo visitar el <a herf="http://www.jimloy.com">portal excelente de Jim Loy</a>, 
+donde tiene un montón de material sobre las damas. Si te conviertes en un adicto 
+a las damas, considera unirte a la Federation americana de damas (ACF) o la 
+Asociacion inglesa de damas. Puesto que ambas organizaciones pueden cambiar 
+sus direcciones web en un futuro cercano, haz una búsqueda en Google.
+
+<h3><a name="developers"></a>Para desarrolladores</h3>
+CheckerBoard está explícitamente diseñado cómo una interfície. CheckerBoard es gratuito. 
+CheckerBoard es una buena elección cómo interfície si quieres desarrollar un motor, 
+porque te libera del lío de programar la interfície y porque te da la capacidad 
+de probar tu motor contra otros motores con el modo 'motor-motor'. Si quieres 
+programar un motor para CheckerBoard o si ya has escrito un programa de damas 
+y quieres adaptarlo cómo motor en CheckerBoard, hay un documento del API de CheckerBoard 
+en el portal de CheckerBoard.
+<p>
+Una vez hayas terminado tu motor, debes copiar el fichero dll en la carpeta CheckerBoard 
+y seleccionar tu motor con 'motor->seleccionar...'. Por supuesto que querría tener 
+noticias tuyas si escribes un motor para CheckerBoard. Si lo haces, por favor
+envíame un mensaje a <i>nospam1 at fierz dot ch</i>. Me gustaría enlazar tu página 
+o si no tienes, podría poner tu motor en mi servidor.
+<hr>
+<address>Última modificación hecha por Martin Fierz el 1 de Mayo de 2005</address>
