@@ -190,8 +190,9 @@ int pdnopen(char filename[256], int gametype)
 	int win=0,loss=0,draw=0,unknown=0;
 	char FEN[255];
 	char setup[255];
-//	char pdnopenname[MAX_PATH];
+	//char pdnopenname[MAX_PATH];
 	int board8[8][8];
+	//int filesize=0;
 	size_t filesize=0;
 	unsigned int square[32] = {SQ1, SQ2, SQ3, SQ4, SQ5, SQ6, SQ7, SQ8, SQ9, SQ10, SQ11, SQ12,
 		              SQ13, SQ14, SQ15, SQ16, SQ17, SQ18, SQ19, SQ20, SQ21, SQ22,

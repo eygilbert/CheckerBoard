@@ -146,6 +146,9 @@ extern char CBdocuments[MAX_PATH];
 // options menu
 #define LEVELEXACT 340
 #define LEVELINSTANT 341
+#define LEVEL01S 357
+#define LEVEL02S 358
+#define LEVEL05S 359
 #define LEVEL1S 342
 #define LEVEL2S 343
 #define LEVEL5S 344

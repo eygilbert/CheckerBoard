@@ -578,7 +578,7 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 	int len;
 	PDN_PARSE_STATE state;
 
-	len = (int)strlen(token);
+	len = (int) strlen(token);
 
 	for (i = 0, state = PDN_IDLE; i < len; ) {
 		switch (state) {

@@ -891,7 +891,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 
 				case MOVESCOMMENT: 
 					// add a comment to the last move 
-					DialogBox(g_hInst,"IDD_COMMENT",hwnd,(DLGPROC)DialogFuncAddcomment);
+					DialogBox(g_hInst,"IDD_COMMENT",hwnd,(DLGPROC)DialogFuncAddcomment)
 					break;
 
 				case LEVELEXACT:
@@ -904,80 +904,95 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 						CheckMenuItem(hmenu,LEVELEXACT,MF_UNCHECKED);
 					break;
 				case LEVELINSTANT:
-					maxtime=0.1;
+					maxtime=0.01;
 					gCBoptions.level=1;
 					checklevelmenu(hmenu,LEVELINSTANT, &gCBoptions);
 					break;
+				case LEVEL01S:
+					maxtime = 0.1;
+					gCBoptions.level = 2;
+					checklevelmenu(hmenu, LEVEL01S, &gCBoptions);
+					break;
+				case LEVEL02S:
+					maxtime = 0.2;
+					gCBoptions.level = 3;
+					checklevelmenu(hmenu, LEVEL02S, &gCBoptions);
+					break;
+				case LEVEL05S:
+					maxtime = 0.5;
+					gCBoptions.level = 4;
+					checklevelmenu(hmenu, LEVEL05S, &gCBoptions);
+					break;
 				case LEVEL1S:
-					maxtime=1;
-					gCBoptions.level=2;
-					checklevelmenu(hmenu,LEVEL1S, &gCBoptions);
+					maxtime = 1;
+					gCBoptions.level = 5;
+					checklevelmenu(hmenu, LEVEL1S, &gCBoptions);
 					break;
 				case LEVEL2S:
 					maxtime=2;
-					gCBoptions.level=3;
+					gCBoptions.level=6;
 					checklevelmenu(hmenu,LEVEL2S, &gCBoptions);
 					break;
 				case LEVEL5S:
 					maxtime=5;
-					gCBoptions.level=4;
+					gCBoptions.level=7;
 					checklevelmenu(hmenu,LEVEL5S, &gCBoptions);
 					break;
 				case LEVEL10S:
 					maxtime=10;
-					gCBoptions.level=5;
+					gCBoptions.level=8;
 					checklevelmenu(hmenu,LEVEL10S, &gCBoptions);
 					break;
 				case LEVEL15S:
 					maxtime=15;
-					gCBoptions.level=6;
+					gCBoptions.level=9;
 					checklevelmenu(hmenu,LEVEL15S, &gCBoptions);
 					break;
 				case LEVEL30S:
 					maxtime=30;
-					gCBoptions.level=7;
+					gCBoptions.level=10;
 					checklevelmenu(hmenu,LEVEL30S, &gCBoptions);
 					break;
 				case LEVEL1M:
 					maxtime=60;
-					gCBoptions.level=8;
+					gCBoptions.level=11;
 					checklevelmenu(hmenu,LEVEL1M, &gCBoptions);
 					break;
 				case LEVEL2M:
 					maxtime=120;
-					gCBoptions.level=9;
+					gCBoptions.level=12;
 					checklevelmenu(hmenu,LEVEL2M, &gCBoptions);
 					break;
 				case LEVEL5M:
 					maxtime=300;
-					gCBoptions.level=10;
+					gCBoptions.level=13;
 					checklevelmenu(hmenu,LEVEL5M, &gCBoptions);
 					break;
 				case LEVEL15M:
 					maxtime=900;
-					gCBoptions.level=11;
+					gCBoptions.level=14;
 					checklevelmenu(hmenu,LEVEL15M, &gCBoptions);
 					break;
 				case LEVEL30M:
 					maxtime=1800;
-					gCBoptions.level=12;
+					gCBoptions.level=15;
 					checklevelmenu(hmenu,LEVEL30M, &gCBoptions);
 					break;
 				case LEVELINFINITE:
 					maxtime=8600000;
-					gCBoptions.level=13;
+					gCBoptions.level=16;
 					checklevelmenu(hmenu,LEVELINFINITE, &gCBoptions);
 					break;
 				case LEVELINCREMENT:
 					// set clock to two minutes
 					maxtime=initialtime;
-					gCBoptions.level=14;
+					gCBoptions.level=17;
 					checklevelmenu(hmenu,LEVELINCREMENT, &gCBoptions);
 					sprintf(str,"increment level set: initial time %.0f, increment time %.0f (seconds)",initialtime,incrementtime);
 					break;
 				case LEVELADDTIME:
-					// add 2 seconds when '+' is pressed
-					if(gCBoptions.level == 14)
+					// add  seconds when '+' is pressed
+					if(gCBoptions.level == 17)
 						{
 						maxtime+=1.0;
 						sprintf(str,"remaining time: %.1f",maxtime);
@@ -987,8 +1002,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 					break;
 
 				case LEVELSUBTRACTTIME:
-					// subtract 2 seconds when '-' is pressed
-					if(gCBoptions.level==14)
+					// subtract 1 seconds when '-' is pressed
+					if(gCBoptions.level==17)
 						{
 						maxtime-=1.0;
 						sprintf(str,"remaining time: %.1f",maxtime);
@@ -2866,8 +2881,8 @@ int start11man(int number)
 	SetCurrentDirectory(CBdirectory);
 
 	// don't play entire match as it takes way too much time!
-	if(number >= 500)
-		return 0;
+	//if(number >= 500)
+	//	return 0;
 
 	fp = fopen("11man_FEN.txt","r");
 	if(fp == NULL)
@@ -2959,6 +2974,7 @@ DWORD ThreadFunc(LPVOID param)
 	size_t i, n;
 	int original8board[8][8],b8copy[8][8],originalcopy[8][8];
 	struct CBmove m[MAXMOVES];
+
 	char PDN[40];
 	int found=0;
 	int c;
