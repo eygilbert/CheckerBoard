@@ -218,6 +218,9 @@ int checklevelmenu(HMENU hmenu,int item, struct CBoptions *CBoptions)
 	int increment;
 
 	CheckMenuItem(hmenu,LEVELINSTANT,MF_UNCHECKED);
+	CheckMenuItem(hmenu, LEVEL01S, MF_UNCHECKED);
+	CheckMenuItem(hmenu, LEVEL02S, MF_UNCHECKED);
+	CheckMenuItem(hmenu, LEVEL05S, MF_UNCHECKED);
 	CheckMenuItem(hmenu,LEVEL1S,MF_UNCHECKED);
 	CheckMenuItem(hmenu,LEVEL2S,MF_UNCHECKED);
 	CheckMenuItem(hmenu,LEVEL5S,MF_UNCHECKED);

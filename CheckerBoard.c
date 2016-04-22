@@ -891,7 +891,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 
 				case MOVESCOMMENT: 
 					// add a comment to the last move 
-					DialogBox(g_hInst,"IDD_COMMENT",hwnd,(DLGPROC)DialogFuncAddcomment)
+					DialogBox(g_hInst, "IDD_COMMENT", hwnd, (DLGPROC)DialogFuncAddcomment);
 					break;
 
 				case LEVELEXACT:
@@ -2772,42 +2772,51 @@ int createcheckerboard(HWND hwnd)
 			PostMessage(hwnd,WM_COMMAND,LEVELINSTANT,0);
 			break;
 		case 2:
-			PostMessage(hwnd,WM_COMMAND,LEVEL1S,0);
+			PostMessage(hwnd, WM_COMMAND, LEVEL01S, 0);
 			break;
 		case 3:
-			PostMessage(hwnd,WM_COMMAND,LEVEL2S,0);
+			PostMessage(hwnd, WM_COMMAND, LEVEL02S, 0);
 			break;
 		case 4:
-			PostMessage(hwnd,WM_COMMAND,LEVEL5S,0);
+			PostMessage(hwnd, WM_COMMAND, LEVEL05S, 0);
 			break;
-		case 5: 
-			PostMessage(hwnd,WM_COMMAND,LEVEL10S,0);
+		case 5:
+			PostMessage(hwnd,WM_COMMAND,LEVEL1S,0);
 			break;
 		case 6:
-			PostMessage(hwnd,WM_COMMAND,LEVEL15S,0);
+			PostMessage(hwnd,WM_COMMAND,LEVEL2S,0);
 			break;
 		case 7:
-			PostMessage(hwnd,WM_COMMAND,LEVEL30S,0);
+			PostMessage(hwnd,WM_COMMAND,LEVEL5S,0);
 			break;
-		case 8:
-			PostMessage(hwnd,WM_COMMAND,LEVEL1M,0);
+		case 8: 
+			PostMessage(hwnd,WM_COMMAND,LEVEL10S,0);
 			break;
 		case 9:
-			PostMessage(hwnd,WM_COMMAND,LEVEL2M,0);
+			PostMessage(hwnd,WM_COMMAND,LEVEL15S,0);
 			break;
 		case 10:
-			PostMessage(hwnd,WM_COMMAND,LEVEL5M,0);
+			PostMessage(hwnd,WM_COMMAND,LEVEL30S,0);
 			break;
 		case 11:
-			PostMessage(hwnd,WM_COMMAND,LEVEL15M,0);
+			PostMessage(hwnd,WM_COMMAND,LEVEL1M,0);
 			break;
 		case 12:
-			PostMessage(hwnd,WM_COMMAND,LEVEL30M,0);
+			PostMessage(hwnd,WM_COMMAND,LEVEL2M,0);
 			break;
 		case 13:
-			PostMessage(hwnd,WM_COMMAND,LEVELINFINITE,0);
+			PostMessage(hwnd,WM_COMMAND,LEVEL5M,0);
 			break;
 		case 14:
+			PostMessage(hwnd,WM_COMMAND,LEVEL15M,0);
+			break;
+		case 15:
+			PostMessage(hwnd,WM_COMMAND,LEVEL30M,0);
+			break;
+		case 16:
+			PostMessage(hwnd,WM_COMMAND,LEVELINFINITE,0);
+			break;
+		case 17:
 			PostMessage(hwnd,WM_COMMAND,LEVELINCREMENT,0);
 			break;
 
@@ -4406,7 +4415,7 @@ void newgame(void)
 		color = WHITE;
 		}
 	
-	if(gCBoptions.level==14)
+	if(gCBoptions.level==17)
 		maxtime=initialtime;	
 	
 	updateboardgraphics(hwnd);

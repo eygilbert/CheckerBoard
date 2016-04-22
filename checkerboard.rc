@@ -107,6 +107,9 @@ BEGIN
         BEGIN
             MENUITEM "Exakt",                       340
             MENUITEM "Sofort",                      341
+	    MENUITEM "0.1 Sekunden",		    357
+	    MENUITEM "0.2 Sekunden",		    358
+	    MENUITEM "0.5 Sekunden",		    359
             MENUITEM "1 Sekunde",                   342
             MENUITEM "2 Sekunden",                  343
             MENUITEM "5 Sekunden",                  344, CHECKED
@@ -245,6 +248,9 @@ BEGIN
         BEGIN
             MENUITEM "Exact",                       340
             MENUITEM "Instant",                     341
+	    MENUITEM "0.1 seconds",		    357
+	    MENUITEM "0.2 seconds",		    358
+	    MENUITEM "0.5 seconds",		    359
             MENUITEM "1 second",                    342
             MENUITEM "2 seconds",                   343
             MENUITEM "5 seconds",                   344, CHECKED
@@ -382,6 +388,9 @@ BEGIN
         BEGIN
             MENUITEM "Exact",                       340
             MENUITEM "Instantané",                  341
+	    MENUITEM "0.1 secondes",		    357
+	    MENUITEM "0.2 secondes",		    358
+	    MENUITEM "0.5 secondes",		    359
             MENUITEM "1 seconde",                   342
             MENUITEM "2 secondes",                  343
             MENUITEM "5 secondes",                  344, CHECKED
@@ -519,6 +528,9 @@ BEGIN
         BEGIN
             MENUITEM "Exacto",                      340
             MENUITEM "Instantaneo",                 341
+	    MENUITEM "0.1 segundos",		    357
+	    MENUITEM "0.2 segundos",		    358
+	    MENUITEM "0.5 segundos",		    359
             MENUITEM "1 segundo",                   342
             MENUITEM "2 segundos",                  343
             MENUITEM "5 segundos",                  344, CHECKED
@@ -656,6 +668,9 @@ BEGIN
         BEGIN
             MENUITEM "Preciso",                     340
             MENUITEM "Instantaneo",                 341
+	    MENUITEM "0.1 secondi",		    356
+	    MENUITEM "0.2 secondi",		    357
+	    MENUITEM "0.5 secondi",		    358
             MENUITEM "1 secondo",                   342
             MENUITEM "2 secondi",                   343
             MENUITEM "5 secondi",                   344, CHECKED

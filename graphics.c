@@ -135,6 +135,8 @@ int resizegraphics(HWND hwnd)
 	bmp_dark = getCBbitmap(BMPDARK);
 	bmp_light = getCBbitmap(BMPLIGHT);
 
+	// TODO: 
+
 	// dark squares with BMPs
 	// TODO: all of this should be done just once on resize?!
 	hOldBitmap = (HBITMAP) SelectObject(bmpdc, bmp_dark);
@@ -661,6 +663,8 @@ int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, int b[8][8])
 	// bitblt background from boarddc
 	BitBlt(hdc, xoffset, yoffset+upperoffset, size*8,size*8, boarddc, 0,0,SRCCOPY);
 
+	
+
 	for(i=0;i<=7;i++)
 		{
 		for(j=0;j<=7;j++)
@@ -695,6 +699,41 @@ int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, int b[8][8])
 				BitBlt(hdc, size*i+xoffset, size*(7-j)+upperoffset+yoffset, size, size, stretchdc, 8*size , 5*size, SRCPAINT);
 			}
 		}
+
+	// if we have no images loaded, make a board + pieces "by hand":
+	// TODO: make nicer, and only make if no images loaded!
+	/*
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			x = i;
+			y = j;
+			coorstocoors(&x, &y, gCBoptions.invert, gCBoptions.mirror);
+			if ((x + y) % 2)
+				SelectObject(hdc, GetStockObject(WHITE_BRUSH));
+			else
+				SelectObject(hdc, GetStockObject(GRAY_BRUSH)); 
+			Rectangle(hdc, size*x + xoffset, size*(7 - y) + upperoffset + yoffset, 
+				size*(1+x) + xoffset, size*(7 - (y-1)) + upperoffset + yoffset);
+
+			// pieces
+			if (b[x][y] & (BLACK)) {
+				SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+				Ellipse(hdc, size*x + xoffset, size*(7 - y) + upperoffset + yoffset,
+					size*(1 + x) + xoffset, size*(7 - (y - 1)) + upperoffset + yoffset);
+				if (b[x][y] & (KING)) {
+
+				}
+			}
+			if (b[x][y] & (WHITE)) {
+				SelectObject(hdc, GetStockObject(WHITE_BRUSH));
+				Ellipse(hdc, size*x + xoffset, size*(7 - y) + upperoffset + yoffset,
+					size*(1 + x) + xoffset, size*(7 - (y - 1)) + upperoffset + yoffset);
+				if (b[x][y] & (KING)) {
+
+				}
+			}
+		}
+	}*/
 
 	// add board numbers 
 	if(gCBoptions.numbers)
