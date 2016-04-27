@@ -13,3 +13,5 @@ Debug/checkerboard.res
 Release/checkerboard.res
 x64/Debug/checkerboard.res
 x64/Release/checkerboard.res
+*.suo
+checkerboard.VC.opendb
