@@ -72,6 +72,7 @@
 #include "saveashtml.h"
 #include "graphics.h"
 #include "registry.h"
+#include "app_instance.h"
 
 #ifdef _WIN64
 #pragma message("_WIN64 is defined.")
@@ -87,6 +88,8 @@ struct CBmove GCBmove;
 // as one struct in the registry, instead of using lots of commands.
 struct CBoptions gCBoptions;
 
+int g_app_instance;					/* 0, 1, 2, ... */
+char g_app_instance_suffix[10];	/* "", "[1]", "[2]", ... */
 DWORD g_ThreadId,g_AniThreadId,AutoThreadId;
 HANDLE hThread, hAniThread,hAutoThread;
 int enginethreadpriority = THREAD_PRIORITY_NORMAL; /* default priority setting*/
@@ -2724,6 +2727,11 @@ int createcheckerboard(HWND hwnd)
 	char windowtitle[256], str2[256];
 	RECT rect;
 
+	/* To support running multiple instances of CB, use suffixes in logfilenames. */
+	get_app_instance(szWinName, &g_app_instance);
+	if (g_app_instance > 0)
+		sprintf(g_app_instance_suffix, "[%d]", g_app_instance);
+
 	// load settings from registry: &gCBoptions is one key, CBdirectory another.
 	loadsettings(&gCBoptions, CBdirectory);
 	SetMenuLanguage(gCBoptions.language);
@@ -2844,7 +2852,7 @@ int createcheckerboard(HWND hwnd)
 
 	// display the engine name in the window title 
 	sprintf(windowtitle,"loading engine - please wait...");
-	sprintf(str2,"CheckerBoard: %s",windowtitle);
+	sprintf(str2,"CheckerBoard%s: %s",windowtitle,g_app_instance_suffix);
 	SetWindowText(hwnd,str2);
 
 	// initialize the board which is stored in board8 
@@ -3181,8 +3189,7 @@ DWORD ThreadFunc(LPVOID param)
 			{
 				filename[MAX_PATH];
 
-				strcpy(filename, gCBoptions.matchdirectory);
-				PathAppend(filename, "matchlog.txt");
+				sprintf(filename, "%s\\matchlog%s.txt", gCBoptions.matchdirectory, g_app_instance_suffix);
 				Lfp=fopen(filename,"a");
 				enginename(Lstr);
 				if(Lfp != NULL)
@@ -3405,7 +3412,7 @@ DWORD AutoThreadFunc(LPVOID param)
 					currentengine^=3;
 					setcurrentengine(currentengine);
 					enginename(Lstr);
-					sprintf(str,"CheckerBoard: ");
+					sprintf(str,"CheckerBoard%s: ", g_app_instance_suffix);
 					strcat(str,Lstr);
 					SetWindowText(hwnd,str);
 					}
@@ -3548,8 +3555,7 @@ DWORD AutoThreadFunc(LPVOID param)
 					blackwins=0;
 					blacklosses=0;
 					// check to see if a stats.txt file is here, and if yes, continue the match 
-					strcpy(statsfilename, gCBoptions.matchdirectory);
-					PathAppend(statsfilename, "stats.txt");
+					sprintf(statsfilename, "%s\\stats%s.txt", gCBoptions.matchdirectory, g_app_instance_suffix);
 					Lfp = fopen(statsfilename,"r");
 					if(Lfp != NULL)
 						{
@@ -3563,8 +3569,7 @@ DWORD AutoThreadFunc(LPVOID param)
 						fclose(Lfp);
 
 						// read match-progress file 	// TODO: this should be superfluous, write directly to file...
-						strcpy(statsfilename, gCBoptions.matchdirectory);
-						PathAppend(statsfilename, "match_progress.txt");
+						sprintf(statsfilename, "%s\\match_progress%s.txt", gCBoptions.matchdirectory, g_app_instance_suffix);
 						Lfp = fopen(statsfilename,"r");
 						if(Lfp!=NULL)
 							{
@@ -3641,8 +3646,7 @@ DWORD AutoThreadFunc(LPVOID param)
 							strcat(matchlogstring,"  ");
 
 						// write match statistics 
-						strcpy(statsfilename, gCBoptions.matchdirectory);
-						PathAppend(statsfilename, "stats.txt");
+						sprintf(statsfilename, "%s\\stats%s.txt", gCBoptions.matchdirectory, g_app_instance_suffix);
 						Lfp = fopen(statsfilename,"w");
 						if(Lfp != NULL)
 							{
@@ -3653,8 +3657,7 @@ DWORD AutoThreadFunc(LPVOID param)
 							}
 
 						// write match_progress.txt file
-						strcpy(statsfilename, gCBoptions.matchdirectory);
-						PathAppend(statsfilename, "match_progress.txt");
+						sprintf(statsfilename, "%s\\match_progress%s.txt", gCBoptions.matchdirectory, g_app_instance_suffix);
 						logtofile(statsfilename, matchlogstring, "w");
 
 						// save the game
@@ -3664,8 +3667,7 @@ DWORD AutoThreadFunc(LPVOID param)
 							sprintf(GPDNgame.event,"ACF #%i",op+1);
 
 						// dosave expects a fully initialized GPDNgame structure
-						strcpy(filename, gCBoptions.matchdirectory);
-						PathAppend(filename, "match.pdn");
+						sprintf(filename, "%s\\match%s.pdn", gCBoptions.matchdirectory, g_app_instance_suffix);
 						SendMessage(hwnd,WM_COMMAND,DOSAVE,0);
 
 						Sleep(SLEEPTIME);
@@ -3951,7 +3953,7 @@ void setcurrentengine(int engineN)
 	if(CBstate != ENGINEMATCH)
 		{
 		enginename(s);
-		sprintf(windowtitle,"CheckerBoard: ");
+		sprintf(windowtitle,"CheckerBoard%s: ", g_app_instance_suffix);
 		strcat(windowtitle,s);
 		SetWindowText(hwnd,windowtitle);
 		}
