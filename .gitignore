@@ -1,0 +1,15 @@
+*.suo
+*.bsc
+*.exe
+*.sdf
+*.ilk
+*.map
+*.pdb
+*.obj
+*.sbr
+*.log
+*.tlog
+Debug/checkerboard.res
+Release/checkerboard.res
+x64/Debug/checkerboard.res
+x64/Release/checkerboard.res

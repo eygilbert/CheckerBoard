@@ -57,6 +57,9 @@
     <ClCompile Include="utility.c">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
+    <ClCompile Include="app_instance.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="versionhistory.txt">
@@ -113,6 +116,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="utility.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="app_instance.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

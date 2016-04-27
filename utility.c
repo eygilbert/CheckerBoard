@@ -48,7 +48,7 @@ int three[174][4]=
 
 FILE *cblogfile;
 
-
+extern char g_app_instance_suffix[10];
 
 
 int initcolorstruct(HWND hwnd, CHOOSECOLOR *ccs, int index)
@@ -295,8 +295,7 @@ void CBlog(char *str)
 
 	// open a log file on startup
 	if (cblogfile == NULL) {
-		strcpy(path, CBdocuments);
-		PathAppend(path, "CBlog.txt");
+		sprintf(path, "%s\\CBlog%s.txt", CBdocuments, g_app_instance_suffix);
 		cblogfile = fopen(path, "w");
 	}
 
