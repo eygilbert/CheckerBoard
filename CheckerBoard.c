@@ -226,6 +226,7 @@ int maxpieceset=0;
 CRITICAL_SECTION ani_criticalsection, engine_criticalsection;
 int	handletooltiprequest(LPTOOLTIPTEXT TTtext); 
 void reset_current_game_pdn();
+void forward_to_game_end(void);
 
 
 // checkerboard goes finite-state: it can be in one of the modes above.
@@ -878,12 +879,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 					if(CBstate == BOOKVIEW || CBstate == BOOKADD)
 						break;
 					PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
-					while( current->next != NULL )
-						{
-						domove(current->move,board8);
-						color = color^CHANGECOLOR;
-						current = current->next;
-						}
+					forward_to_game_end();
 					if(CBstate == OBSERVEGAME)
 						PostMessage(hwnd,WM_COMMAND,INTERRUPTENGINE,0);
 					updateboardgraphics(hwnd);
@@ -2941,6 +2937,34 @@ int start11man(int number)
 	}
 
 
+/*
+ * Translate the current game into pdn of its colors-reversed mirror.
+ */
+void game_to_colors_reversed_pdn(char *pdn)
+{
+	listentry *p;
+	int from, to;
+
+	pdn[0] = 0;
+	for (p = head; p->next != NULL; p = p->next) {
+		PDNparseTokentonumbers(p->PDN, &from, &to);
+		sprintf(pdn + strlen(pdn), "%d-%d ", 33 - from, 33 - to);
+	}
+}
+
+
+/*
+ * Move to the end of the current game.
+ */
+void forward_to_game_end(void)
+{
+	while (current->next != NULL) {
+		domove(current->move, board8);
+		color = color ^ CHANGECOLOR;
+		current = current->next;
+	}
+}
+
 int start3move(void)
 	{
 	// start a new 3-move game: 
@@ -2972,6 +2996,15 @@ int start3move(void)
 	appendmovetolist(m[three[op][2]]);
 
 	color=color^CHANGECOLOR;
+
+	if (gametype() == GT_ITALIAN) {
+		char pdn[80];
+
+		game_to_colors_reversed_pdn(pdn);
+		doload(&GPDNgame, pdn, &color, board8);
+		forward_to_game_end();
+	}
+
 	updateboardgraphics(hwnd);	
 	sprintf(str,"ACF opening number %i",op+1);
 	newposition=TRUE;
