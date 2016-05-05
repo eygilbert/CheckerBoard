@@ -114,6 +114,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>italian_movegen;source</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -150,6 +151,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>italian_movegen;source</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -194,6 +196,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>italian_movegen;source</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -232,6 +235,7 @@
       <WarningLevel>Level2</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>italian_movegen;source</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -260,6 +264,8 @@
     <ClCompile Include="crc.c" />
     <ClCompile Include="dialogs.c" />
     <ClCompile Include="graphics.c" />
+    <ClCompile Include="Italian_movegen\min_movegen_ital.cpp" />
+    <ClCompile Include="Italian_movegen\reverse_rows.cpp" />
     <ClCompile Include="min_movegen.c" />
     <ClCompile Include="PDNfind.c" />
     <ClCompile Include="PDNparser.c" />
@@ -281,12 +287,19 @@
     <ClInclude Include="crc.h" />
     <ClInclude Include="dialogs.h" />
     <ClInclude Include="graphics.h" />
+    <ClInclude Include="Italian_movegen\board.h" />
+    <ClInclude Include="Italian_movegen\lsb.h" />
+    <ClInclude Include="Italian_movegen\min_movegen_ital.h" />
+    <ClInclude Include="Italian_movegen\MoveItalian.h" />
+    <ClInclude Include="Italian_movegen\move_api.h" />
+    <ClInclude Include="Italian_movegen\reverse_rows.h" />
     <ClInclude Include="min_movegen.h" />
     <ClInclude Include="pdnfind.h" />
     <ClInclude Include="PDNparser.h" />
     <ClInclude Include="registry.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="saveashtml.h" />
+    <ClInclude Include="source\cb_interface.h" />
     <ClInclude Include="standardheader.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>

@@ -12,9 +12,10 @@
 /* info & 0x0000FFFF contains the ordering value of the move */
 #include <windows.h>
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 #include "CBstructs.h"
 #include "pdnfind.h"
-#include "min_movegen.h"
 
 // disable the signed/unsigned warning that gets thrown in this file dozens of times
 #pragma warning(disable : 4146)
@@ -25,7 +26,7 @@ int makemovelist(struct pos *p, struct move movelist[MAXMOVES],int color)
 	int32 m,tmp;
 
 	/*
-	WHITE
+	CB_WHITE
 	  28  29  30  31
 	24  25  26  27
 	  20  21  22  23
@@ -34,10 +35,10 @@ int makemovelist(struct pos *p, struct move movelist[MAXMOVES],int color)
 	8   9  10  11
 	  4   5   6   7
 	0   1   2   3
-	BLACK
+	CB_BLACK
 	*/
 	free=~(p->bm|p->bk|p->wm|p->wk);
-	if(color==BLACK)
+	if(color==CB_BLACK)
 		{
 		if(p->bk)
 			{
@@ -217,7 +218,7 @@ int makemovelist(struct pos *p, struct move movelist[MAXMOVES],int color)
 		return n;
 		}
 	/* ****************************************************************/
-	else     /* color is WHITE */
+	else     /* color is CB_WHITE */
 		/******************************************************************/
 		{
 		/* moves with white kings:*/
@@ -420,7 +421,7 @@ int makecapturelist(struct pos *p,struct move movelist[MAXMOVES],int color)
 	struct pos q;
 
 	/*
-	WHITE
+	CB_WHITE
 	  28  29  30  31
 	24  25  26  27
 	  20  21  22  23
@@ -429,11 +430,11 @@ int makecapturelist(struct pos *p,struct move movelist[MAXMOVES],int color)
 	8   9  10  11
 	  4   5   6   7
 	0   1   2   3
-	BLACK
+	CB_BLACK
 	*/
 
 	free=~(p->bm|p->bk|p->wm|p->wk);
-	if(color==BLACK)
+	if(color==CB_BLACK)
 		{
 		if(p->bm)
 			{
@@ -711,7 +712,7 @@ int makecapturelist(struct pos *p,struct move movelist[MAXMOVES],int color)
 
 		return n;
 		}
-	else /*******************COLOR IS WHITE *********************************/
+	else /*******************COLOR IS CB_WHITE *********************************/
 		{
 		if(p->wm)
 			{

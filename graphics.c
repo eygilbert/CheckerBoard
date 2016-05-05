@@ -7,12 +7,14 @@
 // ugly: it has a lot of extern variables!
 //
 // animation can be turned on and off by defining ANIMATION or not
-#define ANIMATION
+//#define ANIMATION
 
 #include <windows.h>
 #include <stdio.h>
 #include <time.h>
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 #include "CBstructs.h"
 #include "CBconsts.h"
 #include "graphics.h"
@@ -339,13 +341,13 @@ DWORD AnimationThreadFunc(HWND hwnd)
 	x = move.from.x;
 	y = move.from.y;
 
-	if(move.oldpiece==(BLACK|KING)) 
+	if(move.oldpiece==(CB_BLACK|CB_KING)) 
 		blackking=1;
-	if(move.oldpiece==(WHITE|MAN))  
+	if(move.oldpiece==(CB_WHITE|CB_MAN))  
 		whiteman=1;
-	if(move.oldpiece==(WHITE|KING)) 
+	if(move.oldpiece==(CB_WHITE|CB_KING)) 
 		whiteking=1;
-	if(move.oldpiece==(BLACK|MAN)) 
+	if(move.oldpiece==(CB_BLACK|CB_MAN)) 
 		blackman = 1;
 
 	// remove pieces on from and to square, which 
@@ -549,7 +551,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 	InvalidateRect(hwnd,&r,0);
 
 	// TODO: should not mix game state stuff with animation!
-	color = color^CHANGECOLOR;
+	color = CB_CHANGECOLOR(color);
 
 	setanimationbusy(FALSE);
 	setenginestarting(FALSE);
@@ -678,24 +680,24 @@ int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, int b[8][8])
 			// bitblt man mask, king mask, black man, white man, black king, white king
 			// from positions 0,1,2,3,4,5 of stretchdc
 
-			assert(b[x][y]==(BLACK|MAN) || b[x][y]==(BLACK|KING) || b[x][y]==(WHITE|MAN) || b[x][y]==(WHITE|KING));
+			assert(b[x][y]==(CB_BLACK|CB_MAN) || b[x][y]==(CB_BLACK|CB_KING) || b[x][y]==(CB_WHITE|CB_MAN) || b[x][y]==(CB_WHITE|CB_KING));
 			// masks
-			if(b[x][y] & KING)
+			if(b[x][y] & CB_KING)
 				BitBlt(hdc, size*i+xoffset, size*(7-j)+upperoffset+yoffset, size, size, stretchdc, 8*size, size,  SRCAND);
 			else
 				BitBlt(hdc, size*i+xoffset, size*(7-j)+upperoffset+yoffset, size, size, stretchdc, 8*size , 0, SRCAND);
 
 			// pieces
-			if(b[x][y] == (BLACK|MAN))
+			if(b[x][y] == (CB_BLACK|CB_MAN))
 				BitBlt(hdc, size*i+xoffset, size*(7-j)+upperoffset+yoffset, size, size, stretchdc, 8*size , 2*size, SRCPAINT);
 
-			if(b[x][y]== (WHITE|MAN))
+			if(b[x][y]== (CB_WHITE|CB_MAN))
 				BitBlt(hdc, size*i+xoffset, size*(7-j)+upperoffset+yoffset, size, size, stretchdc, 8*size , 3*size, SRCPAINT);
 
-			if(b[x][y]== (BLACK|KING))
+			if(b[x][y]== (CB_BLACK|CB_KING))
 				BitBlt(hdc, size*i+xoffset, size*(7-j)+upperoffset+yoffset, size, size, stretchdc, 8*size , 4*size, SRCPAINT);
 
-			if(b[x][y]== (WHITE|KING))
+			if(b[x][y]== (CB_WHITE|CB_KING))
 				BitBlt(hdc, size*i+xoffset, size*(7-j)+upperoffset+yoffset, size, size, stretchdc, 8*size , 5*size, SRCPAINT);
 			}
 		}
@@ -716,19 +718,19 @@ int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, int b[8][8])
 				size*(1+x) + xoffset, size*(7 - (y-1)) + upperoffset + yoffset);
 
 			// pieces
-			if (b[x][y] & (BLACK)) {
+			if (b[x][y] & (CB_BLACK)) {
 				SelectObject(hdc, GetStockObject(BLACK_BRUSH));
 				Ellipse(hdc, size*x + xoffset, size*(7 - y) + upperoffset + yoffset,
 					size*(1 + x) + xoffset, size*(7 - (y - 1)) + upperoffset + yoffset);
-				if (b[x][y] & (KING)) {
+				if (b[x][y] & (CB_KING)) {
 
 				}
 			}
-			if (b[x][y] & (WHITE)) {
+			if (b[x][y] & (CB_WHITE)) {
 				SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 				Ellipse(hdc, size*x + xoffset, size*(7 - y) + upperoffset + yoffset,
 					size*(1 + x) + xoffset, size*(7 - (y - 1)) + upperoffset + yoffset);
-				if (b[x][y] & (KING)) {
+				if (b[x][y] & (CB_KING)) {
 
 				}
 			}

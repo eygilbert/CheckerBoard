@@ -11,6 +11,8 @@
 #include <shlwapi.h>
 #include <shlobj.h>
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 #include "CBstructs.h"
 #include "CBconsts.h"
 #include "CheckerBoard.h"
@@ -46,7 +48,6 @@ int three[174][4]=
 	{6,6,4,3},{6,6,0,3},{6,6,1,0},{6,4,0,0},{6,4,1,0},{6,5,0,3},{6,5,1,3},{6,2,4,2},{6,2,0,3},{6,2,1,0},
 	{6,3,0,2},{6,0,0,0},{6,1,1,0},{6,1,5,1}};
 
-FILE *cblogfile;
 
 extern char g_app_instance_suffix[10];
 
@@ -291,23 +292,26 @@ void setmenuchecks(struct CBoptions *CBoptions, HMENU hmenu)
 
 void CBlog(char *str)
 {
-	TCHAR path[MAX_PATH];
+	FILE *cblogfile;
+	static TCHAR path[MAX_PATH];
 
 	// open a log file on startup
-	if (cblogfile == NULL) {
+	if (path[0] == 0) {
 		sprintf(path, "%s\\CBlog%s.txt", CBdocuments, g_app_instance_suffix);
 		cblogfile = fopen(path, "w");
+		fclose(cblogfile);
+		cblogfile = fopen(path, "a");
 	}
 
-	// the next two statements should never happen, but we check anyway.
 	if (str == NULL)
 		return;
 
+	cblogfile = fopen(path, "a");
 	if (cblogfile == NULL)
 		return;
 
-	fprintf(cblogfile, "\n%s", str);
-	fflush(cblogfile);
+	fprintf(cblogfile, "%s\n", str);
+	fclose(cblogfile);
 }
 
 
@@ -384,7 +388,7 @@ void toggle(int *x)
    
 int builtingametype(void)
 	{
-	return 21;
+	return GT_ENGLISH;
 	}
 
 
@@ -426,9 +430,9 @@ int FENtoboard8(int board[8][8], char *p, int *color, int gametype)
 		return 0;
 
 	if (toupper(col[0]) == 'W')
-		*color = WHITE;
+		*color = CB_WHITE;
 	else if (toupper(col[0]) == 'B')
-		*color = BLACK;
+		*color = CB_BLACK;
 	else
 		return(0);
 	
@@ -475,10 +479,10 @@ int FENtoboard8(int board[8][8], char *p, int *color, int gametype)
 		{
 		/* While there are tokens in "string" */
 		/* a token might be 18, or 18K */
-		piece = WHITE|MAN;
+		piece = CB_WHITE|CB_MAN;
 		if(toupper(token[0]) == 'K')
 			{
-			piece = WHITE|KING;
+			piece = CB_WHITE|CB_KING;
 			token++;
 			}
 		number = atoi(token);
@@ -494,10 +498,10 @@ int FENtoboard8(int board[8][8], char *p, int *color, int gametype)
 		{
 		/* While there are tokens in "string" */
 		/* a token might be 18, or 18K */
-		piece = BLACK|MAN;
+		piece = CB_BLACK|CB_MAN;
 		if(toupper(token[0]) == 'K')
 			{
-			piece = BLACK|KING;
+			piece = CB_BLACK|CB_KING;
 			token++;
 			}
 		number = atoi(token);
@@ -520,7 +524,7 @@ void board8toFEN(int board[8][8],char *p,int color, int gametype)
 		"W:W18,20,23,K25:B02,06,09."*/
 	sprintf(p,"");
 
-	if(color==BLACK)
+	if(color==CB_BLACK)
 		sprintf(s,"B:W");
 	else
 		sprintf(s,"W:W");
@@ -531,9 +535,9 @@ void board8toFEN(int board[8][8],char *p,int color, int gametype)
 			{
 			sprintf(s,"");
 			number=coorstonumber(i,j, gametype);
-			if(board[i][j]==(WHITE|MAN))
+			if(board[i][j]==(CB_WHITE|CB_MAN))
 				sprintf(s,"%i,",number);
-			if(board[i][j]==(WHITE|KING))
+			if(board[i][j]==(CB_WHITE|CB_KING))
 				sprintf(s,"K%i,",number);
 			strcat(p,s);
 			}
@@ -548,15 +552,52 @@ void board8toFEN(int board[8][8],char *p,int color, int gametype)
 			{
 			sprintf(s,"");
 			number=coorstonumber(i,j, gametype);
-			if(board[i][j]==(BLACK|MAN))
+			if(board[i][j]==(CB_BLACK|CB_MAN))
 				sprintf(s,"%i,",number);
-			if(board[i][j]==(BLACK|KING))
+			if(board[i][j]==(CB_BLACK|CB_KING))
 				sprintf(s,"K%i,",number);
 			strcat(p,s);
 			}
 		}
 	p[strlen(p)-1]='.';
 	}
+
+
+char *piecestr(int piece)
+{
+	if (piece == CB_FREE)
+		return(".");
+	if (piece & CB_BLACK)
+		if (piece & CB_KING)
+			return("bk");
+		else
+			return("bm");
+	if (piece & CB_WHITE)
+		if (piece & CB_KING)
+			return("wk");
+		else
+			return("wm");
+	return(".");
+}
+
+
+void log_fen(char *msg, int board[8][8], int color)
+{
+	char buf[150];
+
+	sprintf(buf, "%s: ", msg);
+	board8toFEN(board, buf + strlen(buf), color, gametype());
+	CBlog(buf);
+}
+
+
+void log_bitboard(char *msg, int32 black, int32 white, int32 king)
+{
+	char buf[150];
+
+	sprintf(buf, "%s: bwk(%x, %x, %x)", msg, black, white, king);
+	CBlog(buf);
+}
 
 
 /*

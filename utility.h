@@ -1,4 +1,6 @@
 void	board8toFEN(int board[8][8],char *p,int color, int gametype);
+void log_fen(char *msg, int board[8][8], int color);
+void log_bitboard(char *msg, int32 black, int32 white, int32 king);
 void	builddb(char *str);
 int		builtingametype(void);
 void	CBlog(char *text);

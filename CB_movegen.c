@@ -6,36 +6,13 @@
 //  list of CBmoves.
 
 
-struct coor
-	{
-	int x;
-	int y;
-	};
-
-struct CBmove            /* all the information you need about a move */
-	{
-	int jumps;           /* number of jumps in the move */
-	int newpiece;        /* what type of newpiece appears on to */
-	int oldpiece;        /* what disappears on from */
-	struct coor from,to; /* coordinates of the newpiece */
-	struct coor path[12];/* intermediate path coordinates of the moving newpiece */
-	struct coor del[12]; /* squares whose pieces are deleted after the move */
-	int delpiece[12];    /* what is on these squares */
-	};
-
-
 /* INCLUDES */
 #include <memory.h>
 #include <windows.h>
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 
-// board representation
-#define WHITE 1
-#define BLACK 2
-#define CHANGECOLOR 3
-#define MAN 4
-#define KING 8
-#define MAXMOVES 28
 
 /* exported functions */
 int getmovelist(int color,struct CBmove m[MAXMOVES], int b[8][8], int *isjump);
@@ -83,31 +60,31 @@ int getmovelist(int color,struct CBmove m[MAXMOVES], int b[8][8], int *isjump)
 		switch(m[i].oldpiece)
 			{
 			case -2:
-				m[i].oldpiece=(WHITE|KING);
+				m[i].oldpiece=(CB_WHITE|CB_KING);
 				break;
 			case -1:
-				m[i].oldpiece=(WHITE|MAN);
+				m[i].oldpiece=(CB_WHITE|CB_MAN);
 				break;
 			case 1:
-				m[i].oldpiece=(BLACK|MAN);
+				m[i].oldpiece=(CB_BLACK|CB_MAN);
 				break;
 			case 2:
-				m[i].oldpiece=(BLACK|KING);
+				m[i].oldpiece=(CB_BLACK|CB_KING);
 				break;
 			}
 		switch(m[i].newpiece)
 			{
 			case -2:
-				m[i].newpiece=(WHITE|KING);
+				m[i].newpiece=(CB_WHITE|CB_KING);
 				break;
 			case -1:
-				m[i].newpiece=(WHITE|MAN);
+				m[i].newpiece=(CB_WHITE|CB_MAN);
 				break;
 			case 1:
-				m[i].newpiece=(BLACK|MAN);
+				m[i].newpiece=(CB_BLACK|CB_MAN);
 				break;
 			case 2:
-				m[i].newpiece=(BLACK|KING);
+				m[i].newpiece=(CB_BLACK|CB_KING);
 				break;
 			}
 
@@ -116,16 +93,16 @@ int getmovelist(int color,struct CBmove m[MAXMOVES], int b[8][8], int *isjump)
 			switch(m[i].delpiece[j])
 				{
 				case -2:
-					m[i].delpiece[j]=(WHITE|KING);
+					m[i].delpiece[j]=(CB_WHITE|CB_KING);
 					break;
 				case -1:
-					m[i].delpiece[j]=(WHITE|MAN);
+					m[i].delpiece[j]=(CB_WHITE|CB_MAN);
 					break;
 				case 1:
-					m[i].delpiece[j]=(BLACK|MAN);
+					m[i].delpiece[j]=(CB_BLACK|CB_MAN);
 					break;
 				case 2:
-					m[i].delpiece[j]=(BLACK|KING);
+					m[i].delpiece[j]=(CB_BLACK|CB_KING);
 					break;
 
 				}
@@ -153,10 +130,10 @@ void board8toboard12(int board8[8][8], int board12[12][12])
 		{
 		for(j=0;j<=7;j++)
 			{
-			if(board8[i][j]==(BLACK|MAN)) board12[i+2][j+2]=1;
-			if(board8[i][j]==(BLACK|KING)) board12[i+2][j+2]=2;
-			if(board8[i][j]==(WHITE|MAN)) board12[i+2][j+2]=-1;
-			if(board8[i][j]==(WHITE|KING)) board12[i+2][j+2]=-2;
+			if(board8[i][j]==(CB_BLACK|CB_MAN)) board12[i+2][j+2]=1;
+			if(board8[i][j]==(CB_BLACK|CB_KING)) board12[i+2][j+2]=2;
+			if(board8[i][j]==(CB_WHITE|CB_MAN)) board12[i+2][j+2]=-1;
+			if(board8[i][j]==(CB_WHITE|CB_KING)) board12[i+2][j+2]=-2;
 			}
 		}
 	}
@@ -250,7 +227,7 @@ int makemovelist(int color,struct CBmove movelist[MAXMOVES],int board[12][12], i
 				}
 			}
 		}
-	if(color==WHITE)
+	if(color==CB_WHITE)
 		{
 		/* search for captures with white kings*/
 		if(nwk>0)

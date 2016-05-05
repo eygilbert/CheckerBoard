@@ -67,14 +67,17 @@
 #include <string.h>
 #include <time.h>
 #include <windows.h>
-/*----------> definitions */
-#define OCCUPIED 0
-#define WHITE 1
-#define BLACK 2
-#define MAN 4
-#define KING 8
-#define FREE 16
-#define CHANGECOLOR 3
+#include "cb_interface.h"
+
+
+/* Piece definitions, defined in cb_interface.h  */
+#define OCCUPIED CB_OCCUPIED
+#define WHITE CB_WHITE
+#define BLACK CB_BLACK
+#define MAN CB_MAN
+#define KING CB_KING
+#define FREE CB_FREE
+
 #define MAXDEPTH 99
 #define MAXMOVES 28
 
@@ -84,11 +87,6 @@
 #define STATISTICS
 
 
-/* return values */
-#define DRAW 0
-#define WIN 1
-#define LOSS 2
-#define UNKNOWN 3
 
 /*----------> structure definitions  */
 struct move2
@@ -96,22 +94,7 @@ struct move2
    short n;
    int m[8];
    };
-struct coor             /* coordinate structure for board coordinates */
-	{
-	int x;
-	int y;
-	};
 
-struct CBmove            	/* all the information you need about a move */
-	{
-	int ismove;          /* kind of superfluous: is 0 if the move is not a valid move */
-   int newpiece;        /* what type of piece appears on to */
-   int oldpiece;        /* what disappears on from */
-	struct coor from,to; /* coordinates of the piece - in 8x8 notation!*/
-   struct coor path[12]; /* intermediate path coordinates of the moving piece */
-	struct coor del[12]; /* squares whose pieces are deleted after the move */
-   int delpiece[12];    /* what is on these squares */
-	} GCBmove;
 /*----------> function prototypes  */
 /*----------> part I: interface to CheckerBoard: CheckerBoard requires that
 							 at getmove and enginename are present in the dll. the
@@ -258,9 +241,9 @@ int WINAPI getmove(int b[8][8],int color, double maxtime, char str[255], int *pl
 	{
    /* getmove is what checkerboard calls. you get 6 parameters:
    b[8][8] 	is the current position. the values in the array are determined by
-   			the #defined values of BLACK, WHITE, KING, MAN. a black king for
-            instance is represented by BLACK|KING.
-   color		is the side to make a move. BLACK or WHITE.
+   			the #defined values of CB_BLACK, CB_WHITE, CB_KING, CB_MAN. a black king for
+            instance is represented by CB_BLACK|CB_KING.
+   color		is the side to make a move. CB_BLACK or CB_WHITE.
    maxtime	is the time your program should use to make a move. this is
    		   what you specify as level in checkerboard. so if you exceed
             this time it's not too bad - just don't exceed it too much...
@@ -324,15 +307,15 @@ int WINAPI getmove(int b[8][8],int color, double maxtime, char str[255], int *pl
 	b[1][7]=board[37];b[3][7]=board[38];b[5][7]=board[39];b[7][7]=board[40];
    if(color==BLACK)
    	{
-   	if(value>4000) return WIN;
-   	if(value<-4000) return LOSS;
+   	if(value>4000) return CB_WIN;
+   	if(value<-4000) return CB_LOSS;
    	}
    if(color==WHITE)
    	{
-      if(value>4000) return LOSS;
-      if(value<-4000) return WIN;
+      if(value>4000) return CB_LOSS;
+      if(value<-4000) return CB_WIN;
       }
-   return UNKNOWN;
+   return CB_UNKNOWN;
    }
 
 
@@ -469,7 +452,7 @@ int firstalphabeta(int b[46], int depth, int alpha, int beta, int color, struct 
 		{
       domove(b,movelist[i]);
 
-      value=alphabeta(b,depth-1,alpha,beta,(color^CHANGECOLOR));
+      value=alphabeta(b,depth-1,alpha,beta,CB_CHANGECOLOR(color));
 
       undomove(b,movelist[i]);
       if(color == BLACK)
@@ -530,7 +513,7 @@ int alphabeta(int b[46], int depth, int alpha, int beta, int color)
 		{
       domove(b,movelist[i]);
 
-      value=alphabeta(b,depth-1,alpha,beta,color^CHANGECOLOR);
+      value=alphabeta(b,depth-1,alpha,beta,CB_CHANGECOLOR(color));
 
       undomove(b,movelist[i]);
 

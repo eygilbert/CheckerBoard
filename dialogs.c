@@ -10,6 +10,8 @@
 #include <shlobj.h>
 #include "resource.h"
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 #include "CBstructs.h"
 #include "CBconsts.h"
 #include "dialogs.h"
@@ -170,16 +172,16 @@ BOOL CALLBACK DialogFuncSavegame(HWND hdwnd, UINT message, WPARAM wParam, LPARAM
 			/* initialize the comboboxes */
 			switch(GPDNgame.result)
 				{
-				case WIN:
+				case CB_WIN:
 					SendDlgItemMessage(hdwnd,IDC_BLACKWINS,BM_SETCHECK,BST_CHECKED,0);
 					break;
-				case DRAW:
+				case CB_DRAW:
 					SendDlgItemMessage(hdwnd,IDC_DRAW,BM_SETCHECK,BST_CHECKED,0);
 					break;
-				case LOSS:
+				case CB_LOSS:
 					SendDlgItemMessage(hdwnd,IDC_WHITEWINS,BM_SETCHECK,BST_CHECKED,0);
 					break;
-				case UNKNOWN:
+				case CB_UNKNOWN:
 					SendDlgItemMessage(hdwnd,IDC_UNKNOWN,BM_SETCHECK,BST_CHECKED,0);
 					break;
 				}
