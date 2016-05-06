@@ -70,12 +70,13 @@
 #include "cb_interface.h"
 
 /* Piece definitions, defined in cb_interface.h  */
-#define OCCUPIED CB_OCCUPIED
 #define WHITE CB_WHITE
 #define BLACK CB_BLACK
 #define MAN CB_MAN
 #define KING CB_KING
-#define FREE CB_FREE
+
+#define OCCUPIED 0
+#define FREE 16
 
 #define MAXDEPTH 99
 #define MAXMOVES 24 

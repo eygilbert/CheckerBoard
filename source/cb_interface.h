@@ -4,12 +4,11 @@
  */
 
 /* Piece types on board[8][8], used by getmove(), islegal(). */
-#define CB_OCCUPIED 0
+#define CB_FREE 0
 #define CB_WHITE 1
 #define CB_BLACK 2
 #define CB_MAN 4
 #define CB_KING 8
-#define CB_FREE 16
 
 /* Return the opposite of color (CB_BLACK or CB_WHITE). */
 #define CB_CHANGECOLOR(color) ((color) ^ (CB_WHITE | CB_BLACK))
