@@ -1673,6 +1673,12 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
 	/* capture king as early as possible */
 	/* for all moves: tmp is the earliest jump */
 	/* max is the smallest of the earliest jumps*/
+
+	/* eyg bug fix. Each king capture must be the earliest possible, not just the first
+	 * king capture. In this pos, W:WK30:BK26,K27,K18,20,10,K12 30x5 is the only legal move.
+	 * I changed temp to be the binary weighted sum of king captures, where
+	 * the weight of the nth capture is (1 << n).
+	 */
 	max=100;
 	for(i=0;i<n;i++)
 		{
@@ -1681,7 +1687,7 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
 		for(j=movelist[i].n-1;j>=2;j--)
 			{
 			if(((movelist[i].m[j]>>8)%256) &KING)
-				tmp=j;
+				tmp += (1 << j);
 			}
 		if(tmp<max) max=tmp;
 		}
@@ -1693,7 +1699,7 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
 		for(j=movelist[i].n-1;j>=2;j--)
 			{
 			if(((movelist[i].m[j]>>8)%256) &KING)
-				tmp=j;
+				tmp += (1 << j);
 			}
 		if(tmp>max)
 			ismove[i]=0;
