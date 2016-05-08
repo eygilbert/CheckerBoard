@@ -565,7 +565,7 @@ void board8toFEN(int board[8][8],char *p,int color, int gametype)
 
 char *piecestr(int piece)
 {
-	if (piece == CB_FREE)
+	if (piece == 0)
 		return(".");
 	if (piece & CB_BLACK)
 		if (piece & CB_KING)

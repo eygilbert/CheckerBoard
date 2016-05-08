@@ -4665,7 +4665,7 @@ void InitCheckerBoard(int b[8][8])
 		{
 		for(j=0;j<=7;j++)
 			{
-			b[i][j] = CB_FREE;
+			b[i][j] = 0;
 			}
 		}
 	b[0][0]=CB_BLACK|CB_MAN;
