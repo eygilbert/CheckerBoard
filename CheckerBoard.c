@@ -3274,10 +3274,10 @@ int changeCBstate(int oldstate, int newstate)
 	CheckMenuItem(hmenu,BOOKMODE_ADD,MF_UNCHECKED);
 
 	/* Update animation state. */
-	if (CBstate == ENGINEMATCH && maxtime > 1)
-		set_animation(true);
-	else
+	if (CBstate == ENGINEMATCH && maxtime <= 1)
 		set_animation(false);
+	else
+		set_animation(true);
 
 	switch (CBstate)
 		{
