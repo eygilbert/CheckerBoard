@@ -1,5 +1,5 @@
 
-#define ANIMATIONSLEEPTIME 2 // 5 ms per animation step
+#define ANIMATIONSLEEPTIME 4 // 5 ms per animation step
 #define STEPS 12.0		// 12 number of animation steps to make
 
 
@@ -16,3 +16,4 @@ int		initgraphics(HWND hwnd);
 int		diagramtoclipboard(HWND hwnd);
 int		samplediagramtoclipboard(HWND hwnd);
 int		setoffsets(int _offset, int _upperoffset);
+void set_animation(bool state);

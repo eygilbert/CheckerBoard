@@ -7,7 +7,7 @@
 // ugly: it has a lot of extern variables!
 //
 // animation can be turned on and off by defining ANIMATION or not
-//#define ANIMATION
+#define ANIMATION
 
 #include <windows.h>
 #include <stdio.h>
@@ -42,6 +42,8 @@ static HBITMAP hbit,bgbitmap,clipbitmap,stretchbitmap,boardbitmap;		// store the
 static HBRUSH hbrush; 													// store the brush handle 
 static int offset=0, upperoffset=0;
 static HFONT myfont;			// font for board numbers
+static bool animation_state = true;
+
 	
 int setoffsets(int _offset, int _upperoffset)
 	{
@@ -361,7 +363,8 @@ DWORD AnimationThreadFunc(HWND hwnd)
 
 	// PUT THIS BACK IN FOR ANIMATION!!
 #ifdef ANIMATION
-	printboard(hwnd, bgdc, bmpdc, stretchdc, board8);
+	if (animation_state)
+		printboard(hwnd, bgdc, bmpdc, stretchdc, board8);
 #endif
 
 	coorstocoors(&x,&y, gCBoptions.invert, gCBoptions.mirror);
@@ -372,107 +375,38 @@ DWORD AnimationThreadFunc(HWND hwnd)
 	jumps = move.jumps;
 
 #ifdef ANIMATION
-	
-	if(jumps == 0)
-		// a normal move without jumps 
-		{
-		for(i=0;i<=STEPS;i++)
+	if (animation_state) {
+		if(jumps == 0)
+			// a normal move without jumps 
 			{
-			timer = clock();
-			// find redrawing rectangle 
-			dx=((double)(x2*i+x*(STEPS-i)))/(STEPS);
-			dy=((double)(y2*i+y*(STEPS-i)))/(STEPS);
-			r.left=(int)(size*(dx)+xoffset);
-			r.top=(int)(size*(7-dy) + upperoffset+yoffset);
-			r.right=(int)(size*(dx+1) + xoffset);
-			r.bottom=(int)(size*(8-dy) + upperoffset+yoffset);
-
-
-			// restore clean background
-			BitBlt(memdc,r.left,r.top,r.right,r.bottom,bgdc,r.left,r.top,SRCCOPY);
-
-			//----------------------------------------------
-			// make the image of the mask
-			// select mask
-			if(whiteking || blackking)
-				SelectObject(bmpdc, bmp_kingmask);
-			else 
-				SelectObject(bmpdc, bmp_manmask);
-			// paint mask
-			// 128,128 is the dimension of the bitmap.
-			StretchBlt(memdc,r.left, r.top, size, size, bmpdc, 0,0,BMPSIZE,BMPSIZE,SRCAND);
-
-			//----------------------------------------------
-			// make image of the piece
-			// select bmp
-			if(blackman)
-				SelectObject(bmpdc,bmp_bm);
-			if(whiteman)
-				SelectObject(bmpdc,bmp_wm);
-			if(blackking)
-				SelectObject(bmpdc,bmp_bk);
-			if(whiteking)
-				SelectObject(bmpdc,bmp_wk);
-			// paint bmp
-			StretchBlt(memdc,r.left, r.top, size, size, bmpdc, 0,0,BMPSIZE,BMPSIZE,SRCPAINT);
-
-			//----------------------------------------------
-			// tell windows to redraw
-			r.left-=5;
-			r.top-=5;
-			r.right+=5;
-			r.bottom+=5;
-			InvalidateRect(hwnd,&r,0);
-			SendMessage(hwnd, WM_PAINT, (WPARAM) 0, (LPARAM) 0);
-
-			//-----------------------------------------------
-			// wait a bit, depending on how fast the system is
-			// get elapsed time up to now
-			ticks = clock() - timer;
-			// convert to miliseconds
-			elapsed_ms = (ticks * 1000) / CLOCKS_PER_SEC;
-			if(elapsed_ms < ANIMATIONSLEEPTIME)
-				Sleep(ANIMATIONSLEEPTIME - elapsed_ms);
-			//sprintf(str, "elapsed: %i, %i", elapsed_ms, ticks);
-			}
-		}
-	else
-		{
-		// a jumping move 
-		x = move.from.x;
-		y = move.from.y;
-		coorstocoors(&x,&y,gCBoptions.invert, gCBoptions.mirror);
-		for(j=0;j<jumps;j++)
-			{
-			x2 = move.path[j+1].x;
-			y2 = move.path[j+1].y;
-			coorstocoors(&x2,&y2,gCBoptions.invert, gCBoptions.mirror);
-			// now animate the part-move:
-			for(i=0;i<=2*STEPS;i++)
+			for(i=0;i<=STEPS;i++)
 				{
 				timer = clock();
-				// find redrawing region 
-				dx=((double)(x2*i+x*(2*STEPS-i)))/(2*STEPS);
-				dy=((double)(y2*i+y*(2*STEPS-i)))/(2*STEPS);
-				r.left=(int)(size*(dx) + xoffset);
-				r.top=(int)(size*(7-dy)+upperoffset+yoffset);
-				r.right = r.left + size;
-				r.bottom = r.top + size;
-
+				// find redrawing rectangle 
+				dx=((double)(x2*i+x*(STEPS-i)))/(STEPS);
+				dy=((double)(y2*i+y*(STEPS-i)))/(STEPS);
+				r.left=(int)(size*(dx)+xoffset);
+				r.top=(int)(size*(7-dy) + upperoffset+yoffset);
+				r.right=(int)(size*(dx+1) + xoffset);
+				r.bottom=(int)(size*(8-dy) + upperoffset+yoffset);
 
 
 				// restore clean background
 				BitBlt(memdc,r.left,r.top,r.right,r.bottom,bgdc,r.left,r.top,SRCCOPY);
+
+				//----------------------------------------------
+				// make the image of the mask
 				// select mask
 				if(whiteking || blackking)
 					SelectObject(bmpdc, bmp_kingmask);
 				else 
 					SelectObject(bmpdc, bmp_manmask);
-				// paint mask from bmpdc to memdc
-				//BitBlt(memdc,r.left,r.top,r.right,r.bottom,bmpdc,0,0,SRCAND);
-				// 128,148 is the dimension of the bitmap.
-				// stretchblt from bmpdc to memdc
+				// paint mask
+				// 128,128 is the dimension of the bitmap.
 				StretchBlt(memdc,r.left, r.top, size, size, bmpdc, 0,0,BMPSIZE,BMPSIZE,SRCAND);
+
+				//----------------------------------------------
+				// make image of the piece
 				// select bmp
 				if(blackman)
 					SelectObject(bmpdc,bmp_bm);
@@ -482,13 +416,18 @@ DWORD AnimationThreadFunc(HWND hwnd)
 					SelectObject(bmpdc,bmp_bk);
 				if(whiteking)
 					SelectObject(bmpdc,bmp_wk);
-
 				// paint bmp
-				//BitBlt(memdc,r.left,r.top,r.right,r.bottom,bmpdc,0,0,SRCPAINT);
 				StretchBlt(memdc,r.left, r.top, size, size, bmpdc, 0,0,BMPSIZE,BMPSIZE,SRCPAINT);
 
+				//----------------------------------------------
+				// tell windows to redraw
+				r.left-=5;
+				r.top-=5;
+				r.right+=5;
+				r.bottom+=5;
 				InvalidateRect(hwnd,&r,0);
 				SendMessage(hwnd, WM_PAINT, (WPARAM) 0, (LPARAM) 0);
+
 				//-----------------------------------------------
 				// wait a bit, depending on how fast the system is
 				// get elapsed time up to now
@@ -497,12 +436,76 @@ DWORD AnimationThreadFunc(HWND hwnd)
 				elapsed_ms = (ticks * 1000) / CLOCKS_PER_SEC;
 				if(elapsed_ms < ANIMATIONSLEEPTIME)
 					Sleep(ANIMATIONSLEEPTIME - elapsed_ms);
+				//sprintf(str, "elapsed: %i, %i", elapsed_ms, ticks);
 				}
-			x=x2;
-			y=y2;
+			}
+		else
+			{
+			// a jumping move 
+			x = move.from.x;
+			y = move.from.y;
+			coorstocoors(&x,&y,gCBoptions.invert, gCBoptions.mirror);
+			for(j=0;j<jumps;j++)
+				{
+				x2 = move.path[j+1].x;
+				y2 = move.path[j+1].y;
+				coorstocoors(&x2,&y2,gCBoptions.invert, gCBoptions.mirror);
+				// now animate the part-move:
+				for(i=0;i<=2*STEPS;i++)
+					{
+					timer = clock();
+					// find redrawing region 
+					dx=((double)(x2*i+x*(2*STEPS-i)))/(2*STEPS);
+					dy=((double)(y2*i+y*(2*STEPS-i)))/(2*STEPS);
+					r.left=(int)(size*(dx) + xoffset);
+					r.top=(int)(size*(7-dy)+upperoffset+yoffset);
+					r.right = r.left + size;
+					r.bottom = r.top + size;
+
+
+
+					// restore clean background
+					BitBlt(memdc,r.left,r.top,r.right,r.bottom,bgdc,r.left,r.top,SRCCOPY);
+					// select mask
+					if(whiteking || blackking)
+						SelectObject(bmpdc, bmp_kingmask);
+					else 
+						SelectObject(bmpdc, bmp_manmask);
+					// paint mask from bmpdc to memdc
+					//BitBlt(memdc,r.left,r.top,r.right,r.bottom,bmpdc,0,0,SRCAND);
+					// 128,148 is the dimension of the bitmap.
+					// stretchblt from bmpdc to memdc
+					StretchBlt(memdc,r.left, r.top, size, size, bmpdc, 0,0,BMPSIZE,BMPSIZE,SRCAND);
+					// select bmp
+					if(blackman)
+						SelectObject(bmpdc,bmp_bm);
+					if(whiteman)
+						SelectObject(bmpdc,bmp_wm);
+					if(blackking)
+						SelectObject(bmpdc,bmp_bk);
+					if(whiteking)
+						SelectObject(bmpdc,bmp_wk);
+
+					// paint bmp
+					//BitBlt(memdc,r.left,r.top,r.right,r.bottom,bmpdc,0,0,SRCPAINT);
+					StretchBlt(memdc,r.left, r.top, size, size, bmpdc, 0,0,BMPSIZE,BMPSIZE,SRCPAINT);
+
+					InvalidateRect(hwnd,&r,0);
+					SendMessage(hwnd, WM_PAINT, (WPARAM) 0, (LPARAM) 0);
+					//-----------------------------------------------
+					// wait a bit, depending on how fast the system is
+					// get elapsed time up to now
+					ticks = clock() - timer;
+					// convert to miliseconds
+					elapsed_ms = (ticks * 1000) / CLOCKS_PER_SEC;
+					if(elapsed_ms < ANIMATIONSLEEPTIME)
+						Sleep(ANIMATIONSLEEPTIME - elapsed_ms);
+					}
+				x=x2;
+				y=y2;
+				}
 			}
 		}
-
 #endif // ANIMATION
 
 	// make a clean image now
@@ -867,3 +870,13 @@ void selectstone(int x, int y, HWND hwnd, int board[8][8])
 		InvalidateRect(hwnd,&r,0);
 		}
 	}
+
+
+/*
+ * Allow animation to be turned off during fast engine matches.
+ */
+void set_animation(bool state)
+{
+	animation_state = state;
+}
+

@@ -4,8 +4,8 @@
 // CBconsts.h
 
 // version 
-#define VERSION "1.721"
-#define PLACE "Küsnacht, December 2, 2013"
+#define VERSION "1.73"
+#define PLACE "June 9, 2016"
 // 1.721 fixes a bug in search position which lets CB crash on new windows systems
 
 #define OP_BOARD 0			// different opening decks

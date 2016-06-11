@@ -3272,6 +3272,13 @@ int changeCBstate(int oldstate, int newstate)
 	CheckMenuItem(hmenu,CM_2PLAYER,MF_UNCHECKED);
 	CheckMenuItem(hmenu,BOOKMODE_VIEW,MF_UNCHECKED);
 	CheckMenuItem(hmenu,BOOKMODE_ADD,MF_UNCHECKED);
+
+	/* Update animation state. */
+	if (CBstate == ENGINEMATCH && maxtime > 1)
+		set_animation(true);
+	else
+		set_animation(false);
+
 	switch (CBstate)
 		{
 		case NORMAL:
@@ -3317,7 +3324,6 @@ DWORD AutoThreadFunc(LPVOID param)
 	static int oldengine;
 	FILE *Lfp;
 	static int gamenumber;
-	static int oldgamenumber;
 	static int movecount;
 	int i;
 	const int maxmovecount = 200;
@@ -3515,7 +3521,6 @@ DWORD AutoThreadFunc(LPVOID param)
 					{
 					gameover = FALSE;
 					makeanalysisfile(analysisfilename);
-					oldgamenumber = gamenumber;
 					// get number of next game; loadnextgame returns 0 if 
 					// there is no further game.
 					gamenumber = loadnextgame(); 
