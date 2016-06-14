@@ -263,6 +263,7 @@
     <ClCompile Include="coordinates.c" />
     <ClCompile Include="crc.c" />
     <ClCompile Include="dialogs.c" />
+    <ClCompile Include="fen.c" />
     <ClCompile Include="graphics.c" />
     <ClCompile Include="Italian_movegen\min_movegen_ital.cpp" />
     <ClCompile Include="Italian_movegen\reverse_rows.cpp" />
@@ -286,6 +287,7 @@
     <ClInclude Include="coordinates.h" />
     <ClInclude Include="crc.h" />
     <ClInclude Include="dialogs.h" />
+    <ClInclude Include="fen.h" />
     <ClInclude Include="graphics.h" />
     <ClInclude Include="Italian_movegen\board.h" />
     <ClInclude Include="Italian_movegen\lsb.h" />

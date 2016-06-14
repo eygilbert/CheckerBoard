@@ -21,6 +21,7 @@
 #include "CBstructs.h"
 #include "checkerboard.h"
 #include "utility.h"
+#include "fen.h"
 #include "bitboard.h"
 #include "lsb.h"
 #include "pdnfind.h"

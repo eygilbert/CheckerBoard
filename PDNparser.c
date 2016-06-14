@@ -116,8 +116,17 @@ int PDNparseGetnextgame(char **start,char *game)
 		if(*p == '[' && !headersdone)
 			{
 			p++;
-			while(*p!=']' && *p!=0)
+			while (*p!=']' && *p!=0) {
+				/* Ignore anything inside quotes (e.g. ']') within headers. */
+				if (*p == '"') {
+					++p;
+					while (*p != '"' && *p != 0)
+						++p;
+					if (*p == 0)
+						break;
+				}
 				p++;
+			}
 			}
 		if(*p == 0) break;
 		/* skip comments */

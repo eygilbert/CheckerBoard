@@ -14,6 +14,7 @@
 #include "CBconsts.h"
 #include "saveashtml.h"
 #include "utility.h"
+#include "fen.h"
 #include "checkerboard.h"
 
 // maximal number of moves in a game that we handle
@@ -489,7 +490,7 @@ void PDNgametoPDNHTMLstring(struct PDNgame *game, char *pdnstring)
       }
 
 	/* add game terminator */
-	sprintf(s,"%s",game->resultstring);
+	sprintf(s, "*");		/* Game terminator is '*' as per PDN 3.0. See http://pdn.fmjd.org/ */
 	counter+=strlen(s);
 	strcat(pdnstring,s);
 	}

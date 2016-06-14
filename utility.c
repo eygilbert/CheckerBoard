@@ -18,6 +18,8 @@
 #include "CheckerBoard.h"
 #include "coordinates.h"
 #include "utility.h"
+#include "fen.h"
+
 
 // the following array describes the ACF three-move-deck. three[n][0-1-2] are
 // the three move numbers which have to be executed after generating the movelist
@@ -392,177 +394,6 @@ int builtingametype(void)
 	}
 
 
-int FENtoboard8(int board[8][8], char *p, int *color, int gametype)
-	{
-	/* parses the FEN string in *p and places the result in board8 and color */
-	// example FEN string:
-	// W:W32,31,30,29,28,27,26,25,24,22,21:B23,12,11,10,8,7,6,5,4,3,2,1.
-	// returns 1 on success, 0 on failure.
-	char *token;
-	char *col,*white,*black;
-	char FENstring[256];
-	int i,j;
-	int number;
-	int piece;
-	int length;
-	char colorchar='x';
-	
-	
-	// find the full stop in the FEN string which terminates it and 
-	// replace it with a 0 for termination
-	length = (int) strlen(p);
-	token = p;
-	i = 0;
-	while(token[i] != '.' && i<length)
-		i++;
-	token[i] = 0;
-
-	sprintf(FENstring,"%s",p);
-
-	// detect empty FEN string
-	if( strcmp(FENstring,"") == 0)
-		return 0;
-
-	/* parse color ,whitestring, blackstring*/
-	col = strtok(FENstring,":");
-
-	if(col == NULL)
-		return 0;
-
-	if (toupper(col[0]) == 'W')
-		*color = CB_WHITE;
-	else if (toupper(col[0]) == 'B')
-		*color = CB_BLACK;
-	else
-		return(0);
-	
-	/* parse position: get white and black strings */
-	
-	white = strtok(NULL,":");
-	if(white == NULL)
-		return 0;
-
-	// check whether this was a normal fen string (white first, then black) or vice versa.
-	colorchar = white[0];
-	if(colorchar == 'B' || colorchar == 'b')
-		{
-		black = white;
-		white = strtok(NULL,":");
-		if(white == NULL)
-			return 0;
-		// reversed fen string
-		}
-	else
-		{
-		black=strtok(NULL,":");
-		if(black == NULL)
-			return 0;
-		}
-	// example FEN string:
-	// W:W32,31,30,29,28,27,26,25,24,22,21:B23,12,11,10,8,7,6,5,4,3,2,1.
-	// skip the W and B characters.
-	white++;
-	black++;
-	
-
-	/* reset board */
-	for(i=0;i<8;i++)
-		{
-		for(j=0;j<8;j++)
-			board[i][j]=0;
-		}
-
-	/* parse white string */
-	token = strtok(white,",");
-
-	while( token != NULL )
-		{
-		/* While there are tokens in "string" */
-		/* a token might be 18, or 18K */
-		piece = CB_WHITE|CB_MAN;
-		if(toupper(token[0]) == 'K')
-			{
-			piece = CB_WHITE|CB_KING;
-			token++;
-			}
-		number = atoi(token);
-		/* ok, piece and number found, transform number to coors */
-		numbertocoors(number,&i,&j, gametype);
-		board[i][j] = piece;
-		/* Get next token: */
-		token = strtok( NULL, "," );
-		}
-	/* parse black string */
-	token = strtok(black,",");
-	while( token != NULL )
-		{
-		/* While there are tokens in "string" */
-		/* a token might be 18, or 18K */
-		piece = CB_BLACK|CB_MAN;
-		if(toupper(token[0]) == 'K')
-			{
-			piece = CB_BLACK|CB_KING;
-			token++;
-			}
-		number = atoi(token);
-		/* ok, piece and number found, transform number to coors */
-		numbertocoors(number,&i,&j, gametype);
-		board[i][j] = piece;
-		/* Get next token: */
-		token = strtok( NULL, "," );
-		}
-	return 1;
-	}
-
-
-void board8toFEN(int board[8][8],char *p,int color, int gametype)
-	{
-	int i,j,number;
-	char s[256];
-	/* prints a FEN string into p derived from board */
-	/* sample FEN string:
-		"W:W18,20,23,K25:B02,06,09."*/
-	sprintf(p,"");
-
-	if(color==CB_BLACK)
-		sprintf(s,"B:W");
-	else
-		sprintf(s,"W:W");
-	strcat(p,s);
-	for(j=7;j>=0;j--)
-		{
-		for(i=0;i<8;i++)
-			{
-			sprintf(s,"");
-			number=coorstonumber(i,j, gametype);
-			if(board[i][j]==(CB_WHITE|CB_MAN))
-				sprintf(s,"%i,",number);
-			if(board[i][j]==(CB_WHITE|CB_KING))
-				sprintf(s,"K%i,",number);
-			strcat(p,s);
-			}
-		}
-	/* remove last comma */
-	p[strlen(p)-1]=0;
-	sprintf(s,":B");
-	strcat(p,s);
-	for(j=7;j>=0;j--)
-		{
-		for(i=0;i<8;i++)
-			{
-			sprintf(s,"");
-			number=coorstonumber(i,j, gametype);
-			if(board[i][j]==(CB_BLACK|CB_MAN))
-				sprintf(s,"%i,",number);
-			if(board[i][j]==(CB_BLACK|CB_KING))
-				sprintf(s,"K%i,",number);
-			strcat(p,s);
-			}
-		}
-	p[strlen(p)-1]='.';
-	}
-
-
 char *piecestr(int piece)
 {
 	if (piece == 0)
@@ -597,26 +428,6 @@ void log_bitboard(char *msg, int32 black, int32 white, int32 king)
 
 	sprintf(buf, "%s: bwk(%x, %x, %x)", msg, black, white, king);
 	CBlog(buf);
-}
-
-
-/*
- * Return true if the string looks like a fen position.
- */
-int is_fen(char *buf)
-{
-	while (*buf) {
-		if (isspace(*buf))
-			++buf;
-		else if (*buf == '"')
-			++buf;
-		else
-			break;
-	}
-	if ((toupper(*buf) == 'B' || toupper(*buf) == 'W') && buf[1] == ':')
-		return(1);
-	else
-		return(0);
 }
 
 

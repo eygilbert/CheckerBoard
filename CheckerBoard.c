@@ -71,6 +71,7 @@
 #include "coordinates.h"
 #include "bitboard.h"
 #include "utility.h"
+#include "fen.h"
 #include "saveashtml.h"
 #include "graphics.h"
 #include "registry.h"
@@ -518,9 +519,10 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 				case GAMESAVEASHTML:
 					// show save game dialog. if OK is selected, call 'savehtml' to do the work 
 					if (DialogBox(g_hInst, "IDD_SAVEGAME", hwnd, (DLGPROC)DialogFuncSavegame)) {
-						if (getfilename(filename, OF_SAVEASHTML))
-						saveashtml(filename, &GPDNgame);
-						sprintf(str, "game saved as HTML!");
+						if (getfilename(filename, OF_SAVEASHTML)) {
+							saveashtml(filename, &GPDNgame);
+							sprintf(str, "game saved as HTML!");
+						}
 					}
 					break;
 
@@ -684,7 +686,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 							else {
 								reset_current_game_pdn();
 								sprintf(str,"position copied");
-						}
+							}
 						}
 						else {
 							doload(&GPDNgame, gamestring, &color, board8);
@@ -4238,7 +4240,7 @@ void PDNgametoPDNstring(struct PDNgame *game, char *pdnstring, char *lf)
 		}
 
 	// add the game terminator 
-	sprintf(s,"%s",GPDNgame.resultstring);
+	sprintf(s, "*");	/* Game terminator is '*' as per PDN 3.0. See http://pdn.fmjd.org/ */
 	counter+=strlen(s);
 	if(counter>79)
 		strcat(pdnstring,lf);
@@ -4575,7 +4577,10 @@ void doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8]
 		/* game terminators */
 		if((strcmp(token,"*")==0) || (strcmp(token,"0-1")==0) || (strcmp(token,"1-0")==0) || (strcmp(token,"1/2-1/2")==0)) 
 			{
-			sprintf(PDNgame->resultstring,"%s",token);
+			/* In PDN 3.0, the game terminator is '*'. Allow old style game result terminators, 
+			 * but don't interpret them as results.
+			 */
+			/* sprintf(PDNgame->resultstring,"%s",token); */
 			break;
 			}
 		if(token[0]=='{' || state==PDN_FLUFF)
