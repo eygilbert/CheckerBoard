@@ -1,8 +1,10 @@
-#include <CoreWindow.h>
+#include <Windows.h>
 #include <stdio.h>
+#include "app_instance.h"
 
 #define MAX_INSTANCES 100
 
+static HANDLE h_named_sem;
 
 /* Get the application instance by creating a named semamphore.  If the semaphore already
  * exists then that application instance is running.
@@ -13,7 +15,6 @@ int get_app_instance(char *name, int *app_instance)
 {
 	int i;
 	DWORD errornum;
-	HANDLE h_named_sem;
 	char sem_name[100];
 
 	*app_instance = 0;
@@ -28,10 +29,20 @@ int get_app_instance(char *name, int *app_instance)
 			*app_instance = i;
 			return(0);
 		}
-		else
+		else {
 			CloseHandle(h_named_sem);	/* Semaphore already exists. */
+			h_named_sem = 0;
+		}
 	}
 
 	/* Too many instances. */
 	return(1);
 }
+
+
+void close_app_instance()
+{
+	if (h_named_sem)
+		CloseHandle(h_named_sem);
+}
+

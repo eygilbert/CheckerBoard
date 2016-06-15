@@ -2,17 +2,8 @@
 #define MAXGAMES 40000 
 #define GAMESIZE 10000
 
-#define WHITE 1
-#define BLACK 2
-#define MAN 4
-#define KING 8
-//#define FREE 16
-#define CC 3
-#define MAXMOVES 28
 
 // pdn find structures 
-
-typedef unsigned int int32;
 
 struct PDNlistentry
 	{
@@ -27,14 +18,6 @@ struct PDNlistentry
 // for a PDN find operation on archive 2.o => 32 MB!
 // but i don't know whether we can do better than this...
 
-
-struct move
-	{
-	int32 bm;
-	int32 bk;
-	int32 wm;
-	int32 wk;
-	};
 
 int pdnfind(struct pos *position, int color, int list[MAXGAMES], RESULT *r);
 int pdnfindtheme(struct pos *position, int list[MAXGAMES]);

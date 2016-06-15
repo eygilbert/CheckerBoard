@@ -59,6 +59,8 @@
 #include <intrin.h>
 
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 #include "CBstructs.h"
 #include "CBconsts.h"
 #include "PDNparser.h"
@@ -69,6 +71,7 @@
 #include "coordinates.h"
 #include "bitboard.h"
 #include "utility.h"
+#include "fen.h"
 #include "saveashtml.h"
 #include "graphics.h"
 #include "registry.h"
@@ -89,7 +92,7 @@ struct CBmove GCBmove;
 struct CBoptions gCBoptions;
 
 int g_app_instance;					/* 0, 1, 2, ... */
-char g_app_instance_suffix[10];	/* "", "[1]", "[2]", ... */
+char g_app_instance_suffix[10];		/* "", "[1]", "[2]", ... */
 DWORD g_ThreadId,g_AniThreadId,AutoThreadId;
 HANDLE hThread, hAniThread,hAutoThread;
 int enginethreadpriority = THREAD_PRIORITY_NORMAL; /* default priority setting*/
@@ -126,7 +129,7 @@ int increment = 0;					// 1 if in an incremental time level
 static int addcomment = 0;
 int handicap = 0;
 int testset_number = 0;
-int color = BLACK;					/* color is the side to move next */
+int color = CB_BLACK;					/* color is the side to move next */
 int playnow = 0; 						/* playnow is passed to the checkers engines, it is set to nonzero if the user chooses 'play' */
 int analyze = 0;						/* is set to 1 if the computer is analyzing the game - obsolete?*/
 int reset = 0;
@@ -138,29 +141,21 @@ int gamenumber = 0;					/* number of games in the database */
 enginename, engineabout, engineoptions, enginehelp, getmove point to the currently used functions
 ...1 and ...2 are the pointers to dll1 and dll2 as read from engines.ini. */
 
-//typedef unsigned int (*funcptr)();  // funcptr is synonym for "pointer
-// 	to function returning int"
-
-typedef INT (WINAPI* PROC1)(int *board, int color, double maxtime, char str[1024], int *playnow, int info, int unused, struct CBmove *move);
-typedef INT (WINAPI* PROC3)(char str[255]);/* engine name, engine help */
-typedef unsigned int (WINAPI* PROC4)(void);	  /* gametype*/
-typedef INT (WINAPI* PROC6)(int *board, int color, int from, int to, struct CBmove *move);/* islegal*/
-typedef INT (WINAPI* COMMANDPROC)(char command[256], char reply[ENGINECOMMAND_REPLY_SIZE]); //enginecommand
 /* library instances for primary, secondary and analysis engines */
 HINSTANCE hinstLib=0,hinstLib1=0,hinstLib2=0;
 
 /* function pointers for the engine functions */
-PROC1 getmove=0,getmove1=0,getmove2=0;
-COMMANDPROC enginecommandtmp=0,enginecommand1=0, enginecommand2=0;
+CB_GETMOVE getmove=0,getmove1=0,getmove2=0;
+CB_ENGINECOMMAND enginecommandtmp=0,enginecommand1=0, enginecommand2=0;
 
 // multi-version support 
-PROC6 islegal=0,islegal1=0,islegal2=0;
-PROC3 enginename1=0,enginename2=0;
+CB_ISLEGAL islegal=0,islegal1=0,islegal2=0;
+CB_GETSTRING enginename1=0,enginename2=0;
+CB_GETGAMETYPE CBgametype=0; // built in gametype and islegal functions 
+CB_ISLEGAL CBislegal=0;
+
 int enginename(char Lstr[256]);
-int gametype(void);
 BOOL fFreeResult;
-PROC4 CBgametype=0; // built in gametype and islegal functions 
-PROC6 CBislegal=0;
 
 // instance and window handles 
 HINSTANCE g_hInst;		//instance of checkerboard
@@ -524,9 +519,10 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 				case GAMESAVEASHTML:
 					// show save game dialog. if OK is selected, call 'savehtml' to do the work 
 					if (DialogBox(g_hInst, "IDD_SAVEGAME", hwnd, (DLGPROC)DialogFuncSavegame)) {
-						if (getfilename(filename, OF_SAVEASHTML))
-						saveashtml(filename, &GPDNgame);
-						sprintf(str, "game saved as HTML!");
+						if (getfilename(filename, OF_SAVEASHTML)) {
+							saveashtml(filename, &GPDNgame);
+							sprintf(str, "game saved as HTML!");
+						}
 					}
 					break;
 
@@ -690,7 +686,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 							else {
 								reset_current_game_pdn();
 								sprintf(str,"position copied");
-						}
+							}
 						}
 						else {
 							doload(&GPDNgame, gamestring, &color, board8);
@@ -767,7 +763,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 						undomove(current->move, board8);
 						updateboardgraphics(hwnd);
 						// shouldnt this color thing be handled in undomove?
-						color = color^CHANGECOLOR;
+						color = CB_CHANGECOLOR(color);
 						sprintf(str,"takeback: ");
 						// and print move number and move into the status bar
 						// get move number:
@@ -824,7 +820,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 						{
 						domove(current->move, board8);
 						updateboardgraphics(hwnd);
-						color = color^CHANGECOLOR;
+						color = CB_CHANGECOLOR(color);
 						// get move number:
 						i = getmovenumber(current);
 
@@ -864,7 +860,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 						{
 						current = current->last;
 						undomove( current->move, board8);
-						color=color^CHANGECOLOR;
+						color = CB_CHANGECOLOR(color);
 						}
 					if(CBstate == OBSERVEGAME)
 						PostMessage(hwnd,WM_COMMAND,INTERRUPTENGINE,0);
@@ -1526,7 +1522,7 @@ void reset_current_game_pdn()
 		sprintf(GPDNgame.round, "");
 		sprintf(GPDNgame.setup, "");
 		sprintf(GPDNgame.site, "");
-		GPDNgame.result = UNKNOWN;
+		GPDNgame.result = CB_UNKNOWN;
 		GPDNgame.head = head;
 		GPDNgame.gametype = gametype();
 		}
@@ -1593,26 +1589,26 @@ int handlesetupcc(int *color)
 	{
 	char str2[256];
 
-	if(*color==BLACK)
-		*color=WHITE;
+	if(*color==CB_BLACK)
+		*color=CB_WHITE;
 	else
-		*color=BLACK;
+		*color=CB_BLACK;
 
 	reset_current_game_pdn();
 	gCBoptions.mirror = 0;
 	if(GPDNgame.gametype == GT_ITALIAN) 
 		{
-		//color=WHITE;
+		//color=CB_WHITE;
 		gCBoptions.mirror = 1;
 		}
 	if(GPDNgame.gametype == GT_SPANISH) 
 		{
-		//color=WHITE;
+		//color=CB_WHITE;
 		gCBoptions.mirror = 1;
 		}
 	if(GPDNgame.gametype == GT_RUSSIAN) 
 		{
-		//color=WHITE;
+		//color=CB_WHITE;
 		}
 	if(GPDNgame.gametype == GT_CZECH)
 		{
@@ -1635,14 +1631,14 @@ int handle_rbuttondown(int x, int y)
 			{
 			switch(board8[x][y])
 				{
-				case WHITE|MAN: 
-					board8[x][y] = WHITE|KING;
+				case CB_WHITE|CB_MAN: 
+					board8[x][y] = CB_WHITE|CB_KING;
 					break;
-				case WHITE|KING: 
+				case CB_WHITE|CB_KING: 
 					board8[x][y] = 0;
 					break;
 				default: 
-					board8[x][y] = WHITE|MAN;
+					board8[x][y] = CB_WHITE|CB_MAN;
 					break;
 				}
 			}
@@ -1664,14 +1660,14 @@ int handle_lbuttondown(int x, int y)
 			{
 			switch(board8[x][y])
 				{
-				case BLACK|MAN: 
-					board8[x][y]=BLACK|KING;
+				case CB_BLACK|CB_MAN: 
+					board8[x][y]=CB_BLACK|CB_KING;
 					break;
-				case BLACK|KING: 
+				case CB_BLACK|CB_KING: 
 					board8[x][y]=0;
 					break;
 				default: 
-					board8[x][y]=BLACK|MAN;
+					board8[x][y]=CB_BLACK|CB_MAN;
 					break;
 				}
 			}
@@ -1697,7 +1693,7 @@ int handle_lbuttondown(int x, int y)
 			legalmovenumber = 0;
 			for(i=1; i<=32; i++)
 				{
-				if(islegal((int *)board8, color, coorstonumber(x1,y1,GPDNgame.gametype), i, &GCBmove) != 0)
+				if(islegal(board8, color, coorstonumber(x1,y1,GPDNgame.gametype), i, &GCBmove) != 0)
 					{
 					legal++;
 					legalmovenumber = i;
@@ -1710,7 +1706,7 @@ int handle_lbuttondown(int x, int y)
 			if(legal == 0) {
 				for(i=1; i<=32; i++)
 				{
-				if(islegal((int *)board8, color, i, coorstonumber(x1,y1,GPDNgame.gametype), &GCBmove) != 0)
+				if(islegal(board8, color, i, coorstonumber(x1,y1,GPDNgame.gametype), &GCBmove) != 0)
 					{
 					legal++;
 					legalmovenumber = i;
@@ -1730,7 +1726,7 @@ int handle_lbuttondown(int x, int y)
 				// if yes, do it! 
 				// if we are in user book mode, add it to user book!
 				//if(islegal((int *)board8,color,coorstonumber(x1,y1,GPDNgame.gametype),legalmovenumber,&GCBmove)!=0)
-				if(islegal((int *)board8,color,from,to,&GCBmove)!=0)
+				if(islegal(board8,color,from,to,&GCBmove)!=0)
 					// a legal move!
 					{
 					// insert move in the linked list 
@@ -1759,7 +1755,7 @@ int handle_lbuttondown(int x, int y)
 				}
 			}
 		// if the stone is the color of the side to move, allow it to be selected
-		if((color==BLACK && board8[x1][y1]&BLACK) || (color==WHITE && board8[x1][y1]&WHITE))
+		if((color==CB_BLACK && board8[x1][y1]&CB_BLACK) || (color==CB_WHITE && board8[x1][y1]&CB_WHITE))
 			{
 			// re-print board to overwrite last selection if there was one
 			updateboardgraphics(hwnd);
@@ -1787,7 +1783,7 @@ int handle_lbuttondown(int x, int y)
 		// here [FEN "W:WK14:B19,18,11,10."]
 		// however, with the new one-click-move input, this will work fine now!
 
-		if((color==BLACK && board8[x2][y2]&BLACK) || (color==WHITE && board8[x2][y2]&WHITE))
+		if((color==CB_BLACK && board8[x2][y2]&CB_BLACK) || (color==CB_WHITE && board8[x2][y2]&CB_WHITE))
 			{
 			// re-print board to overwrite last selection if there was one
 			updateboardgraphics(hwnd);
@@ -1805,7 +1801,7 @@ int handle_lbuttondown(int x, int y)
 				legalmovenumber = 0;
 				for(i=1; i<=32; i++)
 					{
-					if(islegal((int *)board8, color, coorstonumber(x1,y1,GPDNgame.gametype), i, &GCBmove)!=0)
+					if(islegal(board8, color, coorstonumber(x1,y1,GPDNgame.gametype), i, &GCBmove)!=0)
 						{
 						legal++;
 						legalmovenumber = i;
@@ -1815,7 +1811,7 @@ int handle_lbuttondown(int x, int y)
 			sprintf(str,"");
 			if(legal == 1) // only one legal move
 				{
-				if(islegal((int *)board8,color,coorstonumber(x1,y1,GPDNgame.gametype),legalmovenumber,&GCBmove)!=0)
+				if(islegal(board8,color,coorstonumber(x1,y1,GPDNgame.gametype),legalmovenumber,&GCBmove)!=0)
 					// a legal move!
 					{
 					// insert move in the linked list 
@@ -1851,7 +1847,7 @@ int handle_lbuttondown(int x, int y)
 		// check move and if ok
 		if(islegal!=NULL)
 			{
-			if(islegal((int *)board8,color,coorstonumber(x1,y1,GPDNgame.gametype),coorstonumber(x2,y2, GPDNgame.gametype),&GCBmove)!=0)
+			if(islegal(board8,color,coorstonumber(x1,y1,GPDNgame.gametype),coorstonumber(x2,y2, GPDNgame.gametype),&GCBmove)!=0)
 				// a legal move!
 				{
 				// insert move in the linked list 
@@ -1932,7 +1928,7 @@ int handletimer(void)
 	// update toolbar to display whose turn it is 
 	if(oldcolor!=color)
 		{
-		if(color==BLACK)
+		if(color==CB_BLACK)
 			SendMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM)SETUPCC,MAKELPARAM(10,0));
 		else
 			SendMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM)SETUPCC,MAKELPARAM(9,0));
@@ -2353,7 +2349,7 @@ int selectgame(int how)
 				if(how == GAMEFIND || how == SEARCHMASK)
 					gamenumber = pdnfind(&currentposition, color, gamelist, &r);
 				if(how == GAMEFINDCR)
-					gamenumber = pdnfind(&currentposition, color^CC, gamelist, &r);
+					gamenumber = pdnfind(&currentposition, CB_CHANGECOLOR(color), gamelist, &r);
 				if(how == GAMEFINDTHEME)
 					gamenumber = pdnfindtheme(&currentposition, gamelist);
 
@@ -2362,6 +2358,7 @@ int selectgame(int how)
 					{
 					sprintf(str,"no games with the current position found");
 					re_search_ok = 0;
+					SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 					return 0;
 					}
 				else
@@ -2370,7 +2367,8 @@ int selectgame(int how)
 					re_search_ok = 1;
 					}
 				}
-
+			
+			SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 
 			// read database file into buffer 'dbstring' 
 			dbstring = loadPDNdbstring(database);
@@ -2581,6 +2579,7 @@ int selectgame(int how)
 	if(dbstring != NULL)
 		free(dbstring);
 
+	SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 	return 1;
 	}
 
@@ -2654,7 +2653,7 @@ int handletooltiprequest(LPTOOLTIPTEXT TTtext)
 		case DISPLAYINVERT: TTtext->lpszText="Invert Board";
 			break;
 		case SETUPCC:
-			if(color==BLACK)
+			if(color==CB_BLACK)
 				TTtext->lpszText="Red to move";
 			else
 				TTtext->lpszText="White to move";
@@ -2917,12 +2916,12 @@ int start11man(int number)
 	fclose(fp);
 
 	// now we have the right FEN in str
-	FENtoboard8(board8, str, &color, 21);
+	FENtoboard8(board8, str, &color, GT_ENGLISH);
 
 	// set linked list 
 	initlinkedlist();
 	GPDNgame.head = head;
-	board8toFEN(board8, str, color, 21);
+	board8toFEN(board8, str, color, GT_ENGLISH);
 	sprintf(GPDNgame.FEN,"%s",str);
 	sprintf(GPDNgame.event,"11-man #%i",number+1);
 	sprintf(GPDNgame.setup,"1");
@@ -2960,7 +2959,7 @@ void forward_to_game_end(void)
 {
 	while (current->next != NULL) {
 		domove(current->move, board8);
-		color = color ^ CHANGECOLOR;
+		color = CB_CHANGECOLOR(color);
 		current = current->next;
 	}
 }
@@ -2976,7 +2975,7 @@ int start3move(void)
 
 	InitCheckerBoard(board8);
 	InvalidateRect(hwnd,NULL,0);
-	color=BLACK;
+	color=CB_BLACK;
 	// set linked list 
 	initlinkedlist();
 	GPDNgame.head = head;
@@ -2985,17 +2984,17 @@ int start3move(void)
 	domove(m[three[op][0]],board8);
 	appendmovetolist(m[three[op][0]]);
 
-	color=color^CHANGECOLOR;
+	color = CB_CHANGECOLOR(color);
 	getmovelist(-1, m,board8,&dummy);
 	domove(m[three[op][1]],board8);
 	appendmovetolist(m[three[op][1]]);
 
-	color=color^CHANGECOLOR;
+	color = CB_CHANGECOLOR(color);
 	getmovelist(1, m,board8,&dummy);
 	domove(m[three[op][2]],board8);
 	appendmovetolist(m[three[op][2]]);
 
-	color=color^CHANGECOLOR;
+	color = CB_CHANGECOLOR(color);
 
 	if (gametype() == GT_ITALIAN) {
 		char pdn[80];
@@ -3040,7 +3039,7 @@ DWORD ThreadFunc(LPVOID param)
 
 
 	// test if there is a move at all: if not, return and set state to NORMAL
-	if(color==BLACK) c=1;
+	if(color==CB_BLACK) c=1;
 	else
 		c=-1;
 	n = getmovelist(c, m,board8,&dummy);
@@ -3105,9 +3104,9 @@ DWORD ThreadFunc(LPVOID param)
 
 			// if in engine match handicap mode, give primary engine half the time of secondary engine.
 			if(CBstate == ENGINEMATCH && handicap && currentengine == 1)
-				result=(getmove)((int *)originalcopy,color,maxtime/2,str,&playnow,reset+2*gCBoptions.exact+4*increment,0,&LCBmove);
+				result=(getmove)(originalcopy,color,maxtime/2,str,&playnow,reset+2*gCBoptions.exact+4*increment,0,&LCBmove);
 			else
-				result=(getmove)((int *)originalcopy,color,maxtime,str,&playnow,reset+2*gCBoptions.exact+4*increment,0,&LCBmove);
+				result=(getmove)(originalcopy,color,maxtime,str,&playnow,reset+2*gCBoptions.exact+4*increment,0,&LCBmove);
 
 			/* Display the Play! bitmap with black foreground when the engine is not searching. */
 			PostMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM)MOVESPLAY, MAKELPARAM(2, 0));
@@ -3147,7 +3146,7 @@ DWORD ThreadFunc(LPVOID param)
 
 		// if we are in engine match mode and one of the engines claims a win
 		// or a loss or a draw we stop 
-		if(result!=UNKNOWN && (CBstate==ENGINEMATCH))
+		if(result!=CB_UNKNOWN && (CBstate==ENGINEMATCH))
 			{
 			sprintf(current->comment,"%s : gameover claimed",str);
 			gameover=TRUE;
@@ -3158,9 +3157,9 @@ DWORD ThreadFunc(LPVOID param)
 			{
 			// determine the move that was made: we only do this if gametype is 21,
 			//	 else the engine must return the appropriate information in LCBmove
-			if(gametype()==21) /* should be 'if gametype==21' */
+			if(gametype()==GT_ENGLISH) /* should be 'if gametype==21' */
 				{
-				if(color==BLACK)
+				if(color==CB_BLACK)
 					n=getmovelist(1,m,b8copy,&dummy);
 				else
 					n=getmovelist(-1,m,b8copy,&dummy);
@@ -3275,6 +3274,13 @@ int changeCBstate(int oldstate, int newstate)
 	CheckMenuItem(hmenu,CM_2PLAYER,MF_UNCHECKED);
 	CheckMenuItem(hmenu,BOOKMODE_VIEW,MF_UNCHECKED);
 	CheckMenuItem(hmenu,BOOKMODE_ADD,MF_UNCHECKED);
+
+	/* Update animation state. */
+	if (CBstate == ENGINEMATCH && maxtime <= 1)
+		set_animation(false);
+	else
+		set_animation(true);
+
 	switch (CBstate)
 		{
 		case NORMAL:
@@ -3320,7 +3326,6 @@ DWORD AutoThreadFunc(LPVOID param)
 	static int oldengine;
 	FILE *Lfp;
 	static int gamenumber;
-	static int oldgamenumber;
 	static int movecount;
 	int i;
 	const int maxmovecount = 200;
@@ -3518,7 +3523,6 @@ DWORD AutoThreadFunc(LPVOID param)
 					{
 					gameover = FALSE;
 					makeanalysisfile(analysisfilename);
-					oldgamenumber = gamenumber;
 					// get number of next game; loadnextgame returns 0 if 
 					// there is no further game.
 					gamenumber = loadnextgame(); 
@@ -3792,7 +3796,7 @@ int dostats(int result, int movecount, int gamenumber, int *wins, int *draws, in
 		{
 		switch (result)
 			{
-			case WIN:
+			case CB_WIN:
 				if (currentengine == 1) 
 					{
 					(*wins)++;
@@ -3819,13 +3823,13 @@ int dostats(int result, int movecount, int gamenumber, int *wins, int *draws, in
 					}
 				break;
 
-			case DRAW:
+			case CB_DRAW:
 				strcat(matchlogstring,"=");
 				(*draws)++;
 				sprintf(GPDNgame.resultstring,"1/2-1/2");
 				break;
 
-			case LOSS:
+			case CB_LOSS:
 				if (currentengine == 1) 
 					{
 					(*losses)++; 
@@ -3852,7 +3856,7 @@ int dostats(int result, int movecount, int gamenumber, int *wins, int *draws, in
 					}
 				break;
 
-			case UNKNOWN:
+			case CB_UNKNOWN:
 				(*unknowns)++;
 				strcat(matchlogstring,"?");
 				sprintf(GPDNgame.resultstring,"*");
@@ -4012,7 +4016,7 @@ int gametype(void)
 		return atoi(reply);
 
 	// return default game type
-	return 21;
+	return GT_ENGLISH;
 	}
 
 
@@ -4236,7 +4240,7 @@ void PDNgametoPDNstring(struct PDNgame *game, char *pdnstring, char *lf)
 		}
 
 	// add the game terminator 
-	sprintf(s,"%s",GPDNgame.resultstring);
+	sprintf(s, "*");	/* Game terminator is '*' as per PDN 3.0. See http://pdn.fmjd.org/ */
 	counter+=strlen(s);
 	if(counter>79)
 		strcat(pdnstring,lf);
@@ -4355,25 +4359,24 @@ void pdntogame(int startposition[8][8], int startcolor)
 
 	/* called by loadgame and gamepaste */
 
-	int col = BLACK;
+	int col;
 	int b8[8][8];
 	int from, to;
 	struct CBmove legal;
 
 	/* set the starting values */
 	col = startcolor;
-	memcpy(b8,startposition,64*sizeof(int));
-
+	memcpy(b8, startposition, sizeof(b8));
 	current = head;
 	// TODO - this seems to move one too far - no PDN attached here on the last move!
 	while( current->next !=NULL)
 		{
 		PDNparseTokentonumbers(current->PDN,&from, &to);
-		if(islegal((int *)b8,col,from,to,&legal))
+		if(islegal(b8,col,from,to,&legal))
 			{
 			current->move=legal;
+			col = CB_CHANGECOLOR(col);
 			domove(legal,b8);
-			col=col^CHANGECOLOR;
 			current=current->next;
 			}
 		else
@@ -4394,7 +4397,7 @@ int builtinislegal(int board8[8][8], int color, int from, int to, struct CBmove 
 	int Lfrom, Lto;
 	int isjump;
 
-	if(color==BLACK)
+	if(color==CB_BLACK)
 		n=getmovelist(1,m,board8,&isjump);
 	else
 		n=getmovelist(-1,m,board8,&isjump);
@@ -4426,28 +4429,28 @@ void newgame(void)
 	{
 	InitCheckerBoard(board8);
 	reset_current_game_pdn();
-	color = BLACK;
+	color = CB_BLACK;
 	newposition = TRUE;
 	reset = 1;
 	gCBoptions.mirror = 0;
 
 	if(GPDNgame.gametype == GT_ITALIAN) 
 		{
-		color=WHITE;
+		color=CB_WHITE;
 		gCBoptions.mirror=1;
 		}
 	if(GPDNgame.gametype == GT_SPANISH)
 		{
-		color = WHITE;
+		color = CB_WHITE;
 		gCBoptions.mirror = 1;
 		}
 	if(GPDNgame.gametype == GT_RUSSIAN) 
 		{
-		color = WHITE;
+		color = CB_WHITE;
 		}
 	if(GPDNgame.gametype == GT_CZECH)
 		{
-		color = WHITE;
+		color = CB_WHITE;
 		}
 	
 	if(gCBoptions.level==17)
@@ -4488,7 +4491,7 @@ void doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8]
 	sprintf(PDNgame->round,"%s","");
 	sprintf(PDNgame->white,"%s","");
 	sprintf(PDNgame->site,"%s","");
-	PDNgame->result = UNKNOWN;
+	PDNgame->result = CB_UNKNOWN;
 
 	while(PDNparseGetnextheader(&p,header))
 		{
@@ -4516,13 +4519,13 @@ void doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8]
 			{
 			sprintf(PDNgame->resultstring,"%s",headervalue);
 			if(strcmp(headervalue,"1-0")==0)
-				PDNgame->result = WIN;
+				PDNgame->result = CB_WIN;
 			if(strcmp(headervalue,"0-1")==0)
-				PDNgame->result = LOSS;
+				PDNgame->result = CB_LOSS;
 			if(strcmp(headervalue,"1/2-1/2")==0)
-				PDNgame->result = DRAW;
+				PDNgame->result = CB_DRAW;
 			if(strcmp(headervalue,"*")==0)
-				PDNgame->result = UNKNOWN;
+				PDNgame->result = CB_UNKNOWN;
 
 			}
 		if(strcmp(headername,"setup")==0)
@@ -4537,24 +4540,24 @@ void doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8]
 
 	current=head;
 	/* set defaults */
-	*color=BLACK;
+	*color=CB_BLACK;
 	gCBoptions.mirror=0;
 	if(gametype()==GT_ITALIAN) 
 		{
-		*color=WHITE;
+		*color=CB_WHITE;
 		gCBoptions.mirror=1;
 		}
 	if(gametype()==GT_SPANISH)
 		{
-		*color = WHITE;
+		*color = CB_WHITE;
 		gCBoptions.mirror = 1;
 		}
 	if(gametype()==GT_RUSSIAN) 
 		{
-		*color=WHITE;
+		*color=CB_WHITE;
 		}
 	if(gametype() == GT_CZECH)
-		*color = WHITE;
+		*color = CB_WHITE;
 
 	InitCheckerBoard(board8);
 	sprintf(current->comment,"");
@@ -4574,7 +4577,10 @@ void doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8]
 		/* game terminators */
 		if((strcmp(token,"*")==0) || (strcmp(token,"0-1")==0) || (strcmp(token,"1-0")==0) || (strcmp(token,"1/2-1/2")==0)) 
 			{
-			sprintf(PDNgame->resultstring,"%s",token);
+			/* In PDN 3.0, the game terminator is '*'. Allow old style game result terminators, 
+			 * but don't interpret them as results.
+			 */
+			/* sprintf(PDNgame->resultstring,"%s",token); */
 			break;
 			}
 		if(token[0]=='{' || state==PDN_FLUFF)
@@ -4608,8 +4614,7 @@ void doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8]
 #endif
 		// ok, it was just a move 
 		sprintf(current->PDN,"%s",token);
-		newlistentry = (struct listentry *) malloc(sizeof(struct listentry));
-//		newlistentry =  malloc(sizeof(struct listentry));
+		newlistentry = (struct listentry *)calloc(1, sizeof(struct listentry));
 		if(newlistentry != NULL)
 			{
 			sprintf(newlistentry->comment,"");
@@ -4670,34 +4675,34 @@ void InitCheckerBoard(int b[8][8])
 		{
 		for(j=0;j<=7;j++)
 			{
-			b[i][j] = FREE;
+			b[i][j] = 0;
 			}
 		}
-	b[0][0]=BLACK|MAN;
-	b[2][0]=BLACK|MAN;
-	b[4][0]=BLACK|MAN;
-	b[6][0]=BLACK|MAN;
-	b[1][1]=BLACK|MAN;
-	b[3][1]=BLACK|MAN;
-	b[5][1]=BLACK|MAN;
-	b[7][1]=BLACK|MAN;
-	b[0][2]=BLACK|MAN;
-	b[2][2]=BLACK|MAN;
-	b[4][2]=BLACK|MAN;
-	b[6][2]=BLACK|MAN;
+	b[0][0]=CB_BLACK|CB_MAN;
+	b[2][0]=CB_BLACK|CB_MAN;
+	b[4][0]=CB_BLACK|CB_MAN;
+	b[6][0]=CB_BLACK|CB_MAN;
+	b[1][1]=CB_BLACK|CB_MAN;
+	b[3][1]=CB_BLACK|CB_MAN;
+	b[5][1]=CB_BLACK|CB_MAN;
+	b[7][1]=CB_BLACK|CB_MAN;
+	b[0][2]=CB_BLACK|CB_MAN;
+	b[2][2]=CB_BLACK|CB_MAN;
+	b[4][2]=CB_BLACK|CB_MAN;
+	b[6][2]=CB_BLACK|CB_MAN;
 
-	b[1][7]=WHITE|MAN;
-	b[3][7]=WHITE|MAN;
-	b[5][7]=WHITE|MAN;
-	b[7][7]=WHITE|MAN;
-	b[0][6]=WHITE|MAN;
-	b[2][6]=WHITE|MAN;
-	b[4][6]=WHITE|MAN;
-	b[6][6]=WHITE|MAN;
-	b[1][5]=WHITE|MAN;
-	b[3][5]=WHITE|MAN;
-	b[5][5]=WHITE|MAN;
-	b[7][5]=WHITE|MAN;
+	b[1][7]=CB_WHITE|CB_MAN;
+	b[3][7]=CB_WHITE|CB_MAN;
+	b[5][7]=CB_WHITE|CB_MAN;
+	b[7][7]=CB_WHITE|CB_MAN;
+	b[0][6]=CB_WHITE|CB_MAN;
+	b[2][6]=CB_WHITE|CB_MAN;
+	b[4][6]=CB_WHITE|CB_MAN;
+	b[6][6]=CB_WHITE|CB_MAN;
+	b[1][5]=CB_WHITE|CB_MAN;
+	b[3][5]=CB_WHITE|CB_MAN;
+	b[5][5]=CB_WHITE|CB_MAN;
+	b[7][5]=CB_WHITE|CB_MAN;
 	}
 
 void initengines(void)
@@ -4717,8 +4722,8 @@ void initengines(void)
 	char Lstr[256];
 
 	// set built in functions 
-	CBgametype = (PROC4)builtingametype;
-	CBislegal = (PROC6)builtinislegal;
+	CBgametype = (CB_GETGAMETYPE)builtingametype;
+	CBislegal = (CB_ISLEGAL)builtinislegal;
 
 	// load engine dlls
 	// first, primary engine
@@ -4762,10 +4767,10 @@ void initengines(void)
 		{
 		if(loadok)
 			{
-			enginecommand1 = (COMMANDPROC) GetProcAddress(hinstLib1,"enginecommand");
-			enginename1 =  (PROC3) GetProcAddress(hinstLib1, "enginename");
-			getmove1 =  (PROC1)GetProcAddress(hinstLib1, "getmove");
-			islegal1= (PROC6)GetProcAddress(hinstLib1,"islegal");			
+			enginecommand1 = (CB_ENGINECOMMAND)GetProcAddress(hinstLib1,"enginecommand");
+			enginename1 = (CB_GETSTRING)GetProcAddress(hinstLib1, "enginename");
+			getmove1 = (CB_GETMOVE)GetProcAddress(hinstLib1, "getmove");
+			islegal1= (CB_ISLEGAL)GetProcAddress(hinstLib1,"islegal");			
 			}
 		else
 			{
@@ -4796,10 +4801,10 @@ void initengines(void)
 		{
 		if(loadok)
 			{
-			enginecommand2 =  (COMMANDPROC) GetProcAddress(hinstLib2, "enginecommand");
-			enginename2 =  (PROC3) GetProcAddress(hinstLib2, "enginename");
-			getmove2 =  (PROC1)GetProcAddress(hinstLib2, "getmove");
-			islegal2= (PROC6)GetProcAddress(hinstLib2,"islegal");
+			enginecommand2 = (CB_ENGINECOMMAND)GetProcAddress(hinstLib2, "enginecommand");
+			enginename2 = (CB_GETSTRING)GetProcAddress(hinstLib2, "enginename");
+			getmove2 = (CB_GETMOVE)GetProcAddress(hinstLib2, "getmove");
+			islegal2 = (CB_ISLEGAL)GetProcAddress(hinstLib2, "islegal");
 			}
 		else
 			{

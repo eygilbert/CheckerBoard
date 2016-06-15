@@ -16,3 +16,9 @@ x64/Release/checkerboard.res
 *.suo
 checkerboard.VC.opendb
 egdb64.dll
+engines/dama64.dll
+*.exp
+engines/dama64.lib
+engines/simplech64.dll
+engines/simplech64.lib
+*.idb

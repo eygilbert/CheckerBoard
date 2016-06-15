@@ -8,10 +8,13 @@
 #include <windows.h>
 #include <stdio.h>
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 #include "CBstructs.h"
 #include "CBconsts.h"
 #include "saveashtml.h"
 #include "utility.h"
+#include "fen.h"
 #include "checkerboard.h"
 
 // maximal number of moves in a game that we handle
@@ -117,16 +120,16 @@ int saveashtml(char *filename, struct PDNgame *PDNgame)
 		// what piece is on this square?
 		switch(b[i])
 			{
-			case BLACK|MAN:
+			case CB_BLACK|CB_MAN:
 				fprintf(fp,"window.document.images[%i].src='gif/lightbm.gif';\n",i);
 				break;
-			case BLACK|KING:
+			case CB_BLACK|CB_KING:
 				fprintf(fp,"window.document.images[%i].src='gif/lightbk.gif';\n",i);
 				break;
-			case WHITE|MAN:
+			case CB_WHITE|CB_MAN:
 				fprintf(fp,"window.document.images[%i].src='gif/lightwm.gif';\n",i);
 				break;
-			case WHITE|KING:
+			case CB_WHITE|CB_KING:
 				fprintf(fp,"window.document.images[%i].src='gif/lightwk.gif';\n",i);
 				break;
 			default:
@@ -189,16 +192,16 @@ int saveashtml(char *filename, struct PDNgame *PDNgame)
 			// what piece is on this square?
 			switch(b[i])
 				{
-				case BLACK|MAN:
+				case CB_BLACK|CB_MAN:
 					fprintf(fp,"<img src=\"gif/lightbm.gif\">");
 					break;
-				case BLACK|KING:
+				case CB_BLACK|CB_KING:
 					fprintf(fp,"<img src=\"gif/lightbk.gif\">");
 					break;
-				case WHITE|MAN:
+				case CB_WHITE|CB_MAN:
 					fprintf(fp,"<img src=\"gif/lightwm.gif\">");
 					break;
-				case WHITE|KING:
+				case CB_WHITE|CB_KING:
 					fprintf(fp,"<img src=\"gif/lightwk.gif\">");
 					break;
 				default:
@@ -348,7 +351,7 @@ int PDNgametostartposition(struct PDNgame *game, int b[64])
 				j= 2*i;
 				if(i>=4 && i<8)
 					j++;
-				b[j] = BLACK|MAN;
+				b[j] = CB_BLACK|CB_MAN;
 				}
 
 			for(i=20;i<32;i++)
@@ -356,7 +359,7 @@ int PDNgametostartposition(struct PDNgame *game, int b[64])
 				j= 2*i+1;
 				if(i>=24 && i<28)
 					j--;
-				b[j] = WHITE|MAN;
+				b[j] = CB_WHITE|CB_MAN;
 				}
 			}
 		else
@@ -366,7 +369,7 @@ int PDNgametostartposition(struct PDNgame *game, int b[64])
 				j= 2*i+1;
 				if(i>=4 && i<8)
 					j--;
-				b[j] = WHITE|MAN;
+				b[j] = CB_WHITE|CB_MAN;
 				}
 
 			for(i=20;i<32;i++)
@@ -374,7 +377,7 @@ int PDNgametostartposition(struct PDNgame *game, int b[64])
 				j= 2*i;
 				if(i>=24 && i<28)
 					j++;
-				b[j] = BLACK|MAN;
+				b[j] = CB_BLACK|CB_MAN;
 				}
 			}
 		}
@@ -487,7 +490,7 @@ void PDNgametoPDNHTMLstring(struct PDNgame *game, char *pdnstring)
       }
 
 	/* add game terminator */
-	sprintf(s,"%s",game->resultstring);
+	sprintf(s, "*");		/* Game terminator is '*' as per PDN 3.0. See http://pdn.fmjd.org/ */
 	counter+=strlen(s);
 	strcat(pdnstring,s);
 	}

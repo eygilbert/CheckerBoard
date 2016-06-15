@@ -31,7 +31,7 @@
 #define MAXMOVES 28
 
 /* center and edge mask */
-/*       WHITE
+/*       CB_WHITE
 	   28  29  30  31
 	 24  25  26  27
 	   20  21  22  23
@@ -40,9 +40,26 @@
 	  8   9  10  11
 	    4   5   6   7
 	  0   1   2   3
-	      BLACK
+	      CB_BLACK
 */
 
+typedef unsigned int int32;
+
+struct pos
+	{
+	int32 bm;
+	int32 bk;
+	int32 wm;
+	int32 wk;
+	};
+
+struct move
+	{
+	int32 bm;
+	int32 bk;
+	int32 wm;
+	int32 wk;
+	};
 
 int makemovelist(struct pos *p,struct move movelist[MAXMOVES],int color);
 

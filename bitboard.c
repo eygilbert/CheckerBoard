@@ -1,5 +1,7 @@
 #include <windows.h>
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 #include "CBstructs.h"
 #include "CBconsts.h"
 
@@ -17,13 +19,13 @@ void bitboardtoboard8(struct pos *p, int b[8][8])
 		{
 		board[i]=0;
 		if(p->bm & 1<<i)
-			board[i]=BLACK|MAN;
+			board[i]=CB_BLACK|CB_MAN;
 		if(p->bk & 1<<i)
-			board[i]=BLACK|KING;
+			board[i]=CB_BLACK|CB_KING;
 		if(p->wm & 1<<i)
-			board[i]=WHITE|MAN;
+			board[i]=CB_WHITE|CB_MAN;
 		if(p->wk & 1<<i)
-			board[i]=WHITE|KING;
+			board[i]=CB_WHITE|CB_KING;
 		}
    
 	b[0][0]=board[0];
@@ -67,7 +69,7 @@ void boardtocrbitboard(int b[8][8], struct pos *position)
 	// initialize bitboard 
 	int i,board[32];
 	/*
-		  WHITE
+		  CB_WHITE
    	   28  29  30  31
 	 24  25  26  27
 	   20  21  22  23
@@ -76,7 +78,7 @@ void boardtocrbitboard(int b[8][8], struct pos *position)
 	  8   9  10  11
 	    4   5   6   7
 	  0   1   2   3
-	      BLACK
+	      CB_BLACK
 	*/
 	board[0]=b[0][0];board[1]=b[2][0];board[2]=b[4][0];board[3]=b[6][0];
 	board[4]=b[1][1];board[5]=b[3][1];board[6]=b[5][1];board[7]=b[7][1];
@@ -96,16 +98,16 @@ void boardtocrbitboard(int b[8][8], struct pos *position)
    		{
 		switch (board[i])
       		{
-			case BLACK|MAN:
+			case CB_BLACK|CB_MAN:
 				position->wm |= (1<<(31-i));
 				break;
-			case BLACK|KING:
+			case CB_BLACK|CB_KING:
          		position->wk |= (1<<(31-i));
 				break;
-			case WHITE|MAN:
+			case CB_WHITE|CB_MAN:
          		position->bm |= (1<<(31-i));
 				break;
-			case WHITE|KING:
+			case CB_WHITE|CB_KING:
          		position->bk |= (1<<(31-i));
 				break;
 			}
@@ -118,7 +120,7 @@ void boardtobitboard(int b[8][8], struct pos *position)
 	// initialize bitboard 
 	int i,board[32];
 	/*
-		  WHITE
+		  CB_WHITE
    	   28  29  30  31
 	 24  25  26  27
 	   20  21  22  23
@@ -127,7 +129,7 @@ void boardtobitboard(int b[8][8], struct pos *position)
 	  8   9  10  11
 	    4   5   6   7
 	  0   1   2   3
-	      BLACK
+	      CB_BLACK
 	*/
 	board[0]=b[0][0];board[1]=b[2][0];board[2]=b[4][0];board[3]=b[6][0];
 	board[4]=b[1][1];board[5]=b[3][1];board[6]=b[5][1];board[7]=b[7][1];
@@ -147,16 +149,16 @@ void boardtobitboard(int b[8][8], struct pos *position)
    		{
 		switch (board[i])
       		{
-			case BLACK|MAN:
+			case CB_BLACK|CB_MAN:
 				position->bm = position->bm | (1<<i);
 				break;
-			case BLACK|KING:
+			case CB_BLACK|CB_KING:
          		position->bk = position->bk | (1<<i);
          		break;
-			case WHITE|MAN:
+			case CB_WHITE|CB_MAN:
          		position->wm = position->wm | (1<<i);
 				break;
-			case WHITE|KING:
+			case CB_WHITE|CB_KING:
          		position->wk = position->wk | (1<<i);
 				break;
 			}

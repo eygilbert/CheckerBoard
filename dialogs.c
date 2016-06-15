@@ -10,6 +10,8 @@
 #include <shlobj.h>
 #include "resource.h"
 #include "standardheader.h"
+#include "cb_interface.h"
+#include "min_movegen.h"
 #include "CBstructs.h"
 #include "CBconsts.h"
 #include "dialogs.h"
@@ -170,16 +172,16 @@ BOOL CALLBACK DialogFuncSavegame(HWND hdwnd, UINT message, WPARAM wParam, LPARAM
 			/* initialize the comboboxes */
 			switch(GPDNgame.result)
 				{
-				case WIN:
+				case CB_WIN:
 					SendDlgItemMessage(hdwnd,IDC_BLACKWINS,BM_SETCHECK,BST_CHECKED,0);
 					break;
-				case DRAW:
+				case CB_DRAW:
 					SendDlgItemMessage(hdwnd,IDC_DRAW,BM_SETCHECK,BST_CHECKED,0);
 					break;
-				case LOSS:
+				case CB_LOSS:
 					SendDlgItemMessage(hdwnd,IDC_WHITEWINS,BM_SETCHECK,BST_CHECKED,0);
 					break;
-				case UNKNOWN:
+				case CB_UNKNOWN:
 					SendDlgItemMessage(hdwnd,IDC_UNKNOWN,BM_SETCHECK,BST_CHECKED,0);
 					break;
 				}
@@ -691,7 +693,8 @@ BOOL CALLBACK EngineOptionsFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 	
 	int rbprimary,rbsecondary;
 	static int availableMB;
-	int i;
+	int i, egdb_max;
+
 
 	extern char reply[256];
 	extern int currentengine;
@@ -730,15 +733,23 @@ BOOL CALLBACK EngineOptionsFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 				i *= 2;
 			}
 			
-			
+			if (availableMB < 1024)
+				egdb_max = availableMB - 64;
+			else if (availableMB < 4096)
+				egdb_max = availableMB - 512;
+			else
+				egdb_max = availableMB - 1024;
+
 			// initialize EGDB combobox
-			for(i=0;i<availableMB-64;i+=32)
-				{
-				sprintf(Lstr,"%i",i);
-				if(i>256 && (i%64))
+			for (i = 0; i < egdb_max; i += 64) {
+				if (i > 16384 && (i % 1024))
 					continue;
+				if (i > 4096 && (i % 256))
+					continue;
+
+				sprintf(Lstr, "%i", i);
 				SendDlgItemMessage(hdwnd,IDC_EGDBSIZE,LB_ADDSTRING,0,(LPARAM)Lstr);
-				}
+			}
 
 			// get engine options
 			getengineoptions(hdwnd, &currentoptions);

@@ -67,14 +67,17 @@
 #include <string.h>
 #include <time.h>
 #include <windows.h>
-/*----------> definitions */
+#include "cb_interface.h"
+
+/* Piece definitions, defined in cb_interface.h  */
+#define WHITE CB_WHITE
+#define BLACK CB_BLACK
+#define MAN CB_MAN
+#define KING CB_KING
+
 #define OCCUPIED 0
-#define WHITE 1
-#define BLACK 2
-#define MAN 4
-#define KING 8
 #define FREE 16
-#define CHANGECOLOR 3
+
 #define MAXDEPTH 99
 #define MAXMOVES 24 
 
@@ -83,31 +86,8 @@
 #undef VERBOSE
 #define STATISTICS
 
-/* return values */
-#define DRAW 0
-#define WIN 1
-#define LOSS 2
-#define UNKNOWN 3
 
 /*----------> structure definitions  */
-
-struct coor             /* coordinate structure for board coordinates */
-	{
-	int x;
-	int y;
-	};
-
-struct CBmove            	/* all the information you need about a move */
-	{
-	int jumps;				/* how many jumps are there in this move? */
-   int newpiece;        /* what type of piece appears on to */
-   int oldpiece;        /* what disappears on from */
-	struct coor from,to; /* coordinates of the piece - in 8x8 notation!*/
-   struct coor path[12];/* intermediate path coordinates of the moving piece */
-	struct coor del[12]; /* squares whose pieces are deleted after the move */
-   int delpiece[12];    /* what is on these squares */
-	} GCBmove;
-
 
 struct move2
 	{
@@ -159,6 +139,7 @@ int alphabetas,generatemovelists,evaluations,generatecapturelists,testcaptures;
 #endif
 int value[17]={0,0,0,0,0,1,256,0,0,16,4096,0,0,0,0,0,0};
 int *play;
+struct CBmove GCBmove;
 
 
 /*-------------- PART 1: dll stuff -------------------------------------------*/
@@ -395,15 +376,15 @@ int WINAPI getmove(int b[8][8],int color, double maxtime, char str[255], int *pl
 
    if(color==BLACK)
    	{
-   	if(value>4000) return WIN;
-   	if(value<-4000) return LOSS;
+   	if(value>4000) return CB_WIN;
+   	if(value<-4000) return CB_LOSS;
    	}
    if(color==WHITE)
    	{
-      if(value>4000) return LOSS;
-      if(value<-4000) return WIN;
+      if(value>4000) return CB_LOSS;
+      if(value<-4000) return CB_WIN;
       }
-   return UNKNOWN;
+   return CB_UNKNOWN;
    }
 
 struct coor numbertocoor(int n)
@@ -762,7 +743,7 @@ int firstalphabeta(int b[46], int depth, int alpha, int beta, int color, struct 
 		{
       domove(b,movelist[i]);
 
-      value=alphabeta(b,depth-1,alpha,beta,(color^CHANGECOLOR));
+      value=alphabeta(b,depth-1,alpha,beta,CB_CHANGECOLOR(color));
 
       undomove(b,movelist[i]);
       if(color == BLACK)
@@ -823,7 +804,7 @@ int alphabeta(int b[46], int depth, int alpha, int beta, int color)
 		{
       domove(b,movelist[i]);
 
-      value=alphabeta(b,depth-1,alpha,beta,color^CHANGECOLOR);
+      value=alphabeta(b,depth-1,alpha,beta,CB_CHANGECOLOR(color));
 
       undomove(b,movelist[i]);
 
@@ -1692,6 +1673,12 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
 	/* capture king as early as possible */
 	/* for all moves: tmp is the earliest jump */
 	/* max is the smallest of the earliest jumps*/
+
+	/* eyg bug fix. Each king capture must be the earliest possible, not just the first
+	 * king capture. In this pos, W:WK30:BK26,K27,K18,20,10,K12 30x5 is the only legal move.
+	 * I changed temp to be the binary weighted sum of king captures, where
+	 * the weight of the nth capture is (1 << n).
+	 */
 	max=100;
 	for(i=0;i<n;i++)
 		{
@@ -1700,7 +1687,7 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
 		for(j=movelist[i].n-1;j>=2;j--)
 			{
 			if(((movelist[i].m[j]>>8)%256) &KING)
-				tmp=j;
+				tmp += (1 << j);
 			}
 		if(tmp<max) max=tmp;
 		}
@@ -1712,7 +1699,7 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
 		for(j=movelist[i].n-1;j>=2;j--)
 			{
 			if(((movelist[i].m[j]>>8)%256) &KING)
-				tmp=j;
+				tmp += (1 << j);
 			}
 		if(tmp>max)
 			ismove[i]=0;

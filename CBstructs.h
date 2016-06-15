@@ -40,30 +40,6 @@ typedef struct
 	int draw;
 	} RESULT;
 
-struct coor 				/* coordinate structure for board coordinates */
-	{
-	// was ints
-	int x;
-	int y;
-	};
-
-
-
-struct CBmove					/* all the information you need about a move */
-	{
-	// was all ints. made char because i save CBmoves in user book - this saves
-	// me a factor 4 - still, they are much too larg of course...
-
-	int jumps;				/* how many jumps are there in this move? */
-	int newpiece;			/* what type of piece appears on to */
-	int oldpiece;			/* what disappears on from */
-	struct coor from,to; /* coordinates of the piece - in 8x8 notation!*/
-	struct coor path[12];/* intermediate path coordinates of the moving piece */
-	struct coor del[12]; /* squares whose pieces are deleted after the move */
-	int delpiece[12]; 	/* what is on these squares */
-	};
-
-
 
 struct listentry			/* doubly linked list which holds the game */
 	{
@@ -117,14 +93,6 @@ struct gamedatabase{   // MAXGAMES of these get allocated! - nearly 20MB for 40'
 	char event[128];
 	char date[32];
 	char PDN[256];
-	};
-
-struct pos
-	{
-	unsigned int bm;
-	unsigned int bk;
-	unsigned int wm;
-	unsigned int wk;
 	};
 
 struct userbookentry {

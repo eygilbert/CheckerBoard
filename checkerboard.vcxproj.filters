@@ -13,6 +13,9 @@
       <UniqueIdentifier>{d1b16621-4999-4ec8-94a1-3a443610a0b6}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
+    <Filter Include="Italian_movegen">
+      <UniqueIdentifier>{4a0dc7f2-274e-4f40-9a21-3fc6595e898e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitboard.c">
@@ -58,6 +61,15 @@
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
     <ClCompile Include="app_instance.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Italian_movegen\min_movegen_ital.cpp">
+      <Filter>Italian_movegen</Filter>
+    </ClCompile>
+    <ClCompile Include="Italian_movegen\reverse_rows.cpp">
+      <Filter>Italian_movegen</Filter>
+    </ClCompile>
+    <ClCompile Include="fen.c">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -119,6 +131,30 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="app_instance.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Italian_movegen\board.h">
+      <Filter>Italian_movegen</Filter>
+    </ClInclude>
+    <ClInclude Include="Italian_movegen\move_api.h">
+      <Filter>Italian_movegen</Filter>
+    </ClInclude>
+    <ClInclude Include="Italian_movegen\MoveItalian.h">
+      <Filter>Italian_movegen</Filter>
+    </ClInclude>
+    <ClInclude Include="Italian_movegen\min_movegen_ital.h">
+      <Filter>Italian_movegen</Filter>
+    </ClInclude>
+    <ClInclude Include="Italian_movegen\reverse_rows.h">
+      <Filter>Italian_movegen</Filter>
+    </ClInclude>
+    <ClInclude Include="Italian_movegen\lsb.h">
+      <Filter>Italian_movegen</Filter>
+    </ClInclude>
+    <ClInclude Include="source\cb_interface.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="fen.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

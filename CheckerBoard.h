@@ -4,8 +4,8 @@
 // CBconsts.h
 
 // version 
-#define VERSION "1.721"
-#define PLACE "Küsnacht, December 2, 2013"
+#define VERSION "1.73"
+#define PLACE "June 9, 2016"
 // 1.721 fixes a bug in search position which lets CB crash on new windows systems
 
 #define OP_BOARD 0			// different opening decks
@@ -27,7 +27,6 @@
 
 #define MAXPIECESET 16
 
-#define ENGINECOMMAND_REPLY_SIZE 1024
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
@@ -43,6 +42,7 @@ DWORD	AutoThreadFunc(LPVOID param);
 DWORD	ThreadFunc(LPVOID param);
 
 // my functions in alphabetical list
+void	abortengine();
 int		addmovetouserbook(int b[8][8], struct CBmove *move);
 void	add_piecesets_to_menu(HMENU hmenu);
 int		appendmovetolist(struct CBmove);
@@ -58,8 +58,8 @@ int		enginename(char str[256]);
 int		getfilename(char filename[255],int what);
 int		getanimationbusy(void);
 int		getenginebusy(void);
-void	abortengine();
 int		getenginestarting(void);
+int		gametype(void);
 int		getmovenumber(struct listentry *cur);
 int		handlegamereplace(int replaceindex, char *databasename);
 int		handlesetupcc(int *color);
