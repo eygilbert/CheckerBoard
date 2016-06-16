@@ -99,7 +99,6 @@ typedef union {
 	};
 } BOARD;
 
-#define ITALIAN_RULES
 
 inline int bitmask_to_square0(BITBOARD bitmask)
 {

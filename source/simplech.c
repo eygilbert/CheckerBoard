@@ -93,7 +93,7 @@
 struct move2
 	{
    short n;
-   int m[8];
+   int m[12];
    };
 
 /*----------> function prototypes  */
@@ -115,8 +115,8 @@ void movetonotation(struct move2 move,char str[80]);
 int  checkers(int b[46],int color, double maxtime, char *str);
 int  alphabeta(int b[46],int depth, int alpha, int beta, int color);
 int  firstalphabeta(int b[46],int depth, int alpha, int beta, int color,struct move2 *best);
-void domove(int b[46],struct move2 move);
-void undomove(int b[46],struct move2 move);
+void domove(int b[46],struct move2 &move);
+void undomove(int b[46],struct move2 &move);
 int  evaluation(int b[46], int color);
 
 /*----------> part III: move generation */
@@ -534,7 +534,7 @@ int alphabeta(int b[46], int depth, int alpha, int beta, int color)
 	return(beta);
    }
 
-void domove(int b[46],struct move2 move)
+void domove(int b[46],struct move2 &move)
 /*----------> purpose: execute move on board
   ----------> version: 1.1
   ----------> date: 25th october 97 */
@@ -550,21 +550,17 @@ void domove(int b[46],struct move2 move)
       }
    }
 
-void undomove(int b[46],struct move2 move)
-/*----------> purpose:
-  ----------> version: 1.1
-  ----------> date: 25th october 97 */
-	{
-   int square,before;
-   int i;
+void undomove(int b[46], struct move2 &move)
+{
+	int square, before;
+	int i;
 
-   for(i=0;i<move.n;i++)
-   	{
-      square=(move.m[i] % 256);
-      before=((move.m[i]>>8) % 256);
-      b[square]=before;
-      }
-   }
+	for (i = move.n - 1; i >= 0; --i) {
+		square = (move.m[i] % 256);
+		before = ((move.m[i] >> 8) % 256);
+		b[square] = before;
+	}
+}
 
 int evaluation(int b[46], int color)
 /*----------> purpose:
@@ -1134,9 +1130,11 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
                      m+=i+4;
                      movelist[n].m[2]=m;
                      tmp=b[i+4];
-		     				b[i+4]=FREE;
+		     		b[i+4]=FREE;		/* Remove captured piece. */
+					b[i] = FREE;		/* Remove capturing king. */
                   	blackkingcapture(b, &n, movelist, i+8);
-                     b[i+4]=tmp;
+                     b[i+4]=tmp;		/* Restore captured piece. */
+					 b[i] = BLACK|KING;	/* Restore capturing king. */
                      }
                   }
                if( (b[i+5] & WHITE) !=0)
@@ -1158,8 +1156,10 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
                      movelist[n].m[2]=m;
                      tmp=b[i+5];
                      b[i+5]=FREE;
+					b[i] = FREE;		/* Remove capturing king. */
                   	blackkingcapture(b, &n, movelist, i+10);
                      b[i+5]=tmp;
+					 b[i] = BLACK|KING;	/* Restore capturing king. */
                      }
                   }
                if( (b[i-4] & WHITE) !=0)
@@ -1181,8 +1181,10 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
                      movelist[n].m[2]=m;
                   	tmp=b[i-4];
                      b[i-4]=FREE;
+					b[i] = FREE;		/* Remove capturing king. */
                   	blackkingcapture(b, &n, movelist, i-8);
                      b[i-4]=tmp;
+					 b[i] = BLACK|KING;	/* Restore capturing king. */
                      }
                   }
                if( (b[i-5] & WHITE) !=0)
@@ -1204,8 +1206,10 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
                      movelist[n].m[2]=m;
                   	tmp=b[i-5];
                      b[i-5]=FREE;
+					b[i] = FREE;		/* Remove capturing king. */
                   	blackkingcapture(b, &n, movelist, i-10);
                      b[i-5]=tmp;
+					 b[i] = BLACK|KING;	/* Restore capturing king. */
                      }
                   }
                }
@@ -1282,8 +1286,10 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
                      movelist[n].m[2]=m;
                   	tmp=b[i+4];
                      b[i+4]=FREE;
+					b[i] = FREE;		/* Remove capturing king. */
                   	whitekingcapture(b, &n, movelist, i+8);
                      b[i+4]=tmp;
+					 b[i] = WHITE | KING;
                      }
                   }
                if( (b[i+5] & BLACK) !=0)
@@ -1305,8 +1311,10 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
                      movelist[n].m[2]=m;
                      tmp=b[i+5];
                      b[i+5]=FREE;
+					b[i] = FREE;		/* Remove capturing king. */
                   	whitekingcapture(b, &n, movelist, i+10);
                      b[i+5]=tmp;
+					 b[i] = WHITE | KING;
                      }
                   }
 	       		if( (b[i-4] & BLACK) !=0)
@@ -1328,8 +1336,10 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
                      movelist[n].m[2]=m;
                      tmp=b[i-4];
                      b[i-4]=FREE;
+					b[i] = FREE;		/* Remove capturing king. */
                   	whitekingcapture(b, &n, movelist, i-8);
                      b[i-4]=tmp;
+					 b[i] = WHITE | KING;
                      }
                   }
                if( (b[i-5] & BLACK) !=0)
@@ -1351,8 +1361,10 @@ int  generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color)
                      movelist[n].m[2]=m;
                   	tmp=b[i-5];
                      b[i-5]=FREE;
+					b[i] = FREE;		/* Remove capturing king. */
                   	whitekingcapture(b, &n, movelist, i-10);
                      b[i-5]=tmp;
+					 b[i] = WHITE | KING;
                      }
                   }
                }
