@@ -68,6 +68,7 @@ int		handle_lbuttondown(int x, int y);
 int		handle_rbuttondown(int x, int y);
 void	InitCheckerBoard(int b[8][8]);
 void	initengines(void);
+void	loadengines(char *pri_fname, char *sec_fname);
 HWND	InitHeader(HWND hwnd);
 int		initlinkedlist(void);
 void	InitStatus(HWND hwnd);

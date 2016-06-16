@@ -1392,6 +1392,12 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 						toggleengine = 1;
 
 					setcurrentengine(toggleengine);
+
+					// reset game if an engine of different game type was selected!
+					if (gametype() != GPDNgame.gametype) {
+						PostMessage(hwnd, (UINT)WM_COMMAND, (WPARAM)GAMENEW, (LPARAM)0);
+						PostMessage(hwnd, (UINT)WM_SIZE, (WPARAM)0, (LPARAM)0);
+					}
 					break;
 
 				case SETUPCC:
@@ -4705,7 +4711,52 @@ void InitCheckerBoard(int b[8][8])
 	b[7][5]=CB_WHITE|CB_MAN;
 	}
 
-void initengines(void)
+
+/*
+ * Load an engine dll, and get pointers to the exported functions in the dll.
+ * Return non-zero on error.
+ */
+int load_engine(HINSTANCE *lib, char *dllname, CB_ENGINECOMMAND *cmdfn, CB_GETSTRING *namefn, CB_GETMOVE *getmovefn, CB_ISLEGAL *islegalfn, char *pri_or_sec)
+{
+	char buf[256];
+
+	// go to the right directory to load engines
+	SetCurrentDirectory(CBdirectory);
+	sprintf(buf, "engines\\%s", dllname);
+	*lib = LoadLibrary(buf);
+
+	// go back to the working dir
+	SetCurrentDirectory(CBdirectory);
+	
+	// If the handle is valid, try to get the function addresses
+	if (*lib != NULL) {
+		*cmdfn = (CB_ENGINECOMMAND)GetProcAddress(*lib, "enginecommand");
+		*namefn = (CB_GETSTRING)GetProcAddress(*lib, "enginename");
+		*getmovefn = (CB_GETMOVE)GetProcAddress(*lib, "getmove");
+		*islegalfn = (CB_ISLEGAL)GetProcAddress(*lib, "islegal");			
+		if (*islegalfn == NULL) 
+			*islegalfn = CBislegal;
+		return(0);
+	}
+	else {
+		sprintf(buf, 
+				"CheckerBoard could not find\n"
+				"the %s engine dll.\n\n"
+				"Please use the \n"
+				"'Engine->Select..' command\n"
+				"to select a new %s engine",
+				pri_or_sec, pri_or_sec);
+		MessageBox(hwnd, buf, "Error", MB_OK);					
+		*cmdfn = NULL;
+		*namefn = NULL;
+		*getmovefn = NULL;
+		*islegalfn = NULL;			
+		return(1);
+	}
+}
+
+
+void loadengines(char *pri_fname, char *sec_fname)
 // sets the engines
 // this is first called from WinMain on the WM_CREATE command.
 // the global strings "primaryenginestring", 
@@ -4715,9 +4766,7 @@ void initengines(void)
 // new engines. for this, however, CB needs to know which engines
 // are loaded right now.
 	{
-	int loadok=1;
-	int fFreeResult;
-	HMODULE oldprimary = hinstLib1, oldsecondary = hinstLib2;
+	int status;
 	HMODULE primaryhandle, secondaryhandle;
 	char Lstr[256];
 
@@ -4728,10 +4777,10 @@ void initengines(void)
 	// load engine dlls
 	// first, primary engine
 	// is there a way to check whether a module is already loaded?
-	primaryhandle = GetModuleHandle(gCBoptions.primaryenginestring);
+	primaryhandle = GetModuleHandle(pri_fname);
 	sprintf(Lstr,"handle = %i (primary engine)",PtrToLong(primaryhandle));
 	CBlog(Lstr);
-	secondaryhandle = GetModuleHandle(gCBoptions.secondaryenginestring);
+	secondaryhandle = GetModuleHandle(sec_fname);
 	sprintf(Lstr,"secondaryhandle = %i (secondary engine)",PtrToLong(secondaryhandle));
 	CBlog(Lstr);
 
@@ -4747,92 +4796,82 @@ void initengines(void)
 	// free up engine modules that are no longer used!
 	// in fact, we should do this first, before loading the new engines!!
 
-	//unload primary engine
-	if(oldprimary != primaryhandle && oldprimary != secondaryhandle)
-		fFreeResult = FreeLibrary(oldprimary);
-		
-	// unload secondary engine
-	if(oldsecondary != primaryhandle && oldsecondary != secondaryhandle)
-		fFreeResult = FreeLibrary(oldsecondary);
-		
-	// go to the right directory to load engines
-	SetCurrentDirectory(CBdirectory);
-	sprintf(Lstr,"engines\\%s",gCBoptions.primaryenginestring);
-	hinstLib1 = LoadLibrary(Lstr);
-	// and go back to the working dir
-	SetCurrentDirectory(CBdirectory);
-	
-	// If the handle is valid, try to get the function addresses
-	if (hinstLib1 != NULL)
-		{
-		if(loadok)
-			{
-			enginecommand1 = (CB_ENGINECOMMAND)GetProcAddress(hinstLib1,"enginecommand");
-			enginename1 = (CB_GETSTRING)GetProcAddress(hinstLib1, "enginename");
-			getmove1 = (CB_GETMOVE)GetProcAddress(hinstLib1, "getmove");
-			islegal1= (CB_ISLEGAL)GetProcAddress(hinstLib1,"islegal");			
-			}
-		else
-			{
-			MessageBox(hwnd,"The selected primary engine\nis out of date and will not\nwork with this version of CheckerBoard","Error",MB_OK);
-			enginecommand1 = 0;
-			enginename1 = 0;
-			getmove1 = 0;
-			islegal1 =0;
-			}
+	/*
+	 * If there was a primary engine loaded, and it is different from the new primary and secondary
+	 * engine handles, then unload it.
+	 */
+	if (hinstLib1) {
+		if (hinstLib1 != primaryhandle && hinstLib1 != secondaryhandle) {
+			status = FreeLibrary(hinstLib1);
+			hinstLib1 = 0;
+			enginecommand1 = NULL;
+			enginename1 = NULL;
+			getmove1 = NULL;
+			islegal1 = NULL;
 		}
-	else
-		{
-		MessageBox(hwnd,"CheckerBoard could not find\nthe primary engine dll.\n\nPlease use the \n'Engine->Select..' command\nto select a new primary engine", "Error",MB_OK);					
-		}
-	if(islegal1==NULL) 
-		islegal1=CBislegal;
+	}
 
-	// load secondary engine
-	// should check if engine2 is engine1
-	// go to the right directory to load engines
-	SetCurrentDirectory(CBdirectory);
-	sprintf(Lstr,"engines\\%s",gCBoptions.secondaryenginestring);
-	hinstLib2 = LoadLibrary(Lstr);
-	SetCurrentDirectory(CBdirectory);
-	// If the handle is valid, try to get the function address
+	/* If there was a secondary engine loaded, and it is different from the new primary and secondary
+	 * engine handles, then unload it.
+	 */
+	if (hinstLib2) {
+		if (hinstLib2 != primaryhandle && hinstLib2 != secondaryhandle) {
+			status = FreeLibrary(hinstLib2);
+			hinstLib2 = 0;
+			enginecommand2 = NULL;
+			enginename2 = NULL;
+			getmove2 = NULL;
+			islegal2 = NULL;
+		}
+	}
 
-	if (hinstLib2 != NULL)
-		{
-		if(loadok)
-			{
-			enginecommand2 = (CB_ENGINECOMMAND)GetProcAddress(hinstLib2, "enginecommand");
-			enginename2 = (CB_GETSTRING)GetProcAddress(hinstLib2, "enginename");
-			getmove2 = (CB_GETMOVE)GetProcAddress(hinstLib2, "getmove");
-			islegal2 = (CB_ISLEGAL)GetProcAddress(hinstLib2, "islegal");
-			}
-		else
-			{
-			MessageBox(hwnd,"The selected secondary engine\nis out of date and will not\nwork with this version of CheckerBoard","Error",MB_OK);
-			enginecommand2 = 0;
-			enginename2 = 0;
-			getmove2 = 0;
-			islegal2 =0;
+	/* Load a new primary engine if there isn't one already loaded, or
+	 * if the requested new engine filename is different from the one presently loaded (this happens
+	 * if the presently loaded primary engine handle is same as the secondary engine handle).
+	 */
+	if (!hinstLib1 || strcmp(pri_fname, gCBoptions.primaryenginestring)) {
+		status = load_engine(&hinstLib1, pri_fname, &enginecommand1, &enginename1, &getmove1, &islegal1, "primary");
+		if (!status)
+			strcpy(gCBoptions.primaryenginestring, pri_fname);		/* Success. */
+		else {
+			if (strcmp(pri_fname, gCBoptions.primaryenginestring)) {
+				status = load_engine(&hinstLib1, gCBoptions.primaryenginestring, &enginecommand1, &enginename1, &getmove1, &islegal1, "primary");
+				if (status)
+					gCBoptions.primaryenginestring[0] = 0;
 			}
 		}
-	else
-		MessageBox(hwnd,"CheckerBoard could not find\nthe secondary engine\n\nPlease use the \n'Engine->Select..' command\nto select a new secondary engine", "Error",MB_OK);					
-		
-	if(islegal2==NULL) 
-		islegal2=CBislegal;
+	}
+	if (!hinstLib2 || strcmp(sec_fname, gCBoptions.secondaryenginestring)) {
+		status = load_engine(&hinstLib2, sec_fname, &enginecommand2, &enginename2, &getmove2, &islegal2, "secondary");
+		if (!status)
+			strcpy(gCBoptions.secondaryenginestring, sec_fname);	/* Success. */
+		else {
+			if (strcmp(sec_fname, gCBoptions.secondaryenginestring)) {
+				status = load_engine(&hinstLib2, gCBoptions.secondaryenginestring, &enginecommand2, &enginename2, &getmove2, &islegal2, "secondary");
+				if (status)
+					gCBoptions.secondaryenginestring[0] = 0;
+			}
+		}
+	}
 
 	// set current engine 
 	setcurrentengine(1);
 
 	// reset game if an engine of different game type was selected!
-	if(gametype() != GPDNgame.gametype) {
-		PostMessage(hwnd,(UINT)WM_COMMAND,(WPARAM)GAMENEW,(LPARAM)0);
+	if (gametype() != GPDNgame.gametype) {
+		PostMessage(hwnd, (UINT)WM_COMMAND, (WPARAM)GAMENEW, (LPARAM)0);
 		PostMessage(hwnd, (UINT)WM_SIZE, (WPARAM) 0, (LPARAM) 0);
 	}
 
 	// reset the directory to the CB directory
 	SetCurrentDirectory(CBdirectory);
 	}
+
+
+void initengines(void)
+{
+	loadengines(gCBoptions.primaryenginestring, gCBoptions.secondaryenginestring);
+}
 
 
 int initlinkedlist(void)

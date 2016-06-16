@@ -1304,7 +1304,7 @@ BOOL CALLBACK EngineDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM l
 	*/
 	int i;
 	
-	static char oldengine1[256],oldengine2[256];
+	char pri_fname[256], sec_fname[256];
 	extern char CBdirectory[256];
 	extern struct CBoptions gCBoptions;
 	
@@ -1323,10 +1323,6 @@ BOOL CALLBACK EngineDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM l
 			SendDlgItemMessage(hdwnd,IDC_SECONDARY,LB_DIR,0,(LPARAM)"*.dll");
 			SendDlgItemMessage(hdwnd,IDC_PRIMARY,LB_SELECTSTRING,-1,(LPARAM)gCBoptions.primaryenginestring);
 			SendDlgItemMessage(hdwnd,IDC_SECONDARY,LB_SELECTSTRING,-1,(LPARAM)gCBoptions.secondaryenginestring);
-			
-			// save old engine strings 
-			sprintf(oldengine1,"%s",gCBoptions.primaryenginestring);
-			sprintf(oldengine2,"%s",gCBoptions.secondaryenginestring);
 			return 1;
 		
 		case WM_COMMAND:
@@ -1340,17 +1336,22 @@ BOOL CALLBACK EngineDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM l
 
 				case IDC_OK:
 					
-					i= (int) SendDlgItemMessage(hdwnd, IDC_PRIMARY,LB_GETCURSEL,0,0L);
-					if(i>-1)
-						SendDlgItemMessage(hdwnd, IDC_PRIMARY,LB_GETTEXT,i,(LPARAM)gCBoptions.primaryenginestring);
+					i = (int)SendDlgItemMessage(hdwnd, IDC_PRIMARY,LB_GETCURSEL,0,0L);
+					if (i > -1)
+						SendDlgItemMessage(hdwnd, IDC_PRIMARY,LB_GETTEXT,i,(LPARAM)pri_fname);
+					else
+						pri_fname[0] = 0;
+
 					// new version code below
-					i= (int) SendDlgItemMessage(hdwnd, IDC_SECONDARY,LB_GETCURSEL,0,0L);
-					if(i>-1)
-						SendDlgItemMessage(hdwnd, IDC_SECONDARY,LB_GETTEXT,i,(LPARAM)gCBoptions.secondaryenginestring);
+					i = (int)SendDlgItemMessage(hdwnd, IDC_SECONDARY,LB_GETCURSEL,0,0L);
+					if (i > -1)
+						SendDlgItemMessage(hdwnd, IDC_SECONDARY,LB_GETTEXT,i,(LPARAM)sec_fname);
+					else
+						sec_fname[0] = 0;
 					
-					// if we have a new engine, call initengines.
-					if (strcmp(gCBoptions.primaryenginestring,oldengine1) != 0 || strcmp(gCBoptions.secondaryenginestring,oldengine2) != 0)
-						initengines();
+					// if we have a new engine, call loadengines.
+					if (strcmp(gCBoptions.primaryenginestring, pri_fname) != 0 || strcmp(gCBoptions.secondaryenginestring, sec_fname) != 0)
+						loadengines(pri_fname, sec_fname);
 					SetCurrentDirectory(CBdirectory);
 	
 					EndDialog(hdwnd,0);
