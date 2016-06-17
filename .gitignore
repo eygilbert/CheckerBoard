@@ -26,3 +26,5 @@ engines/dama.lib
 engines/simplech.lib
 *.iobj
 *.ipdb
+engines/*.*
+*.bak
