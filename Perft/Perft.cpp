@@ -102,9 +102,9 @@ INT64 Perft(int board[46], int color, int depth, int ply, int printpos)
 		return(nmoves);
 
 	sumnodes = 0;
-    for (i = 0; i < nmoves; ++i) {
+	for (i = 0; i < nmoves; ++i) {
 		domove(board, movelist[i]);
-        nodes = Perft(board, CB_CHANGECOLOR(color), depth - 1, ply + 1, printpos);
+		nodes = Perft(board, CB_CHANGECOLOR(color), depth - 1, ply + 1, printpos);
 		if (ply == 0 && printpos) {
 			print_fen(board, CB_CHANGECOLOR(color), fenbuf);
 			printf("%s; nodes %I64d\n", fenbuf, nodes);
@@ -112,7 +112,7 @@ INT64 Perft(int board[46], int color, int depth, int ply, int printpos)
 		undomove(board, movelist[i]);
 		sumnodes += nodes;
 	}
-    return(sumnodes);
+	return(sumnodes);
 }
 
 
