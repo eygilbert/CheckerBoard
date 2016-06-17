@@ -7,7 +7,9 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <stdio.h>
+#pragma warning(disable:4091)
 #include <shlobj.h>
+#pragma warning(default:4091)
 #include "resource.h"
 #include "standardheader.h"
 #include "cb_interface.h"

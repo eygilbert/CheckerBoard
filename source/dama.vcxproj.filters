@@ -2,6 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="cb_interface.h" />
+    <ClInclude Include="enginedefs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dama.c" />

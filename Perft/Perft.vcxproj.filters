@@ -2,14 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Perft.cpp" />
-    <ClCompile Include="cb_movegen_intf.cpp" />
-    <ClCompile Include="Fen.cpp" />
     <ClCompile Include="..\source\simplech.c" />
+    <ClCompile Include="board46_intf.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cb_movegen_intf.h" />
-    <ClInclude Include="Fen.h" />
     <ClInclude Include="..\Italian_movegen\board.h" />
     <ClInclude Include="..\Italian_movegen\move_api.h" />
+    <ClInclude Include="..\source\enginedefs.h" />
+    <ClInclude Include="board46_intf.h" />
   </ItemGroup>
 </Project>

@@ -7,9 +7,6 @@
 #include <windows.h>
 #include <stdio.h>
 #include <time.h>
-#include <commctrl.h>
-#include <shlwapi.h>
-#include <shlobj.h>
 #include "standardheader.h"
 #include "cb_interface.h"
 #include "min_movegen.h"
@@ -107,7 +104,7 @@ int logtofile(char *filename, char *str, char *mode)
 	fp = fopen(filename, mode);
 	if(fp == NULL)
 		{
-		closed = fcloseall();
+		closed = _fcloseall();
 		fp = fopen(filename, mode);
 		if(fp == NULL)
 			return 0;

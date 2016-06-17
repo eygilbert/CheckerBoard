@@ -68,6 +68,7 @@
 #include <time.h>
 #include <windows.h>
 #include "cb_interface.h"
+#include "enginedefs.h"
 
 
 /* Piece definitions, defined in cb_interface.h  */
@@ -80,21 +81,12 @@
 #define FREE 16
 
 #define MAXDEPTH 99
-#define MAXMOVES 28
 
 /*----------> compile options  */
 #undef MUTE
 #undef VERBOSE
 #define STATISTICS
 
-
-
-/*----------> structure definitions  */
-struct move2
-	{
-   short n;
-   int m[12];
-   };
 
 /*----------> function prototypes  */
 /*----------> part I: interface to CheckerBoard: CheckerBoard requires that

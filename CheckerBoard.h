@@ -62,6 +62,8 @@ int		getenginestarting(void);
 int		gametype(void);
 int		getmovenumber(struct listentry *cur);
 int		handlegamereplace(int replaceindex, char *databasename);
+int get_startcolor(int gametype);
+int is_mirror_gametype(int gametype);
 int		handlesetupcc(int *color);
 int		handletimer(void);
 int		handle_lbuttondown(int x, int y);

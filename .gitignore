@@ -22,3 +22,7 @@ engines/dama64.lib
 engines/simplech64.dll
 engines/simplech64.lib
 *.idb
+engines/dama.lib
+engines/simplech.lib
+*.iobj
+*.ipdb

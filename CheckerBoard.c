@@ -1588,6 +1588,32 @@ int SetMenuLanguage(int language)
 	return 1;
 	}
 
+int get_startcolor(int gametype)
+{
+	int color = CB_BLACK;
+
+	if (gametype == GT_ITALIAN) 
+		color=CB_WHITE;
+	else if (gametype == GT_SPANISH)
+		color = CB_WHITE;
+	else if (gametype == GT_RUSSIAN) 
+		color = CB_WHITE;
+	else if (gametype == GT_CZECH)
+		color = CB_WHITE;
+
+	return(color);
+}
+
+
+int is_mirror_gametype(int gametype)
+{
+	if (gametype == GT_ITALIAN) 
+		return(1);
+	if (gametype == GT_SPANISH) 
+		return(1);
+
+	return(0);
+}
 
 
 int handlesetupcc(int *color)
@@ -1601,25 +1627,7 @@ int handlesetupcc(int *color)
 		*color=CB_BLACK;
 
 	reset_current_game_pdn();
-	gCBoptions.mirror = 0;
-	if(GPDNgame.gametype == GT_ITALIAN) 
-		{
-		//color=CB_WHITE;
-		gCBoptions.mirror = 1;
-		}
-	if(GPDNgame.gametype == GT_SPANISH) 
-		{
-		//color=CB_WHITE;
-		gCBoptions.mirror = 1;
-		}
-	if(GPDNgame.gametype == GT_RUSSIAN) 
-		{
-		//color=CB_WHITE;
-		}
-	if(GPDNgame.gametype == GT_CZECH)
-		{
-		// no action
-		}
+	gCBoptions.mirror = is_mirror_gametype(GPDNgame.gametype);
 
 	// and the setup codes 
 	sprintf(GPDNgame.setup,"1");
@@ -4435,29 +4443,10 @@ void newgame(void)
 	{
 	InitCheckerBoard(board8);
 	reset_current_game_pdn();
-	color = CB_BLACK;
 	newposition = TRUE;
 	reset = 1;
-	gCBoptions.mirror = 0;
-
-	if(GPDNgame.gametype == GT_ITALIAN) 
-		{
-		color=CB_WHITE;
-		gCBoptions.mirror=1;
-		}
-	if(GPDNgame.gametype == GT_SPANISH)
-		{
-		color = CB_WHITE;
-		gCBoptions.mirror = 1;
-		}
-	if(GPDNgame.gametype == GT_RUSSIAN) 
-		{
-		color = CB_WHITE;
-		}
-	if(GPDNgame.gametype == GT_CZECH)
-		{
-		color = CB_WHITE;
-		}
+	gCBoptions.mirror = is_mirror_gametype(GPDNgame.gametype);
+	color = get_startcolor(GPDNgame.gametype);
 	
 	if(gCBoptions.level==17)
 		maxtime=initialtime;	
@@ -4546,24 +4535,8 @@ void doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8]
 
 	current=head;
 	/* set defaults */
-	*color=CB_BLACK;
-	gCBoptions.mirror=0;
-	if(gametype()==GT_ITALIAN) 
-		{
-		*color=CB_WHITE;
-		gCBoptions.mirror=1;
-		}
-	if(gametype()==GT_SPANISH)
-		{
-		*color = CB_WHITE;
-		gCBoptions.mirror = 1;
-		}
-	if(gametype()==GT_RUSSIAN) 
-		{
-		*color=CB_WHITE;
-		}
-	if(gametype() == GT_CZECH)
-		*color = CB_WHITE;
+	*color = get_startcolor(GPDNgame.gametype);
+	gCBoptions.mirror = is_mirror_gametype(GPDNgame.gametype);
 
 	InitCheckerBoard(board8);
 	sprintf(current->comment,"");

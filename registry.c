@@ -9,7 +9,9 @@
 #include <windows.h>
 #include <stdio.h>
 #include <shlwapi.h>
+#pragma warning(disable:4091)
 #include <shlobj.h>
+#pragma warning(default:4091)
 #include "standardheader.h"
 #include "cb_interface.h"
 #include "min_movegen.h"

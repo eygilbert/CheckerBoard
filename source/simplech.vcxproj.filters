@@ -8,5 +8,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cb_interface.h" />
+    <ClInclude Include="enginedefs.h" />
   </ItemGroup>
 </Project>

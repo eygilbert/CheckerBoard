@@ -16,7 +16,6 @@
 #include "standardheader.h"
 #include "cb_interface.h"
 #include "min_movegen.h"
-#include "min_movegen_ital.h"
 #include "cbconsts.h"
 #include "CBstructs.h"
 #include "checkerboard.h"
@@ -247,8 +246,6 @@ int pdnopen(char filename[256], int gametype)
 	char *start, *startheader, *starttoken, *buffer, game[GAMESIZE],header[256],token[1024];
 	int from,to;
 	size_t bytesread;
-	struct move movelist[MAXMOVES];
-	int moves;
 	struct pos p;
 	int color=CB_BLACK;
 	char headername[256],headervalue[256];
@@ -365,10 +362,8 @@ int pdnopen(char filename[256], int gametype)
 			p.wk=0;
 			p.bm=0x00000FFF;
 			p.wm=0xFFF00000;
-			if (gametype == GT_ENGLISH)
-				color = CB_BLACK;
-			if (gametype == GT_ITALIAN)
-				color = CB_WHITE;
+			bitboardtoboard8(&p, board8);
+			color = get_startcolor(gametype);
 			ply = 0;
 			}
 		// save position:
@@ -398,34 +393,15 @@ int pdnopen(char filename[256], int gametype)
 			// we now have the from and to squares of the move in 
 			// the variables from, to
 			
-			// find the move which corresponds to this 
-			if (gametype == GT_ENGLISH) {
-				moves=makecapturelist(&p, movelist, color);
-				if(moves==0)
-					moves=makemovelist(&p,movelist,color);
-			}
-			if (gametype == GT_ITALIAN) {
-				moves = makecapturelist_italian(&p, movelist, color);
-				if (moves == 0)
-					moves = makemovelist_italian(&p, movelist, color);
+			// find the move which corresponds to this
+			struct CBmove move;
+			extern CB_ISLEGAL islegal;
+			if (islegal(board8, color, from, to, &move)) {
+				domove(move, board8);
+				boardtobitboard(board8, &p);
+				color = CB_CHANGECOLOR(color);
 			}
 
-			for(i=0;i<moves;i++)
-				{
-				int mlfrom, mlto;
-
-				get_fromto_squares(&p, movelist + i, color, &mlfrom, &mlto);
-				if (from == mlfrom && to == mlto)
-					{
-					// inline domove as its an inner loop.
-					p.bm ^= movelist[i].bm;
-					p.bk ^= movelist[i].bk;
-					p.wm ^= movelist[i].wm;
-					p.wk ^= movelist[i].wk;
-					color = CB_CHANGECOLOR(color);
-					break;
-					}
-				}
 			// save position:
 			positions[npos].black = p.bm|p.bk;
 			positions[npos].white = p.wm|p.wk;

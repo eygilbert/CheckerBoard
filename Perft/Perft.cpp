@@ -4,12 +4,10 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "board.h"
-#include "move_api.h"
-#include "Fen.h"
 #include "cb_interface.h"
 #include "min_movegen.h"
-#include "cb_movegen_intf.h"
+#include "board46_intf.h"
+#include "enginedefs.h"
 
 
 #define TDIFF(start) (((double)(clock() + 1 - start)) / (double)CLOCKS_PER_SEC)	/* Add 1ms to prevent division by 0. */
@@ -19,13 +17,13 @@ void usage();
 
 
 
-int build_movelist(int b[46], int color, struct move2 movelist[MAXMOVES])
+int build_movelist(int board[46], int color, struct move2 movelist[MAXMOVES])
 {
 	int movecount;
 
-	movecount = generatecapturelist(b, movelist, color);
+	movecount = generatecapturelist(board, movelist, color);
 	if (!movecount)
-		movecount = generatemovelist(b, movelist, color);
+		movecount = generatemovelist(board, movelist, color);
 	return(movecount);
 }
 
@@ -108,7 +106,7 @@ INT64 Perft(int board[46], int color, int depth, int ply, int printpos)
 		domove(board, movelist[i]);
         nodes = Perft(board, CB_CHANGECOLOR(color), depth - 1, ply + 1, printpos);
 		if (ply == 0 && printpos) {
-			print_fen(board, color, fenbuf);
+			print_fen(board, CB_CHANGECOLOR(color), fenbuf);
 			printf("%s; nodes %I64d\n", fenbuf, nodes);
 		}
 		undomove(board, movelist[i]);
