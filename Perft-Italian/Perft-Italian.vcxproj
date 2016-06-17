@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Italian_movegen\board.h" />
     <ClInclude Include="..\Italian_movegen\move_api.h" />
     <ClInclude Include="..\Perft\board46_intf.h" />
     <ClInclude Include="..\source\enginedefs.h" />
