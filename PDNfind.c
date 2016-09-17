@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <shlwapi.h>
+#include <vector>
 #include "standardheader.h"
 #include "cb_interface.h"
 #include "min_movegen.h"
@@ -28,8 +29,7 @@
 #include "bitboard.h"
 
 
-static struct PDNlistentry *positions = NULL;
-static int npos; // holds the number of positions to search
+std::vector <PDN_position> pdn_positions;
 
 
 inline int bitnum_to_square(int bitnum, int gametype)
@@ -119,16 +119,11 @@ void log_moves(struct pos *p, int color, struct move *movelist, int nmoves)
 }
 
 
-int pdnfindreset(void)
-	{
-	if(positions != NULL)
-		{
-		free(positions);
-		positions = NULL;
-		}
-	npos=0;
-	return 1;
-	}
+void pdnfindreset(void)
+{
+	pdn_positions.clear();
+}
+
 
 int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 	{
@@ -145,7 +140,7 @@ int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 	char filename[MAX_PATH];
 	int b[8][8];
 
-	if(positions == NULL)
+	if (pdn_positions.size() == 0)
 		return 0;
 
 	black = p->bm|p->bk;
@@ -158,34 +153,32 @@ int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 
 	strcpy(filename, CBdocuments);
 	PathAppend(filename, "pdnfind.txt");
-	fp = fopen(filename,"w");
+	fp = fopen(filename, "w");
 	bitboardtoboard8(p, b);
 	board8toFEN(b, FEN, color, gametype());
-	fprintf(fp,"%s", FEN);
+	fprintf(fp, "%s", FEN);
 	fclose(fp);
 
-	for(i=0;i<npos;i++)
-		{
-		if((positions[i].black == black) && (positions[i].white == white) && 
-			(positions[i].kings == kings) && (positions[i].color == (int32)color) )
-			{
+	for (i = 0; i < (int)pdn_positions.size(); ++i) {
+		if ((pdn_positions[i].black == black) && (pdn_positions[i].white == white) && 
+			(pdn_positions[i].kings == kings) && (pdn_positions[i].color == (unsigned int)color)) {
 			
-			list[found] = positions[i].gameindex;
+			list[found] = pdn_positions[i].gameindex;
 			found++;
 			//fprintf(fp,"found position in game #%i at position #%i\n",positions[i].gameindex,i);
-			if(positions[i].result == CB_WIN)
+			if (pdn_positions[i].result == CB_WIN)
 				r->win++;
-			if(positions[i].result == CB_LOSS)
+			if (pdn_positions[i].result == CB_LOSS)
 				r->loss++;
-			if(positions[i].result == CB_DRAW)
+			if (pdn_positions[i].result == CB_DRAW)
 				r->draw++;
-			if(found==MAXGAMES)
+			if (found == MAXGAMES)
 				break;
-			}
 		}
+	}
 
 	return found;
-	}
+}
 
 int pdnfindtheme(struct pos *p, int list[MAXGAMES])
 	{
@@ -198,7 +191,7 @@ int pdnfindtheme(struct pos *p, int list[MAXGAMES])
 	int32 black,white,kings;
 	int existsingame[MAXGAMES];
 	
-	if(positions == NULL)
+	if (pdn_positions.size() == 0)
 		return 0;
 
 	for(i=0;i<MAXGAMES;i++)
@@ -208,12 +201,12 @@ int pdnfindtheme(struct pos *p, int list[MAXGAMES])
 	white = p->wm|p->wk;
 	kings = p->bk|p->wk;
 
-	for(i=0;i<npos;i++)
+	for (i = 0; i < (int)pdn_positions.size(); i++)
 		{
-		if(((positions[i].black&black) == black) && ((positions[i].white&white) == white) && ((positions[i].kings&kings) == kings))
+		if(((pdn_positions[i].black & black) == black) && ((pdn_positions[i].white & white) == white) && ((pdn_positions[i].kings & kings) == kings))
 			{
 			//count how often this theme occurs in one game
-			existsingame[positions[i].gameindex]++;
+			existsingame[pdn_positions[i].gameindex]++;
 			}
 		}
 	
@@ -234,9 +227,9 @@ int pdnfindtheme(struct pos *p, int list[MAXGAMES])
 int pdnopen(char filename[256], int gametype)
 	{
 	// parses a pdn file and makes it ready to be used by PDNfind 
-	// the games are read and the struct PDNlistentry positions is used
+	// the games are read and the struct PDN_position positions is used
 	// to store all games.
-	// PDNlistentry contains the game index in the database, so it can
+	// PDN_position contains the game index in the database, so it can
 	// be retrieved from a position
 
 	int games_in_pdn;
@@ -255,21 +248,23 @@ int pdnopen(char filename[256], int gametype)
 	char setup[255];
 	int board8[8][8];
 	size_t filesize;
+	PDN_position position;
 	
 	// get number of games in PDN
 	games_in_pdn = PDNparseGetnumberofgames(filename);
 
-	// allocate memory for database positions. 
+	// Reserve space for database positions. 
+	// Not a hard limit. It just makes it more efficient to build the list.
 	// hans' 22'000 game archive has about 1.2 million positions, i.e. 54 
 	// a typical game might have 80 moves. allocate 80x the number of games
 	maxpos = 1000 + 80*games_in_pdn;
-	
-	if(positions == NULL)
-		{
-		positions = (struct PDNlistentry *)calloc(maxpos, sizeof(struct PDNlistentry));
-		if(positions == NULL)
-			return 0;
-        }
+	try {
+		pdn_positions.clear();
+		pdn_positions.reserve(maxpos);
+	}
+	catch (...) {
+		return(0);
+	}
 
 	// get size of the file we want to open
 	filesize = getfilesize(filename);
@@ -367,13 +362,20 @@ int pdnopen(char filename[256], int gametype)
 			ply = 0;
 			}
 		// save position:
-		positions[npos].black = p.bm|p.bk;
-		positions[npos].white = p.wm|p.wk;
-		positions[npos].kings = p.bk|p.wk;
-		positions[npos].gameindex = gamenumber;
-		positions[npos].result = result;
-		positions[npos].color = color;
-		npos++;
+		position.black = p.bm|p.bk;
+		position.white = p.wm|p.wk;
+		position.kings = p.bk|p.wk;
+		position.gameindex = gamenumber;
+		position.result = result;
+		position.color = color;
+		try {
+			pdn_positions.push_back(position);
+		}
+		catch (...) {
+			free(buffer);
+			return(0);
+		}
+
 		// load moves 
 
 		starttoken = startheader;
@@ -403,20 +405,21 @@ int pdnopen(char filename[256], int gametype)
 			}
 
 			// save position:
-			positions[npos].black = p.bm|p.bk;
-			positions[npos].white = p.wm|p.wk;
-			positions[npos].kings = p.bk|p.wk;
-			positions[npos].gameindex = gamenumber;
-			positions[npos].result = result;
-			positions[npos].color = color;
+			position.black = p.bm|p.bk;
+			position.white = p.wm|p.wk;
+			position.kings = p.bk|p.wk;
+			position.gameindex = gamenumber;
+			position.result = result;
+			position.color = color;
+			try {
+				pdn_positions.push_back(position);
+			}
+			catch (...) {
+				free(buffer);
+				return(0);
+			}
 		
 			ply++;
-			npos++;
-			if(npos>=maxpos)
-				{
-				free(buffer);
-				return 0;
-				}
 			} // end game
 		gamenumber++;
 		if(gamenumber >= MAXGAMES)

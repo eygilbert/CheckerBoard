@@ -2,8 +2,6 @@
 
 /* movegen.h: function prototypes of movegen.c */
 
-
-
 /* bitboard masks for moves in various directions */
 /* here "1" means the squares in the columns 1357 and "2" in 2468.*/
 #define RF1  0x0F0F0F0F

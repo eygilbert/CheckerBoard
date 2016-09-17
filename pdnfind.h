@@ -1,11 +1,10 @@
-#define MAXPOS 2000000
 #define MAXGAMES 40000 
 #define GAMESIZE 10000
 
 
 // pdn find structures 
 
-struct PDNlistentry
+struct PDN_position
 	{
 	int32 black;
 	int32 white;
@@ -14,7 +13,7 @@ struct PDNlistentry
 	unsigned int result:2;
 	unsigned int color:2;	
 	};
-// sizeof PDNlistentry is 16 bytes. we allocate roughly 2 million of these
+// sizeof PDN_position is 16 bytes. we allocate roughly 2 million of these
 // for a PDN find operation on archive 2.o => 32 MB!
 // but i don't know whether we can do better than this...
 
@@ -22,7 +21,7 @@ struct PDNlistentry
 int pdnfind(struct pos *position, int color, int list[MAXGAMES], RESULT *r);
 int pdnfindtheme(struct pos *position, int list[MAXGAMES]);
 int pdnopen(char filename[256], int gametype);
-int pdnfindreset(void);
+void pdnfindreset(void);
 
 
 /* square definitions: a piece on square n in normal checkers notation can be accessed with SQn*/

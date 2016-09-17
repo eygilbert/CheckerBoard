@@ -277,9 +277,6 @@
     <ClCompile Include="utility.c" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="versionhistory.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="app_instance.h" />
     <ClInclude Include="bitboard.h" />
     <ClInclude Include="bmp.h" />
