@@ -2253,15 +2253,13 @@ int selectgame(int how)
 	{
 	int i, j;
 	static int oldgameindex;
-	//	int bytesread = 0;
 	int entry;
-	char *dbstring = "";
-	char *gamestring = "";
+	char *dbstring = NULL;
+	char *gamestring = NULL;
 	char *p, *start, *tag;
 	char header[256];
 	char headername[256],headervalue[256];
 	char token[1024];
-	//	int filesize = 0;
 	int searchhit;
 
 	// stop engine
@@ -2572,20 +2570,22 @@ int selectgame(int how)
 		}			
 
 	// headers loaded into 'data', display load game dialog 
-	if(DialogBox(g_hInst,"IDD_SELECTGAME",hwnd,(DLGPROC)DialogFuncSelectgame))
-		{
-		// a game was selected; with index <gameindex> in the dialog box 
-		sprintf(str,"gameindex is %i",gameindex);
-		// transform dialog box index to game index in database
-		gameindex = gamelist[gameindex];
-		// load game with index 'gameindex' 
-		loadgamefromPDNstring(gameindex, dbstring);
-		}
-	else
-		{
-		// dialog box was cancelled 
-		gameindex = oldgameindex;
-		}
+	if (gamenumber) {
+		if(DialogBox(g_hInst,"IDD_SELECTGAME",hwnd,(DLGPROC)DialogFuncSelectgame))
+			{
+			// a game was selected; with index <gameindex> in the dialog box 
+			sprintf(str,"gameindex is %i",gameindex);
+			// transform dialog box index to game index in database
+			gameindex = gamelist[gameindex];
+			// load game with index 'gameindex' 
+			loadgamefromPDNstring(gameindex, dbstring);
+			}
+		else
+			{
+			// dialog box was cancelled 
+			gameindex = oldgameindex;
+			}
+	}
 
 	// free up memory
 	if(gamestring != NULL)
