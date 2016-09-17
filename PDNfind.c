@@ -29,7 +29,7 @@
 #include "bitboard.h"
 
 
-std::vector <PDN_position> pdn_positions;
+std::vector<PDN_position> pdn_positions;
 
 
 inline int bitnum_to_square(int bitnum, int gametype)
@@ -242,7 +242,7 @@ int pdnopen(char filename[256], int gametype)
 	struct pos p;
 	int color=CB_BLACK;
 	char headername[256],headervalue[256];
-	int result=CB_UNKNOWN;
+	int result;
 	int win=0,loss=0,draw=0,unknown=0;
 	char FEN[255];
 	char setup[255];
@@ -301,6 +301,7 @@ int pdnopen(char filename[256], int gametype)
 		// double check zero termination of game
 		game[GAMESIZE-1]=0;
 		sprintf(setup,"");
+		result = CB_UNKNOWN;
 		while(PDNparseGetnextheader(&startheader,header))
 			{
 			sscanf(header,"%s %s",headername,headervalue);

@@ -86,7 +86,8 @@ struct package
 	char filename[256];		//filename to write the file to. if this is ZIP, winzip is invoked
 	}; */
 
-struct gamedatabase {   // MAXGAMES of these get allocated! - nearly 20MB for 40'000 MAXGAMES
+/* This type is used to display game previews in the game select dialog. */
+struct gamepreview {
 	char black[64];
 	char white[64];
 	char result[10];

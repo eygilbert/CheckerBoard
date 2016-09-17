@@ -57,6 +57,7 @@
 #include <time.h>
 #include <io.h>
 #include <intrin.h>
+#include <vector>
 
 #include "standardheader.h"
 #include "cb_interface.h"
@@ -133,7 +134,7 @@ int color = CB_BLACK;					/* color is the side to move next */
 int playnow = 0; 						/* playnow is passed to the checkers engines, it is set to nonzero if the user chooses 'play' */
 int analyze = 0;						/* is set to 1 if the computer is analyzing the game - obsolete?*/
 int reset = 0;
-int gameindex = 0;					/* game to load/replace from/in a database*/
+int gameindex = 0;						/* game to load/replace from/in a database*/
 int gamenumber = 0;					/* number of games in the database */
 
 /* dll globals */
@@ -165,8 +166,8 @@ static HWND tbwnd; 		// toolbar window
 HWND hHeadWnd;			// window of header control for game load 
 HWND hDlgSelectgame;
 
-struct gamedatabase data[MAXGAMES];
-int gamelist[MAXGAMES]; 
+std::vector<gamepreview> game_previews;
+int preview_to_game_index_map[MAXGAMES]; // maps a game_previews index into a game index
 
 // str holds the output string shown in the status bar - it is updated by WM_TIMER messages
 char str[1024]="";
@@ -178,7 +179,7 @@ int	searchwithposition = 0;			// search with position?
 char string[256];
 HMENU hmenu;								// menu handle 
 double o,xmetric,ymetric;					//gives the size of the board8: one square is xmetric*ymetric 
-int dummy,x1=-1,x2=-1,y1=-1,y2=-1;
+int dummy,x1=-1,x2=-1,y1_=-1,y2=-1;
 struct CBmove m[28]; 						// movelist 
 double maxtime, incrementtime=60.0, initialtime=1200.0;				//time limit - is set by setlevel() 
 char reply[ENGINECOMMAND_REPLY_SIZE];		// holds reply of engine to command requests 
@@ -1697,8 +1698,8 @@ int handle_lbuttondown(int x, int y)
 	if(x1==-1) //then its the first click
 		{
 		x1 = x;
-		y1 = y;
-		coorstocoors(&x1,&y1,gCBoptions.invert, gCBoptions.mirror);
+		y1_ = y;
+		coorstocoors(&x1,&y1_,gCBoptions.invert, gCBoptions.mirror);
 
 		// if there is only one move with this piece, then do it!
 		if(islegal != NULL)
@@ -1707,11 +1708,11 @@ int handle_lbuttondown(int x, int y)
 			legalmovenumber = 0;
 			for(i=1; i<=32; i++)
 				{
-				if(islegal(board8, color, coorstonumber(x1,y1,GPDNgame.gametype), i, &GCBmove) != 0)
+				if(islegal(board8, color, coorstonumber(x1,y1_,GPDNgame.gametype), i, &GCBmove) != 0)
 					{
 					legal++;
 					legalmovenumber = i;
-					from = coorstonumber(x1,y1,GPDNgame.gametype);
+					from = coorstonumber(x1,y1_,GPDNgame.gametype);
 					to = i; 
 					}
 				}
@@ -1720,12 +1721,12 @@ int handle_lbuttondown(int x, int y)
 			if(legal == 0) {
 				for(i=1; i<=32; i++)
 				{
-				if(islegal(board8, color, i, coorstonumber(x1,y1,GPDNgame.gametype), &GCBmove) != 0)
+				if(islegal(board8, color, i, coorstonumber(x1,y1_,GPDNgame.gametype), &GCBmove) != 0)
 					{
 					legal++;
 					legalmovenumber = i;
 					from = i; 
-					to = coorstonumber(x1,y1,GPDNgame.gametype); 
+					to = coorstonumber(x1,y1_,GPDNgame.gametype); 
 					}
 				}
 				if(legal != 1)
@@ -1769,12 +1770,12 @@ int handle_lbuttondown(int x, int y)
 				}
 			}
 		// if the stone is the color of the side to move, allow it to be selected
-		if((color==CB_BLACK && board8[x1][y1]&CB_BLACK) || (color==CB_WHITE && board8[x1][y1]&CB_WHITE))
+		if((color==CB_BLACK && board8[x1][y1_]&CB_BLACK) || (color==CB_WHITE && board8[x1][y1_]&CB_WHITE))
 			{
 			// re-print board to overwrite last selection if there was one
 			updateboardgraphics(hwnd);
 			// and then select stone
-			selectstone(x1, y1, hwnd, board8);
+			selectstone(x1, y1_, hwnd, board8);
 			}
 		// else, reset the click count to 0.
 		else
@@ -1805,7 +1806,7 @@ int handle_lbuttondown(int x, int y)
 			selectstone(x2, y2, hwnd, board8);
 			// set second click to first click
 			x1 = x2;
-			y1 = y2;
+			y1_ = y2;
 
 			// check whether this is an only move
 			legal = 0;
@@ -1815,7 +1816,7 @@ int handle_lbuttondown(int x, int y)
 				legalmovenumber = 0;
 				for(i=1; i<=32; i++)
 					{
-					if(islegal(board8, color, coorstonumber(x1,y1,GPDNgame.gametype), i, &GCBmove)!=0)
+					if(islegal(board8, color, coorstonumber(x1,y1_,GPDNgame.gametype), i, &GCBmove)!=0)
 						{
 						legal++;
 						legalmovenumber = i;
@@ -1825,7 +1826,7 @@ int handle_lbuttondown(int x, int y)
 			sprintf(str,"");
 			if(legal == 1) // only one legal move
 				{
-				if(islegal(board8,color,coorstonumber(x1,y1,GPDNgame.gametype),legalmovenumber,&GCBmove)!=0)
+				if(islegal(board8,color,coorstonumber(x1,y1_,GPDNgame.gametype),legalmovenumber,&GCBmove)!=0)
 					// a legal move!
 					{
 					// insert move in the linked list 
@@ -1861,7 +1862,7 @@ int handle_lbuttondown(int x, int y)
 		// check move and if ok
 		if(islegal!=NULL)
 			{
-			if(islegal(board8,color,coorstonumber(x1,y1,GPDNgame.gametype),coorstonumber(x2,y2, GPDNgame.gametype),&GCBmove)!=0)
+			if(islegal(board8,color,coorstonumber(x1,y1_,GPDNgame.gametype),coorstonumber(x2,y2, GPDNgame.gametype),&GCBmove)!=0)
 				// a legal move!
 				{
 				// insert move in the linked list 
@@ -2138,10 +2139,10 @@ int loadnextgame(void)
 	int i;
 
 	for(i=0;i<MAXGAMES;i++)
-		if(gameindex == gamelist[i])
+		if(gameindex == preview_to_game_index_map[i])
 			break;
 
-	if(gameindex != gamelist[i])
+	if(gameindex != preview_to_game_index_map[i])
 		{
 		sprintf(str,"error while looking for next game...");
 		return 0;
@@ -2153,7 +2154,7 @@ int loadnextgame(void)
 		return 0;
 		}
 
-	gameindex = gamelist[i+1];
+	gameindex = preview_to_game_index_map[i+1];
 
 	// ok, if we arrive here, we have a valid game index for the game to load.
 	sprintf(str,"should load game %i",gameindex);
@@ -2176,10 +2177,10 @@ int loadpreviousgame(void)
 	int i;
 
 	for(i=0;i<MAXGAMES;i++)
-		if(gameindex == gamelist[i])
+		if(gameindex == preview_to_game_index_map[i])
 			break;
 
-	if(gameindex != gamelist[i])
+	if(gameindex != preview_to_game_index_map[i])
 		{
 		sprintf(str,"error while looking for next game...");
 		return 0;
@@ -2191,7 +2192,7 @@ int loadpreviousgame(void)
 		return 0;
 		}
 
-	gameindex = gamelist[i-1];
+	gameindex = preview_to_game_index_map[i-1];
 
 	sprintf(str,"should load game %i",gameindex);
 	dbstring = loadPDNdbstring(database);
@@ -2261,6 +2262,7 @@ int selectgame(int how)
 	char headername[256],headervalue[256];
 	char token[1024];
 	int searchhit;
+	gamepreview preview;
 
 	// stop engine
 	PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
@@ -2294,7 +2296,7 @@ int selectgame(int how)
 		r.draw = 0;
 		r.loss = 0;
 		for(i=0;i<MAXGAMES;i++)
-			gamelist[i] = 0;
+			preview_to_game_index_map[i] = 0;
 
 		// if we're looking for a player name, get it
 		if(how == SEARCHMASK)
@@ -2359,13 +2361,13 @@ int selectgame(int how)
 				sprintf(str,"searching database...");
 				SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
 				if(how == GAMEFIND || how == SEARCHMASK)
-					gamenumber = pdnfind(&currentposition, color, gamelist, &r);
+					gamenumber = pdnfind(&currentposition, color, preview_to_game_index_map, &r);
 				if(how == GAMEFINDCR)
-					gamenumber = pdnfind(&currentposition, CB_CHANGECOLOR(color), gamelist, &r);
+					gamenumber = pdnfind(&currentposition, CB_CHANGECOLOR(color), preview_to_game_index_map, &r);
 				if(how == GAMEFINDTHEME)
-					gamenumber = pdnfindtheme(&currentposition, gamelist);
+					gamenumber = pdnfindtheme(&currentposition, preview_to_game_index_map);
 
-				// gamelist now contains a list of games with the current position
+				// preview_to_game_index_map now contains a list of games with the current position
 				if(gamenumber == 0)
 					{
 					sprintf(str,"no games with the current position found");
@@ -2395,6 +2397,7 @@ int selectgame(int how)
 				}
 			p=dbstring;
 			entry=0;
+			game_previews.clear();
 			i=0;
 			if(how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR)
 				i=-1;
@@ -2405,17 +2408,16 @@ int selectgame(int how)
 					{
 					// we already know what should go in the list, no point parsing
 					i++;
-					if(i != gamelist[entry])
+					if(i != preview_to_game_index_map[entry])
 						continue;
 					}
 
 				// get headers and moves for this game
-				sprintf(data[entry].white,"");
-				sprintf(data[entry].black,"");
-				sprintf(data[entry].event,"");
-				sprintf(data[entry].result,"");
-				sprintf(data[entry].date,"");
-
+				sprintf(preview.white,"");
+				sprintf(preview.black,"");
+				sprintf(preview.event,"");
+				sprintf(preview.result,"");
+				sprintf(preview.date,"");
 
 				start=gamestring;
 
@@ -2426,30 +2428,30 @@ int selectgame(int how)
 					PDNparseGetnexttoken(&tag,headername);
 					PDNparseGetnexttag(&tag,headervalue);
 					if(strcmp(headername,"Event")==0)
-						sprintf(data[entry].event,"%s",headervalue);
+						sprintf(preview.event,"%s",headervalue);
 					if(strcmp(headername,"White")==0)
-						sprintf(data[entry].white,"%s",headervalue);
+						sprintf(preview.white,"%s",headervalue);
 					if(strcmp(headername,"Black")==0)
-						sprintf(data[entry].black,"%s",headervalue);
+						sprintf(preview.black,"%s",headervalue);
 					if(strcmp(headername,"Result")==0)
-						sprintf(data[entry].result,"%s",headervalue);
+						sprintf(preview.result,"%s",headervalue);
 					if(strcmp(headername,"Date")==0)
-						sprintf(data[entry].date,"%s",headervalue);
+						sprintf(preview.date,"%s",headervalue);
 					}
 				// headers parsed
-				// add the first few moves to the data structure to display them
+				// add the first few moves to the preview structure to display them
 				// when the user selects a game.
-				//sprintf(data[entry].white,"game %i",i);
+				//sprintf(game_previews[entry].white,"game %i",i);
 
-				sprintf(data[entry].PDN,"");
+				sprintf(preview.PDN,"");
 				for(j=0;j<48;j++)
 					{
 					if(!PDNparseGetnextPDNtoken(&start, token))
 						break;
-					if(strlen(data[entry].PDN) + strlen(token) < 255)
+					if(strlen(preview.PDN) + strlen(token) < 255)
 						{
-						strcat(data[entry].PDN,token);
-						strcat(data[entry].PDN," ");
+						strcat(preview.PDN,token);
+						strcat(preview.PDN," ");
 						}
 					else
 						break;
@@ -2462,18 +2464,22 @@ int selectgame(int how)
 				switch(how)
 					{
 					case GAMEFIND:
+						game_previews.push_back(preview);
 						entry++;
 						break;
 					case GAMEFINDCR:
+						game_previews.push_back(preview);
 						entry++;
 						break;
 					case GAMEFINDTHEME:
+						game_previews.push_back(preview);
 						entry++;
 						break;
 					case GAMELOAD:
 						//	remember what game number this has
-						gamelist[entry] = entry;
+						preview_to_game_index_map[entry] = entry;
 						// increment entry number
+						game_previews.push_back(preview);
 						entry++;
 						break;
 					case SEARCHMASK:
@@ -2485,7 +2491,7 @@ int selectgame(int how)
 							searchhit = 0;
 							for(j=0;j<gamenumber;j++)
 								{
-								if(i == gamelist[j])
+								if(i == preview_to_game_index_map[j])
 									searchhit = 1;
 								}
 							}
@@ -2493,8 +2499,8 @@ int selectgame(int how)
 						// if a player name to search is set, search for that name
 						if(strcmp(playername,"") != 0)
 							{
-							if (strstr(data[entry].black,playername) || 
-								strstr(data[entry].white,playername))
+							if (strstr(preview.black,playername) || 
+								strstr(preview.white,playername))
 								searchhit &= 1;
 							else
 								searchhit = 0;
@@ -2503,7 +2509,7 @@ int selectgame(int how)
 						// if an event name to search is set, search for that event
 						if(strcmp(eventname,"") != 0)
 							{
-							if(strstr(data[entry].event, eventname))
+							if(strstr(preview.event, eventname))
 								searchhit &=1;
 							else
 								searchhit = 0;
@@ -2512,7 +2518,7 @@ int selectgame(int how)
 						// if a date to search is set, search for that date
 						if(strcmp(datename,"") != 0)
 							{
-							if(strstr(data[entry].date, datename))
+							if(strstr(preview.date, datename))
 								searchhit &= 1;
 							else
 								searchhit = 0;
@@ -2531,7 +2537,15 @@ int selectgame(int how)
 							{
 							// remember what entry in the list corresponds 
 							// to which game
-							gamelist[entry] = i;
+							preview_to_game_index_map[entry] = i;
+							try {
+								game_previews.push_back(preview);
+							}
+							catch (...) {
+								MessageBox(hwnd,"not enough memory for this operation","Error",MB_OK);
+								SetCurrentDirectory(CBdirectory);
+								return(0);
+							}
 							entry++;
 							}
 						i++;
@@ -2549,11 +2563,11 @@ int selectgame(int how)
 				r.loss = 0;
 				for(j=0;j<entry;j++)
 					{
-					if(strcmp(data[j].result,"1-0") == 0)
+					if(strcmp(game_previews[j].result,"1-0") == 0)
 						r.win++;
-					if(strcmp(data[j].result,"1/2-1/2") == 0)
+					if(strcmp(game_previews[j].result,"1/2-1/2") == 0)
 						r.draw++;
-					if(strcmp(data[j].result,"0-1") == 0)
+					if(strcmp(game_previews[j].result,"0-1") == 0)
 						r.loss++;
 					}
 				}
@@ -2569,14 +2583,14 @@ int selectgame(int how)
 			}
 		}			
 
-	// headers loaded into 'data', display load game dialog 
+	// headers loaded into 'game_previews', display load game dialog 
 	if (gamenumber) {
 		if(DialogBox(g_hInst,"IDD_SELECTGAME",hwnd,(DLGPROC)DialogFuncSelectgame))
 			{
 			// a game was selected; with index <gameindex> in the dialog box 
-			sprintf(str,"gameindex is %i",gameindex);
+			sprintf(str, "game previews index is %i", gameindex);
 			// transform dialog box index to game index in database
-			gameindex = gamelist[gameindex];
+			gameindex = preview_to_game_index_map[gameindex];
 			// load game with index 'gameindex' 
 			loadgamefromPDNstring(gameindex, dbstring);
 			}

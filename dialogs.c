@@ -10,6 +10,7 @@
 #pragma warning(disable:4091)
 #include <shlobj.h>
 #pragma warning(default:4091)
+#include <vector>
 #include "resource.h"
 #include "standardheader.h"
 #include "cb_interface.h"
@@ -230,15 +231,15 @@ BOOL CALLBACK DialogFuncSavegame(HWND hdwnd, UINT message, WPARAM wParam, LPARAM
 BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	// this dialog box appears when the user wants to load a game from
-	// a PDN database. it lists the games which are contained in the data[i]
-	// array of type gamedatabase. there are gamenumber games, and the index
+	// a PDN database. it lists the games which are contained in the game_previews[i]
+	// array of type gamepreview. there are gamenumber games, and the index
 	// of the game chosen is written to the external variable gameindex
 	int i,n,j;
 	HWND hHead;
 	char Lstr[256];
-	char black[256],white[256];
-	extern struct gamedatabase data[MAXGAMES];
-	extern int gamenumber,gameindex;
+	char black[256], white[256];
+	extern std::vector<gamepreview> game_previews;
+	extern int gamenumber, gameindex;
 	HD_NOTIFY *hdnptr;
 	HD_ITEM *hdiptr;
 	extern RESULT r; // from checkerboard.c
@@ -267,7 +268,7 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 			SendDlgItemMessage(hdwnd,IDC_SELECT,LB_SETTABSTOPS,(WPARAM)cTabs,(LPARAM)Tabs);
 			
 			// fill list with games; the data for this is contained
-			// in data[i] structure, there are gamenumber entries in list
+			// in game_previews[i] structure, there are gamenumber entries in list
 
 			// first, tell the listbox we will be adding lots of data
 			//  (WPARAM) wParam,    // number of items
@@ -278,16 +279,16 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 
 			for(i=0;i<gamenumber;i++)
 				{
-				sprintf(black,"%-.20s",data[i].black);
-				if(strlen(data[i].black)>20)
+				sprintf(black,"%-.20s",game_previews[i].black);
+				if(strlen(game_previews[i].black)>20)
 					strcat(black,"...");
 				
 
-				sprintf(white,"%-.20s",data[i].white);
-				if(strlen(data[i].white)>20)
+				sprintf(white,"%-.20s",game_previews[i].white);
+				if(strlen(game_previews[i].white)>20)
 					strcat(white,"...");
 				
-				sprintf(Lstr,"%-20.18s\t%-20.18s\t%-20.8s\t%-40.40s",black, white, data[i].result, data[i].event);
+				sprintf(Lstr,"%-20.18s\t%-20.18s\t%-20.8s\t%-40.40s",black, white, game_previews[i].result, game_previews[i].event);
 				SendDlgItemMessage(hdwnd,IDC_SELECT,LB_ADDSTRING,0,(LPARAM)Lstr); 			
 				}
 
@@ -335,7 +336,8 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 					// a notify message...
 					// set move preview 
 					i=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
-					SetDlgItemText(hdwnd,IDC_PREVIEW,data[i].PDN);
+					if (i >= 0)
+						SetDlgItemText(hdwnd,IDC_PREVIEW,game_previews[i].PDN);
 					if(HIWORD(wParam)==LBN_DBLCLK)
 						{
 						// select the game and end dialog 
@@ -360,7 +362,7 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 					return 0;
 				default:
 					i=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
-					SetDlgItemText(hdwnd,IDC_PREVIEW,data[i].black);					
+					SetDlgItemText(hdwnd,IDC_PREVIEW,game_previews[i].black);					
 					return 1;
 				}
 			break;

@@ -1,4 +1,4 @@
-#define MAXGAMES 40000 
+#define MAXGAMES 500000 
 #define GAMESIZE 10000
 
 
@@ -13,10 +13,6 @@ struct PDN_position
 	unsigned int result:2;
 	unsigned int color:2;	
 	};
-// sizeof PDN_position is 16 bytes. we allocate roughly 2 million of these
-// for a PDN find operation on archive 2.o => 32 MB!
-// but i don't know whether we can do better than this...
-
 
 int pdnfind(struct pos *position, int color, int list[MAXGAMES], RESULT *r);
 int pdnfindtheme(struct pos *position, int list[MAXGAMES]);
