@@ -1,3 +1,5 @@
+#pragma once
+
 /* movegen.h: function prototypes of movegen.c */
 
 

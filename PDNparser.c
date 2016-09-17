@@ -9,6 +9,7 @@
 #include "string.h"
 #include "ctype.h"
 #include "PDNparser.h"
+#include "utility.h"
 
 #define NEMESIS // enables detection of comments in round braces ( ) 
 
@@ -88,6 +89,34 @@ int PDNparseGetnumberofgames(char *filename)
 	return n-1;
 	}
 
+
+void log_non_ascii(char *p)
+{
+	char partial_line[70];
+	char buf[120];
+
+	strncpy_s(partial_line, sizeof(partial_line), p, sizeof(partial_line) - 1);
+	partial_line[sizeof(partial_line) - 1] = 0;
+	sprintf_s(buf, sizeof(buf), "non-ASCII char (0x%x) at %s", *p & 0xff, partial_line);
+	CBlog(buf);
+}
+
+
+/*
+ * Some people use word processors to edit pdn files,
+ * leaving unrecognizable characters in the files that messes up the parsing.
+ * Log these in cblog file and clear the msb. Sometimes these characters are
+ * just an ASCII space with the msb set.
+ */
+inline void handle_non_ascii(char *p)
+{
+	if (*p & 0x80) {
+		log_non_ascii(p);
+		*p &= 0x7f;
+	}
+}
+
+
 int PDNparseGetnextgame(char **start,char *game)
 	{
 	/* getnextgame */
@@ -112,16 +141,22 @@ int PDNparseGetnextgame(char **start,char *game)
 	p_org = p;
 	while (*p!=0)
 		{
+		handle_non_ascii(p);
+
 		/* skip headers */
 		if(*p == '[' && !headersdone)
 			{
 			p++;
 			while (*p!=']' && *p!=0) {
+				handle_non_ascii(p);
+
 				/* Ignore anything inside quotes (e.g. ']') within headers. */
 				if (*p == '"') {
 					++p;
-					while (*p != '"' && *p != 0)
+					while (*p != '"' && *p != 0) {
 						++p;
+						handle_non_ascii(p);
+					}
 					if (*p == 0)
 						break;
 				}
@@ -130,11 +165,14 @@ int PDNparseGetnextgame(char **start,char *game)
 			}
 		if(*p == 0) break;
 		/* skip comments */
+		handle_non_ascii(p);
 		if(*p == '{')
 			{
 			p++;
-			while(*p!='}' && *p!=0)
+			while(*p!='}' && *p!=0) {
 				p++;
+				handle_non_ascii(p);
+			}
 			}
 
 #ifdef NEMESIS
@@ -142,8 +180,10 @@ int PDNparseGetnextgame(char **start,char *game)
 		if(*p == '(')
 			{
 			p++;
-			while(*p!=')' && *p!=0)
+			while(*p!=')' && *p!=0) {
 				p++;
+				handle_non_ascii(p);
+			}
 			}
 #endif
 		if(*p == 0) break;

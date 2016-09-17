@@ -1,3 +1,7 @@
+#pragma once
+#include <Windows.h>
+#include "min_movegen.h"
+
 void log_fen(char *msg, int board[8][8], int color);
 void log_bitboard(char *msg, int32 black, int32 white, int32 king);
 void	builddb(char *str);
