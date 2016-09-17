@@ -125,9 +125,9 @@ void board8toFEN(int board[8][8],char *p,int color, int gametype)
 	else
 		sprintf(s,"W:W");
 	strcat(p,s);
-	for(j=7;j>=0;j--)
+	for(j=0;j<=7;j++)
 		{
-		for(i=0;i<8;i++)
+		for(i=7;i>=0;i--)
 			{
 			sprintf(s,"");
 			number=coorstonumber(i,j, gametype);
@@ -142,9 +142,9 @@ void board8toFEN(int board[8][8],char *p,int color, int gametype)
 	p[strlen(p)-1]=0;
 	sprintf(s,":B");
 	strcat(p,s);
-	for(j=7;j>=0;j--)
+	for(j=0;j<=7;j++)
 		{
-		for(i=0;i<8;i++)
+		for(i=7;i>=0;i--)
 			{
 			sprintf(s,"");
 			number=coorstonumber(i,j, gametype);
