@@ -232,14 +232,14 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 	{
 	// this dialog box appears when the user wants to load a game from
 	// a PDN database. it lists the games which are contained in the game_previews[i]
-	// array of type gamepreview. there are gamenumber games, and the index
+	// array of type gamepreview. The index
 	// of the game chosen is written to the external variable gameindex
 	int i,n,j;
 	HWND hHead;
 	char Lstr[256];
 	char black[256], white[256];
 	extern std::vector<gamepreview> game_previews;
-	extern int gamenumber, gameindex;
+	extern int gameindex;
 	HD_NOTIFY *hdnptr;
 	HD_ITEM *hdiptr;
 	extern RESULT r; // from checkerboard.c
@@ -268,16 +268,16 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 			SendDlgItemMessage(hdwnd,IDC_SELECT,LB_SETTABSTOPS,(WPARAM)cTabs,(LPARAM)Tabs);
 			
 			// fill list with games; the data for this is contained
-			// in game_previews[i] structure, there are gamenumber entries in list
+			// in game_previews
 
 			// first, tell the listbox we will be adding lots of data
 			//  (WPARAM) wParam,    // number of items
 			//  (LPARAM) lParam     // amount of memory
 			// this clearly speeds up the display of the dialog with a large number of
 			// games (~3 instead of ~10 secs for 22'000 games)
-			SendDlgItemMessage(hdwnd,IDC_SELECT, LB_INITSTORAGE,(WPARAM)gamenumber,(LPARAM)gamenumber*120);
+			SendDlgItemMessage(hdwnd, IDC_SELECT, LB_INITSTORAGE, (WPARAM)game_previews.size(), (LPARAM)game_previews.size() * 120);
 
-			for(i=0;i<gamenumber;i++)
+			for(i=0;i<(int)game_previews.size();i++)
 				{
 				sprintf(black,"%-.20s",game_previews[i].black);
 				if(strlen(game_previews[i].black)>20)

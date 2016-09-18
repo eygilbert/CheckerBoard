@@ -2,7 +2,7 @@
 //
 // adds the functionality to search pdn databases:
 //
-// pdnopen(filename) 
+// pdnopen(filename, gametype) 
 //	indexes a pdn database 
 //
 // int pdnfind(struct pos position, int list[MAXGAMES])
@@ -119,7 +119,7 @@ void log_moves(struct pos *p, int color, struct move *movelist, int nmoves)
 }
 
 
-void pdnfindreset(void)
+void reset_pdn_positions()
 {
 	pdn_positions.clear();
 }
@@ -133,11 +133,9 @@ int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 	// it returns the number of games found.
 
 	int i;
-	int found = 0; // number of games found
-	int32 black,white,kings;
-	FILE *fp;
+	int nfound; // number of games found
+	int32 black, white, kings;
 	char FEN[256];
-	char filename[MAX_PATH];
 	int b[8][8];
 
 	if (pdn_positions.size() == 0)
@@ -151,77 +149,72 @@ int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 	r->loss = 0;
 	r->draw = 0;
 
-	strcpy(filename, CBdocuments);
-	PathAppend(filename, "pdnfind.txt");
-	fp = fopen(filename, "w");
 	bitboardtoboard8(p, b);
 	board8toFEN(b, FEN, color, gametype());
-	fprintf(fp, "%s", FEN);
-	fclose(fp);
+	CBlog(FEN);
 
+	nfound = 0;
 	for (i = 0; i < (int)pdn_positions.size(); ++i) {
 		if ((pdn_positions[i].black == black) && (pdn_positions[i].white == white) && 
 			(pdn_positions[i].kings == kings) && (pdn_positions[i].color == (unsigned int)color)) {
 			
-			list[found] = pdn_positions[i].gameindex;
-			found++;
-			//fprintf(fp,"found position in game #%i at position #%i\n",positions[i].gameindex,i);
+			list[nfound] = pdn_positions[i].gameindex;
+			nfound++;
 			if (pdn_positions[i].result == CB_WIN)
 				r->win++;
 			if (pdn_positions[i].result == CB_LOSS)
 				r->loss++;
 			if (pdn_positions[i].result == CB_DRAW)
 				r->draw++;
-			if (found == MAXGAMES)
+			if (nfound == MAXGAMES)
 				break;
 		}
 	}
 
-	return found;
+	return nfound;
 }
+
 
 int pdnfindtheme(struct pos *p, int list[MAXGAMES])
 	{
 	// finds a "theme" in a game.
-	// only if the "theme" is on the board for at least num plies.
+	// only if the "theme" is on the board for at least minplies.
 
-	int num=4;
+	const int minplies = 4;
 	int i;
-	int found = 0; // number of games found
-	int32 black,white,kings;
-	int existsingame[MAXGAMES];
+	int nfound;
+	int32 black, white, kings;
+	int ngames;
+	std::vector<unsigned short> histogram;
 	
 	if (pdn_positions.size() == 0)
 		return 0;
 
-	for(i=0;i<MAXGAMES;i++)
-		existsingame[i]=0;
+	ngames = (pdn_positions.end() - 1)->gameindex + 1;
+	histogram.assign(ngames, 0);
 
 	black = p->bm|p->bk;
 	white = p->wm|p->wk;
 	kings = p->bk|p->wk;
 
-	for (i = 0; i < (int)pdn_positions.size(); i++)
-		{
-		if(((pdn_positions[i].black & black) == black) && ((pdn_positions[i].white & white) == white) && ((pdn_positions[i].kings & kings) == kings))
-			{
+	for (i = 0; i < (int)pdn_positions.size(); i++) {
+		if (((pdn_positions[i].black & black) == black) && 
+					((pdn_positions[i].white & white) == white) && 
+					((pdn_positions[i].kings & kings) == kings)) {
 			//count how often this theme occurs in one game
-			existsingame[pdn_positions[i].gameindex]++;
-			}
+			histogram[pdn_positions[i].gameindex]++;
 		}
-	
-	for(i=0;i<MAXGAMES;i++)
-		{
-		if(existsingame[i]>num)
-			{
-			list[found] = i;
-			found++;
-			if(found==MAXGAMES)
-				break;
-			}
-		}
-	return found;
 	}
+	
+	nfound = 0;
+	for (i = 0; i < histogram.size(); ++i) {
+		if (histogram[i] > minplies) {
+			list[nfound] = i;
+			nfound++;
+		}
+	}
+	return nfound;
+}
 
 
 int pdnopen(char filename[256], int gametype)
@@ -255,9 +248,8 @@ int pdnopen(char filename[256], int gametype)
 
 	// Reserve space for database positions. 
 	// Not a hard limit. It just makes it more efficient to build the list.
-	// hans' 22'000 game archive has about 1.2 million positions, i.e. 54 
-	// a typical game might have 80 moves. allocate 80x the number of games
-	maxpos = 1000 + 80*games_in_pdn;
+	// hans' 22'000 game archive has about 1.2 million positions, avg 54 pos/game.
+	maxpos = 1000 + 54 * games_in_pdn;
 	try {
 		pdn_positions.clear();
 		pdn_positions.reserve(maxpos);
@@ -428,16 +420,11 @@ int pdnopen(char filename[256], int gametype)
 		}
 
 
+	sprintf(buffer, "games %i positions %zd", gamenumber, pdn_positions.size());
+	CBlog(buffer);
+	sprintf(buffer, "games in pdn %i, maxpos guess %i", games_in_pdn, maxpos);
+	CBlog(buffer);
 	free(buffer);
-	// TODO: the following lines will cause trouble on new windows systems unless CB is run as admin
-	/*strcpy(pdnopenname, CBdirectory);
-	PathAppend(pdnopenname, "pdnopen.txt");
-	fp = fopen(pdnopenname,"w");
-	if(fp != NULL) {
-		fprintf(fp,"games %i positions %i",gamenumber, n);
-		fprintf(fp,"/ngames_in_pdn %i, maxpos guess %i", games_in_pdn, maxpos);
-		fclose(fp);
-	}*/
 	return 1;
 	}
 

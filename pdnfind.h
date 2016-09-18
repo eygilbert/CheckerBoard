@@ -17,7 +17,7 @@ struct PDN_position
 int pdnfind(struct pos *position, int color, int list[MAXGAMES], RESULT *r);
 int pdnfindtheme(struct pos *position, int list[MAXGAMES]);
 int pdnopen(char filename[256], int gametype);
-void pdnfindreset(void);
+void reset_pdn_positions();
 
 
 /* square definitions: a piece on square n in normal checkers notation can be accessed with SQn*/
