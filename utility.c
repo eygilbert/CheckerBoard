@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <time.h>
+#include <cstdarg>
 #include "standardheader.h"
 #include "cb_interface.h"
 #include "min_movegen.h"
@@ -289,28 +290,55 @@ void setmenuchecks(struct CBoptions *CBoptions, HMENU hmenu)
 	}
 
 
+static TCHAR cblogfile_path[MAX_PATH];
+
+void cblog_init()
+{
+	FILE *cblogfile;
+
+	// open a log file on startup
+	if (cblogfile_path[0] == 0) {
+		sprintf(cblogfile_path, "%s\\CBlog%s.txt", CBdocuments, g_app_instance_suffix);
+		cblogfile = fopen(cblogfile_path, "w");
+		fclose(cblogfile);
+		cblogfile = fopen(cblogfile_path, "a");
+	}
+}
+
+
 void CBlog(char *str)
 {
 	FILE *cblogfile;
-	static TCHAR path[MAX_PATH];
 
-	// open a log file on startup
-	if (path[0] == 0) {
-		sprintf(path, "%s\\CBlog%s.txt", CBdocuments, g_app_instance_suffix);
-		cblogfile = fopen(path, "w");
-		fclose(cblogfile);
-		cblogfile = fopen(path, "a");
-	}
-
+	cblog_init();
 	if (str == NULL)
 		return;
 
-	cblogfile = fopen(path, "a");
+	cblogfile = fopen(cblogfile_path, "a");
 	if (cblogfile == NULL)
 		return;
 
 	fprintf(cblogfile, "%s\n", str);
 	fclose(cblogfile);
+}
+
+
+void cblog(const char *fmt, ...)
+{
+	FILE *fp;
+	va_list args;
+    va_start(args, fmt);
+
+	cblog_init();
+	if (fmt == NULL)
+		return;
+
+	fp = fopen(cblogfile_path, "a");
+	if (fp == NULL)
+		return;
+
+	vfprintf(fp, fmt, args);
+	fclose(fp);
 }
 
 

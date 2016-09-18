@@ -2138,7 +2138,7 @@ int loadnextgame(void)
 	char *dbstring;
 	int i;
 
-	for(i=0;i<MAXGAMES;i++)
+	for(i=0;i<(int)game_previews.size();i++)
 		if(gameindex == preview_to_game_index_map[i])
 			break;
 
@@ -2148,7 +2148,7 @@ int loadnextgame(void)
 		return 0;
 		}
 
-	if(i+1 >= gamenumber)
+	if(i+1 >= (int)game_previews.size())
 		{
 		sprintf(str,"reached last game in list");
 		return 0;
@@ -2164,7 +2164,7 @@ int loadnextgame(void)
 	loadgamefromPDNstring(gameindex, dbstring);
 	// free up database memory
 	free(dbstring);
-	sprintf(str,"loaded game %i of %i", i+2, gamenumber);
+	sprintf(str,"loaded game %i of %i", i+2, (int)game_previews.size());
 
 	// return the number of the game we loaded
 	return i+2;
@@ -2176,7 +2176,7 @@ int loadpreviousgame(void)
 	char *dbstring;
 	int i;
 
-	for(i=0;i<MAXGAMES;i++)
+	for(i=0;i<(int)game_previews.size();i++)
 		if(gameindex == preview_to_game_index_map[i])
 			break;
 
@@ -2198,7 +2198,7 @@ int loadpreviousgame(void)
 	dbstring = loadPDNdbstring(database);
 	loadgamefromPDNstring(gameindex, dbstring);
 	free(dbstring);
-	sprintf(str,"loaded game %i of %i", i, gamenumber);
+	sprintf(str,"loaded game %i of %i", i, (int)game_previews.size());
 
 	return 0;
 	}

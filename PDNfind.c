@@ -151,7 +151,7 @@ int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 
 	bitboardtoboard8(p, b);
 	board8toFEN(b, FEN, color, gametype());
-	CBlog(FEN);
+	cblog("pdnfind(): %s\n", FEN);
 
 	nfound = 0;
 	for (i = 0; i < (int)pdn_positions.size(); ++i) {
