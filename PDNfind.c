@@ -5,7 +5,7 @@
 // pdnopen(filename, gametype) 
 //	indexes a pdn database 
 //
-// int pdnfind(struct pos position, int list[MAXGAMES])
+// int pdnfind(struct pos position, std::vector<int> &preview_to_game_index_map);
 //	returns the number of games found, and returns the indices of these games in the pdn database in the array list
 
 #include <windows.h>
@@ -125,7 +125,7 @@ void reset_pdn_positions()
 }
 
 
-int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
+int pdnfind(struct pos *p, int color, std::vector<int> &preview_to_game_index_map, RESULT *r)
 	{
 	// pdnfind populates a list of indexes in the pdn database which 
 	// contain the current position, i.e. list[0] is the first index
@@ -158,7 +158,7 @@ int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 		if ((pdn_positions[i].black == black) && (pdn_positions[i].white == white) && 
 			(pdn_positions[i].kings == kings) && (pdn_positions[i].color == (unsigned int)color)) {
 			
-			list[nfound] = pdn_positions[i].gameindex;
+			preview_to_game_index_map.push_back(pdn_positions[i].gameindex);
 			nfound++;
 			if (pdn_positions[i].result == CB_WIN)
 				r->win++;
@@ -166,8 +166,6 @@ int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 				r->loss++;
 			if (pdn_positions[i].result == CB_DRAW)
 				r->draw++;
-			if (nfound == MAXGAMES)
-				break;
 		}
 	}
 
@@ -175,7 +173,7 @@ int pdnfind(struct pos *p, int color, int list[MAXGAMES], RESULT *r)
 }
 
 
-int pdnfindtheme(struct pos *p, int list[MAXGAMES])
+int pdnfindtheme(struct pos *p, std::vector<int> &preview_to_game_index_map)
 	{
 	// finds a "theme" in a game.
 	// only if the "theme" is on the board for at least minplies.
@@ -209,7 +207,7 @@ int pdnfindtheme(struct pos *p, int list[MAXGAMES])
 	nfound = 0;
 	for (i = 0; i < histogram.size(); ++i) {
 		if (histogram[i] > minplies) {
-			list[nfound] = i;
+			preview_to_game_index_map.push_back(i);
 			nfound++;
 		}
 	}
@@ -415,15 +413,9 @@ int pdnopen(char filename[256], int gametype)
 			ply++;
 			} // end game
 		gamenumber++;
-		if(gamenumber >= MAXGAMES)
-			break;
 		}
 
-
-	sprintf(buffer, "games %i positions %zd", gamenumber, pdn_positions.size());
-	CBlog(buffer);
-	sprintf(buffer, "games in pdn %i, maxpos guess %i", games_in_pdn, maxpos);
-	CBlog(buffer);
+	cblog("pdnopen(): games %d, positions %zd\n", gamenumber, pdn_positions.size());
 	free(buffer);
 	return 1;
 	}

@@ -167,7 +167,7 @@ HWND hHeadWnd;			// window of header control for game load
 HWND hDlgSelectgame;
 
 std::vector<gamepreview> game_previews;
-int preview_to_game_index_map[MAXGAMES]; // maps a game_previews index into a game index
+std::vector<int> preview_to_game_index_map;	// maps a game_previews index into a game index
 
 // str holds the output string shown in the status bar - it is updated by WM_TIMER messages
 char str[1024]="";
@@ -572,6 +572,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 
 				case GAMELOAD:
 					// call selectgame with GAMELOAD to let the user select from all games
+					cblog("pdn load game\n");
 					selectgame(GAMELOAD);
 					break;
 
@@ -586,37 +587,44 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 				case SEARCHMASK:
 					// call selectgame with SEARCHMASK to let the user
 					// select from games of a certain player/event/date
+					cblog("pdn search with player, event, or date.\n");
 					selectgame(SEARCHMASK);
 					break;
 
 				case RE_SEARCH:
+					cblog("pdn research\n");
 					selectgame(RE_SEARCH);
 					break;
 
 				case GAMEFIND:
 					// find a game with the current position in the current database
 					// index the database
+					cblog("find current pos\n");
 					selectgame(GAMEFIND);
 					break;
 
 				case GAMEFINDCR:
 					// find games with current position color-reversed
 					selectgame(GAMEFINDCR);
+					cblog("find colors reversed pos\n");
 					break;
 
 				case GAMEFINDTHEME:
 					// find a game with the current position in the current database
 					// index the database
 					selectgame(GAMEFINDTHEME);
+					cblog("find theme\n");
 					break;
 
 				case LOADNEXT:
 					sprintf(str,"load next game");
+					cblog("load next game\n");
 					loadnextgame();
 					break;
 
 				case LOADPREVIOUS:
 					sprintf(str,"load previous game");
+					cblog("load previous game\n");
 					loadpreviousgame();
 					break;
 
@@ -2138,9 +2146,17 @@ int loadnextgame(void)
 	char *dbstring;
 	int i;
 
+	if (game_previews.size() == 0) {
+		sprintf(str, "no game list to move through");
+		return(0);
+	}
+
 	for(i=0;i<(int)game_previews.size();i++)
 		if(gameindex == preview_to_game_index_map[i])
 			break;
+
+	if (i >= game_previews.size())
+		return(0);
 
 	if(gameindex != preview_to_game_index_map[i])
 		{
@@ -2176,9 +2192,17 @@ int loadpreviousgame(void)
 	char *dbstring;
 	int i;
 
+	if (game_previews.size() == 0) {
+		sprintf(str, "no game list to move through");
+		return(0);
+	}
+
 	for(i=0;i<(int)game_previews.size();i++)
 		if(gameindex == preview_to_game_index_map[i])
 			break;
+
+	if (i >= game_previews.size())
+		return(0);
 
 	if(gameindex != preview_to_game_index_map[i])
 		{
@@ -2265,6 +2289,8 @@ int selectgame(int how)
 	int ngames_matching;
 	gamepreview preview;
 
+	sprintf(str, "wait ...");
+	SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
 	// stop engine
 	PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
 
@@ -2297,8 +2323,6 @@ int selectgame(int how)
 		r.win = 0;
 		r.draw = 0;
 		r.loss = 0;
-		for(i=0;i<MAXGAMES;i++)
-			preview_to_game_index_map[i] = 0;
 
 		// if we're looking for a player name, get it
 		if(how == SEARCHMASK)
@@ -2346,10 +2370,8 @@ int selectgame(int how)
 					{
 					reset_pdn_positions();
 					sprintf(str,"indexing database...");
-					//if(how == SEARCHMASK && searchwithposition == 1)
-					//	sprintf(str,"searching with position");
 					SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
-					// index database with pdnopen
+					// index database with pdnopen; fills pdn_positions[].
 					pdnopen(database, GPDNgame.gametype);
 					reindex = 0;
 					}
@@ -2362,6 +2384,7 @@ int selectgame(int how)
 
 				sprintf(str,"searching database...");
 				SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
+				preview_to_game_index_map.clear();
 				if(how == GAMEFIND || how == SEARCHMASK)
 					ngames_matching = pdnfind(&currentposition, color, preview_to_game_index_map, &r);
 				if(how == GAMEFINDCR)
@@ -2374,6 +2397,7 @@ int selectgame(int how)
 					{
 					sprintf(str,"no games matching search criteria found");
 					re_search_ok = 0;
+					game_previews.clear();
 					SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 					return 0;
 					}
@@ -2404,12 +2428,14 @@ int selectgame(int how)
 			if(how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR)
 				i=-1;
 
-			while(PDNparseGetnextgame(&p,gamestring) && entry<MAXGAMES && i<MAXGAMES)
+			while(PDNparseGetnextgame(&p, gamestring))
 				{
 				if(how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR)
 					{
 					// we already know what should go in the list, no point parsing
 					i++;
+					if (entry >= preview_to_game_index_map.size())
+						continue;
 					if(i != preview_to_game_index_map[entry])
 						continue;
 					}
@@ -2469,6 +2495,7 @@ int selectgame(int how)
 					case GAMEFINDCR:
 					case GAMEFINDTHEME:
 						try {
+							preview_to_game_index_map.push_back(i);
 							game_previews.push_back(preview);
 						}
 						catch (...) {
@@ -2480,8 +2507,8 @@ int selectgame(int how)
 						break;
 					case GAMELOAD:
 						//	remember what game number this has
-						preview_to_game_index_map[entry] = entry;
 						try {
+							preview_to_game_index_map.push_back(entry);
 							game_previews.push_back(preview);
 						}
 						catch (...) {
@@ -2546,8 +2573,8 @@ int selectgame(int how)
 							{
 							// remember what entry in the list corresponds 
 							// to which game
-							preview_to_game_index_map[entry] = i;
 							try {
+								preview_to_game_index_map.push_back(i);
 								game_previews.push_back(preview);
 							}
 							catch (...) {
@@ -2594,20 +2621,23 @@ int selectgame(int how)
 
 	// headers loaded into 'game_previews', display load game dialog 
 	if (game_previews.size()) {
-		if(DialogBox(g_hInst,"IDD_SELECTGAME",hwnd,(DLGPROC)DialogFuncSelectgame))
-			{
-			// a game was selected; with index <gameindex> in the dialog box 
-			sprintf(str, "game previews index is %i", gameindex);
-			// transform dialog box index to game index in database
-			gameindex = preview_to_game_index_map[gameindex];
-			// load game with index 'gameindex' 
-			loadgamefromPDNstring(gameindex, dbstring);
+		if (DialogBox(g_hInst, "IDD_SELECTGAME", hwnd, (DLGPROC)DialogFuncSelectgame)) {
+			if (gameindex < 0 || gameindex >= preview_to_game_index_map.size())
+				// dialog box didn't select a proper preview index
+				gameindex = oldgameindex;
+			else {
+				// a game was selected; with index <gameindex> in the dialog box 
+				sprintf(str, "game previews index is %i", gameindex);
+				// transform dialog box index to game index in database
+				gameindex = preview_to_game_index_map[gameindex];
+				// load game with index 'gameindex' 
+				loadgamefromPDNstring(gameindex, dbstring);
 			}
-		else
-			{
+		}
+		else {
 			// dialog box was cancelled 
 			gameindex = oldgameindex;
-			}
+		}
 	}
 
 	// free up memory

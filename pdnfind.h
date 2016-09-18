@@ -1,4 +1,6 @@
-#define MAXGAMES 500000 
+#pragma once
+#include <vector>
+
 #define GAMESIZE 10000
 
 
@@ -14,8 +16,8 @@ struct PDN_position
 	unsigned int color:2;	
 	};
 
-int pdnfind(struct pos *position, int color, int list[MAXGAMES], RESULT *r);
-int pdnfindtheme(struct pos *position, int list[MAXGAMES]);
+int pdnfind(struct pos *position, int color, std::vector<int> &preview_to_game_index_map, RESULT *r);
+int pdnfindtheme(struct pos *position, std::vector<int> &preview_to_game_index_map);
 int pdnopen(char filename[256], int gametype);
 void reset_pdn_positions();
 

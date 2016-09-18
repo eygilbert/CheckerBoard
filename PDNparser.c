@@ -236,6 +236,13 @@ int PDNparseGetnextgame(char **start,char *game)
 		p++;
 		}
 	
+	if (headersdone) {
+		strncpy(game, *start, p - (*start));
+		game[p - *start] = 0;
+		*start = p;
+		return(p - p_org);
+	}
+
 	return 0;
 }
 
