@@ -2489,104 +2489,91 @@ int selectgame(int how)
 				// games to display
 				// remember: entry is our running variable, from 0...numberofgames in db
 				// i is 
-				switch(how)
-					{
-					case GAMEFIND:
-					case GAMEFINDCR:
-					case GAMEFINDTHEME:
-						try {
+				try {
+					switch(how)
+						{
+						case GAMEFIND:
+						case GAMEFINDCR:
+						case GAMEFINDTHEME:
 							preview_to_game_index_map.push_back(i);
 							game_previews.push_back(preview);
-						}
-						catch (...) {
-							MessageBox(hwnd,"not enough memory for this operation","Error",MB_OK);
-							SetCurrentDirectory(CBdirectory);
-							return(0);
-						}
-						entry++;
-						break;
-					case GAMELOAD:
-						//	remember what game number this has
-						try {
+							entry++;
+							break;
+						case GAMELOAD:
+							//	remember what game number this has
 							preview_to_game_index_map.push_back(entry);
 							game_previews.push_back(preview);
-						}
-						catch (...) {
-							MessageBox(hwnd,"not enough memory for this operation","Error",MB_OK);
-							SetCurrentDirectory(CBdirectory);
-							return(0);
-						}
-						entry++;
-						break;
-					case SEARCHMASK:
-						// add the entry to the list
-						// only if the name matches one of the players
-						searchhit = 1;
-						if(searchwithposition)
-							{
-							searchhit = 0;
-							for(j=0;j<ngames_matching;j++)
+							entry++;
+							break;
+						case SEARCHMASK:
+							// add the entry to the list
+							// only if the name matches one of the players
+							searchhit = 1;
+							if(searchwithposition)
 								{
-								if(i == preview_to_game_index_map[j])
-									searchhit = 1;
+								searchhit = 0;
+								for(j=0;j<ngames_matching;j++)
+									{
+									if(i == preview_to_game_index_map[j])
+										searchhit = 1;
+									}
 								}
-							}
 
-						// if a player name to search is set, search for that name
-						if(strcmp(playername,"") != 0)
-							{
-							if (strstr(preview.black,playername) || 
-								strstr(preview.white,playername))
-								searchhit &= 1;
-							else
-								searchhit = 0;
-							}
+							// if a player name to search is set, search for that name
+							if(strcmp(playername,"") != 0)
+								{
+								if (strstr(preview.black,playername) || 
+									strstr(preview.white,playername))
+									searchhit &= 1;
+								else
+									searchhit = 0;
+								}
 
-						// if an event name to search is set, search for that event
-						if(strcmp(eventname,"") != 0)
-							{
-							if(strstr(preview.event, eventname))
-								searchhit &=1;
-							else
-								searchhit = 0;
-							}
+							// if an event name to search is set, search for that event
+							if(strcmp(eventname,"") != 0)
+								{
+								if(strstr(preview.event, eventname))
+									searchhit &=1;
+								else
+									searchhit = 0;
+								}
 
-						// if a date to search is set, search for that date
-						if(strcmp(datename,"") != 0)
-							{
-							if(strstr(preview.date, datename))
-								searchhit &= 1;
-							else
-								searchhit = 0;
-							}
+							// if a date to search is set, search for that date
+							if(strcmp(datename,"") != 0)
+								{
+								if(strstr(preview.date, datename))
+									searchhit &= 1;
+								else
+									searchhit = 0;
+								}
 
-						// if a comment is defined, search for that comment
-						if(strcmp(commentname,"") != 0)
-							{
-							if(strstr(gamestring, commentname))
-								searchhit &= 1;
-							else
-								searchhit = 0;
-							}
+							// if a comment is defined, search for that comment
+							if(strcmp(commentname,"") != 0)
+								{
+								if(strstr(gamestring, commentname))
+									searchhit &= 1;
+								else
+									searchhit = 0;
+								}
 
-						if(searchhit == 1)
-							{
-							// remember what entry in the list corresponds 
-							// to which game
-							try {
+							if(searchhit == 1)
+								{
+								// remember what entry in the list corresponds 
+								// to which game
 								preview_to_game_index_map.push_back(i);
 								game_previews.push_back(preview);
-							}
-							catch (...) {
-								MessageBox(hwnd,"not enough memory for this operation","Error",MB_OK);
-								SetCurrentDirectory(CBdirectory);
-								return(0);
-							}
-							entry++;
-							}
-						i++;
-						break;
+								entry++;
+								}
+							i++;
+							break;
+						}
 					}
+					catch (...) {
+						MessageBox(hwnd,"not enough memory for this operation","Error",MB_OK);
+						SetCurrentDirectory(CBdirectory);
+						return(0);
+					}
+
 				}
 			sprintf(str,"%i games found",entry);
 
