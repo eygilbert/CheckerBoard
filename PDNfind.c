@@ -127,9 +127,9 @@ void reset_pdn_positions()
 
 int pdnfind(struct pos *p, int color, std::vector<int> &preview_to_game_index_map, RESULT *r)
 	{
-	// pdnfind populates a list of indexes in the pdn database which 
-	// contain the current position, i.e. list[0] is the first index
-	// where the current position occurs, list[1] the second etc.
+	// pdnfind populates a list of game indexes in the pdn database which 
+	// contain the current position, i.e. preview_to_game_index_map[0] is the first game index
+	// where the current position occurs, preview_to_game_index_map[1] the second etc.
 	// it returns the number of games found.
 
 	int i;
@@ -149,15 +149,15 @@ int pdnfind(struct pos *p, int color, std::vector<int> &preview_to_game_index_ma
 	r->loss = 0;
 	r->draw = 0;
 
-	bitboardtoboard8(p, b);
-	board8toFEN(b, FEN, color, gametype());
-	cblog("pdnfind(): %s\n", FEN);
-
 	nfound = 0;
 	for (i = 0; i < (int)pdn_positions.size(); ++i) {
 		if ((pdn_positions[i].black == black) && (pdn_positions[i].white == white) && 
 			(pdn_positions[i].kings == kings) && (pdn_positions[i].color == (unsigned int)color)) {
 			
+			/* Avoid adding the same game multiple times when it has repeated positions. */
+			if (nfound > 0 && preview_to_game_index_map[nfound - 1] == pdn_positions[i].gameindex)
+				continue;
+
 			preview_to_game_index_map.push_back(pdn_positions[i].gameindex);
 			nfound++;
 			if (pdn_positions[i].result == CB_WIN)
@@ -169,6 +169,10 @@ int pdnfind(struct pos *p, int color, std::vector<int> &preview_to_game_index_ma
 		}
 	}
 
+	/* Log the results. */
+	bitboardtoboard8(p, b);
+	board8toFEN(b, FEN, color, gametype());
+	cblog("pdnfind(): \"%s\", %d games found\n", FEN, nfound);
 	return nfound;
 }
 
@@ -188,6 +192,7 @@ int pdnfindtheme(struct pos *p, std::vector<int> &preview_to_game_index_map)
 	if (pdn_positions.size() == 0)
 		return 0;
 
+	/* The last entry in pdn_positins has the gameindex of the last game. */
 	ngames = (pdn_positions.end() - 1)->gameindex + 1;
 	histogram.assign(ngames, 0);
 
@@ -211,6 +216,8 @@ int pdnfindtheme(struct pos *p, std::vector<int> &preview_to_game_index_map)
 			nfound++;
 		}
 	}
+
+	cblog("pdnfindtheme(): %d matching games found\n", nfound);
 	return nfound;
 }
 

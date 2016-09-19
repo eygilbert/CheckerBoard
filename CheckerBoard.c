@@ -2288,6 +2288,7 @@ int selectgame(int how)
 	int searchhit;
 	int ngames_matching;
 	gamepreview preview;
+	std::vector<int> partial_match_preview_map;
 
 	sprintf(str, "wait ...");
 	SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
@@ -2385,8 +2386,10 @@ int selectgame(int how)
 				sprintf(str,"searching database...");
 				SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
 				preview_to_game_index_map.clear();
-				if(how == GAMEFIND || how == SEARCHMASK)
+				if(how == GAMEFIND)
 					ngames_matching = pdnfind(&currentposition, color, preview_to_game_index_map, &r);
+				if (how == SEARCHMASK)
+					ngames_matching = pdnfind(&currentposition, color, partial_match_preview_map, &r);
 				if(how == GAMEFINDCR)
 					ngames_matching = pdnfind(&currentposition, CB_CHANGECOLOR(color), preview_to_game_index_map, &r);
 				if(how == GAMEFINDTHEME)
@@ -2495,7 +2498,6 @@ int selectgame(int how)
 						case GAMEFIND:
 						case GAMEFINDCR:
 						case GAMEFINDTHEME:
-							preview_to_game_index_map.push_back(i);
 							game_previews.push_back(preview);
 							entry++;
 							break;
@@ -2514,7 +2516,7 @@ int selectgame(int how)
 								searchhit = 0;
 								for(j=0;j<ngames_matching;j++)
 									{
-									if(i == preview_to_game_index_map[j])
+									if(i == partial_match_preview_map[j])
 										searchhit = 1;
 									}
 								}
