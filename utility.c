@@ -447,7 +447,7 @@ void log_fen(char *msg, int board[8][8], int color)
 }
 
 
-void log_bitboard(char *msg, int32 black, int32 white, int32 king)
+void log_bitboard(char *msg, uint32_t black, uint32_t white, uint32_t king)
 {
 	char buf[150];
 

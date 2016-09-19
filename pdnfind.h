@@ -8,9 +8,9 @@
 
 struct PDN_position
 	{
-	int32 black;
-	int32 white;
-	int32 kings;
+	uint32_t black;
+	uint32_t white;
+	uint32_t kings;
 	unsigned int gameindex:28;
 	unsigned int result:2;
 	unsigned int color:2;	

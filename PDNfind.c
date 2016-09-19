@@ -43,7 +43,7 @@ inline int bitnum_to_square(int bitnum, int gametype)
 
 void get_fromto_squares(struct pos *pos, struct move *m, int color, int *fromsq, int *tosq)
 {
-	int32 frombb, tobb;
+	uint32_t frombb, tobb;
 
 	if (color == CB_BLACK) {
 		frombb = (m->bm | m->bk) & (pos->bm | pos->bk);
@@ -134,7 +134,7 @@ int pdnfind(struct pos *p, int color, std::vector<int> &preview_to_game_index_ma
 
 	int i;
 	int nfound; // number of games found
-	int32 black, white, kings;
+	uint32_t black, white, kings;
 	char FEN[256];
 	int b[8][8];
 
@@ -181,7 +181,7 @@ int pdnfindtheme(struct pos *p, std::vector<int> &preview_to_game_index_map)
 	const int minplies = 4;
 	int i;
 	int nfound;
-	int32 black, white, kings;
+	uint32_t black, white, kings;
 	int ngames;
 	std::vector<unsigned short> histogram;
 	

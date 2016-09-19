@@ -2166,7 +2166,7 @@ int loadnextgame(void)
 
 	if(i+1 >= (int)game_previews.size())
 		{
-		sprintf(str,"reached last game in list");
+		sprintf(str,"at last game in list");
 		return 0;
 		}
 
@@ -2212,7 +2212,7 @@ int loadpreviousgame(void)
 
 	if(i == 0)
 		{
-		sprintf(str,"reached first game in list");
+		sprintf(str,"at first game in list");
 		return 0;
 		}
 

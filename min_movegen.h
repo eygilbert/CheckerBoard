@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 /* movegen.h: function prototypes of movegen.c */
 
 /* bitboard masks for moves in various directions */
@@ -43,22 +45,21 @@
 	      CB_BLACK
 */
 
-typedef unsigned int int32;
 
 struct pos
 	{
-	int32 bm;
-	int32 bk;
-	int32 wm;
-	int32 wk;
+	uint32_t bm;
+	uint32_t bk;
+	uint32_t wm;
+	uint32_t wk;
 	};
 
 struct move
 	{
-	int32 bm;
-	int32 bk;
-	int32 wm;
-	int32 wk;
+	uint32_t bm;
+	uint32_t bk;
+	uint32_t wm;
+	uint32_t wk;
 	};
 
 int makemovelist(struct pos *p,struct move movelist[MAXMOVES],int color);
@@ -67,11 +68,11 @@ int makemovelist(struct pos *p,struct move movelist[MAXMOVES],int color);
 
 int makecapturelist(struct pos *p,struct move movelist[MAXMOVES],int color);
 
-static void blackmancapture1( struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, int32 square);
-static void blackkingcapture1(struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, int32 square);
-static void whitemancapture1( struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, int32 square);
-static void whitekingcapture1(struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, int32 square);
-static void blackmancapture2( struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, int32 square);
-static void blackkingcapture2(struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, int32 square);
-static void whitemancapture2( struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, int32 square);
-static void whitekingcapture2(struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, int32 square);
+static void blackmancapture1( struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, uint32_t square);
+static void blackkingcapture1(struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, uint32_t square);
+static void whitemancapture1( struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, uint32_t square);
+static void whitekingcapture1(struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, uint32_t square);
+static void blackmancapture2( struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, uint32_t square);
+static void blackkingcapture2(struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, uint32_t square);
+static void whitemancapture2( struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, uint32_t square);
+static void whitekingcapture2(struct pos *p,struct move movelist[MAXMOVES], int *n, struct move *partial, uint32_t square);

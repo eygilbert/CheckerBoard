@@ -7,10 +7,11 @@
 // ugly - CB has two move generators!
 
 /* movegen.c is the movegenerator for the bitboard checkers engine */
-/* the move structure consists of 4 int32's to toggle the position with */
-/* and one int32 info with additional information about the move */
+/* the move structure consists of 4 uint32_t's to toggle the position with */
+/* and one uint32_t info with additional information about the move */
 /* info & 0x0000FFFF contains the ordering value of the move */
 #include <windows.h>
+#include <stdint.h>
 #include "standardheader.h"
 #include "cb_interface.h"
 #include "min_movegen.h"
@@ -22,8 +23,8 @@
 
 int makemovelist(struct pos *p, struct move movelist[MAXMOVES],int color)
 	{
-	int32 n=0,free;
-	int32 m,tmp;
+	uint32_t n=0,free;
+	uint32_t m,tmp;
 
 	/*
 	CB_WHITE
@@ -415,7 +416,7 @@ int makemovelist(struct pos *p, struct move movelist[MAXMOVES],int color)
 
 int makecapturelist(struct pos *p,struct move movelist[MAXMOVES],int color)
 	{
-	int32 free,free2,m,tmp,white,black,white2,black2;
+	uint32_t free,free2,m,tmp,white,black,white2,black2;
 	int n=0;
 	struct move partial;
 	struct pos q;
@@ -985,10 +986,10 @@ int makecapturelist(struct pos *p,struct move movelist[MAXMOVES],int color)
 		}
 	}
 
-static void blackmancapture1(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, int32 square)
+static void blackmancapture1(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, uint32_t square)
 	{
 	/* partial move has already been executed. seek LFJ1 and RFJ1 */
-	int32 m,free,white;
+	uint32_t m,free,white;
 	int found=0;
 	struct move next_partial,whole_partial;
 	struct pos q;
@@ -1048,11 +1049,11 @@ static void blackmancapture1(struct pos *p,struct move movelist[MAXMOVES],int *n
 		}
 	}
 
-static void blackmancapture2(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, int32 square)
+static void blackmancapture2(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, uint32_t square)
 	{
 	/* partial move has already been executed. seek LFJ2 and RFJ2 */
 	/* additional complication: black stone might crown here */
-	int32 m,free,white;
+	uint32_t m,free,white;
 	struct move next_partial,whole_partial;
 	int found=0;
 	struct pos q;
@@ -1113,10 +1114,10 @@ static void blackmancapture2(struct pos *p,struct move movelist[MAXMOVES],int *n
 	}
 
 
-static void blackkingcapture1(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, int32 square)
+static void blackkingcapture1(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, uint32_t square)
 	{
 	/* partial move has already been executed. seek LFJ1 RFJ1 LBJ1 RBJ1*/
-	int32 m,free,white;
+	uint32_t m,free,white;
 	struct move next_partial,whole_partial;
 	int found=0;
 	struct pos q;
@@ -1219,10 +1220,10 @@ static void blackkingcapture1(struct pos *p,struct move movelist[MAXMOVES],int *
 		(*n)++;
 		}
 	}
-static void blackkingcapture2(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, int32 square)
+static void blackkingcapture2(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, uint32_t square)
 	{
 	/* partial move has already been executed. seek LFJ1 RFJ1 LBJ1 RBJ1*/
-	int32 m,free,white;
+	uint32_t m,free,white;
 	struct move next_partial,whole_partial;
 	int found=0;
 	struct pos q;
@@ -1328,10 +1329,10 @@ static void blackkingcapture2(struct pos *p,struct move movelist[MAXMOVES],int *
 		}
 	}
 
-static void whitemancapture1(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, int32 square)
+static void whitemancapture1(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, uint32_t square)
 	{
 	/* partial move has already been executed. seek LBJ1 and RBJ1 */
-	int32 m,free,black;
+	uint32_t m,free,black;
 	struct move next_partial,whole_partial;
 	int found=0;
 	struct pos q;
@@ -1391,10 +1392,10 @@ static void whitemancapture1(struct pos *p,struct move movelist[MAXMOVES],int *n
 		(*n)++;
 		}
 	}
-static void whitemancapture2(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, int32 square)
+static void whitemancapture2(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, uint32_t square)
 	{
 	/* partial move has already been executed. seek LBJ1 and RBJ1 */
-	int32 m,free,black;
+	uint32_t m,free,black;
 	struct move next_partial,whole_partial;
 	int found=0;
 	struct pos q;
@@ -1454,10 +1455,10 @@ static void whitemancapture2(struct pos *p,struct move movelist[MAXMOVES],int *n
 		}
 	}
 
-static void whitekingcapture1(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, int32 square)
+static void whitekingcapture1(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, uint32_t square)
 	{
 	/* partial move has already been executed. seek LFJ1 RFJ1 LBJ1 RBJ1*/
-	int32 m,free,black;
+	uint32_t m,free,black;
 	struct move next_partial,whole_partial;
 	int found=0;
 	struct pos q;
@@ -1559,10 +1560,10 @@ static void whitekingcapture1(struct pos *p,struct move movelist[MAXMOVES],int *
 		(*n)++;
 		}
 	}
-static void whitekingcapture2(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, int32 square)
+static void whitekingcapture2(struct pos *p,struct move movelist[MAXMOVES],int *n, struct move *partial, uint32_t square)
 	{
 	/* partial move has already been executed. seek LFJ1 RFJ1 LBJ1 RBJ1*/
-	int32 m,free,black;
+	uint32_t m,free,black;
 	struct move next_partial,whole_partial;
 	int found=0;
 	struct pos q;
