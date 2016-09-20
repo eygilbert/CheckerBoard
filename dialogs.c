@@ -38,6 +38,7 @@ extern HWND hwnd;
 extern struct PDNgame GPDNgame;
 extern struct listentry *current, *head, *tail;
 
+int selected_game;		/* game selected by DialogFuncSelectgame(). */
 int HeaderHeight;
 int columns[NUMCOLS]={PLAYERWIDTH,PLAYERWIDTH,RESULTWIDTH,EVENTWIDTH};
 int Tabs[4];
@@ -233,13 +234,12 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 	// this dialog box appears when the user wants to load a game from
 	// a PDN database. it lists the games which are contained in the game_previews[i]
 	// array of type gamepreview. The index
-	// of the game chosen is written to the external variable gameindex
+	// of the game chosen is written to the global variable selected_game
 	int i,n,j;
 	HWND hHead;
 	char Lstr[256];
 	char black[256], white[256];
 	extern std::vector<gamepreview> game_previews;
-	extern int gameindex;
 	HD_NOTIFY *hdnptr;
 	HD_ITEM *hdiptr;
 	extern RESULT r; // from checkerboard.c
@@ -341,20 +341,20 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 					if(HIWORD(wParam)==LBN_DBLCLK)
 						{
 						// select the game and end dialog 
-						gameindex=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L); 	
+						selected_game=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L); 	
 						EndDialog(hdwnd,1);
 						return 1;
 						}
 					break;
 				case IDC_DELETE:
 					// delete the currently selected game 
-					gameindex=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
-					SendDlgItemMessage(hdwnd,IDC_SELECT,LB_DELETESTRING,gameindex,0L);
+					selected_game=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
+					SendDlgItemMessage(hdwnd,IDC_SELECT,LB_DELETESTRING,selected_game,0L);
 					
 					return 1;
 				case IDC_OK:
 					// select the game and end dialog 
-					gameindex=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L); 	
+					selected_game=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L); 	
 					EndDialog(hdwnd,1);
 					return 1;
 				case IDC_CANCEL:

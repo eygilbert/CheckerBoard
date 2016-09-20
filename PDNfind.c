@@ -5,7 +5,7 @@
 // pdnopen(filename, gametype) 
 //	indexes a pdn database 
 //
-// int pdnfind(struct pos position, std::vector<int> &preview_to_game_index_map);
+// int pdnfind(struct pos position, std::vector<int> &matching_games);
 //	returns the number of games found, and returns the indices of these games in the pdn database in the array list
 
 #include <windows.h>
@@ -125,11 +125,11 @@ void reset_pdn_positions()
 }
 
 
-int pdnfind(struct pos *p, int color, std::vector<int> &preview_to_game_index_map, RESULT *r)
+int pdnfind(struct pos *p, int color, std::vector<int> &matching_games, RESULT *r)
 	{
 	// pdnfind populates a list of game indexes in the pdn database which 
-	// contain the current position, i.e. preview_to_game_index_map[0] is the first game index
-	// where the current position occurs, preview_to_game_index_map[1] the second etc.
+	// contain the current position, i.e. matching_games[0] is the first game index
+	// where the current position occurs, matching_games[1] the second etc.
 	// it returns the number of games found.
 
 	int i;
@@ -155,10 +155,10 @@ int pdnfind(struct pos *p, int color, std::vector<int> &preview_to_game_index_ma
 			(pdn_positions[i].kings == kings) && (pdn_positions[i].color == (unsigned int)color)) {
 			
 			/* Avoid adding the same game multiple times when it has repeated positions. */
-			if (nfound > 0 && preview_to_game_index_map[nfound - 1] == pdn_positions[i].gameindex)
+			if (nfound > 0 && matching_games[nfound - 1] == pdn_positions[i].gameindex)
 				continue;
 
-			preview_to_game_index_map.push_back(pdn_positions[i].gameindex);
+			matching_games.push_back(pdn_positions[i].gameindex);
 			nfound++;
 			if (pdn_positions[i].result == CB_WIN)
 				r->win++;
@@ -177,7 +177,7 @@ int pdnfind(struct pos *p, int color, std::vector<int> &preview_to_game_index_ma
 }
 
 
-int pdnfindtheme(struct pos *p, std::vector<int> &preview_to_game_index_map)
+int pdnfindtheme(struct pos *p, std::vector<int> &matching_games)
 	{
 	// finds a "theme" in a game.
 	// only if the "theme" is on the board for at least minplies.
@@ -212,7 +212,7 @@ int pdnfindtheme(struct pos *p, std::vector<int> &preview_to_game_index_map)
 	nfound = 0;
 	for (i = 0; i < histogram.size(); ++i) {
 		if (histogram[i] > minplies) {
-			preview_to_game_index_map.push_back(i);
+			matching_games.push_back(i);
 			nfound++;
 		}
 	}

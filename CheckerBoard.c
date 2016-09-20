@@ -167,7 +167,6 @@ HWND hHeadWnd;			// window of header control for game load
 HWND hDlgSelectgame;
 
 std::vector<gamepreview> game_previews;
-std::vector<int> preview_to_game_index_map;	// maps a game_previews index into a game index
 
 // str holds the output string shown in the status bar - it is updated by WM_TIMER messages
 char str[1024]="";
@@ -2152,13 +2151,13 @@ int loadnextgame(void)
 	}
 
 	for(i=0;i<(int)game_previews.size();i++)
-		if(gameindex == preview_to_game_index_map[i])
+		if(gameindex == game_previews[i].game_index)
 			break;
 
 	if (i >= game_previews.size())
 		return(0);
 
-	if(gameindex != preview_to_game_index_map[i])
+	if(gameindex != game_previews[i].game_index)
 		{
 		sprintf(str,"error while looking for next game...");
 		return 0;
@@ -2170,7 +2169,7 @@ int loadnextgame(void)
 		return 0;
 		}
 
-	gameindex = preview_to_game_index_map[i+1];
+	gameindex = game_previews[i + 1].game_index;
 
 	// ok, if we arrive here, we have a valid game index for the game to load.
 	sprintf(str,"should load game %i",gameindex);
@@ -2198,13 +2197,13 @@ int loadpreviousgame(void)
 	}
 
 	for(i=0;i<(int)game_previews.size();i++)
-		if(gameindex == preview_to_game_index_map[i])
+		if(gameindex == game_previews[i].game_index)
 			break;
 
 	if (i >= game_previews.size())
 		return(0);
 
-	if(gameindex != preview_to_game_index_map[i])
+	if(gameindex != game_previews[i].game_index)
 		{
 		sprintf(str,"error while looking for next game...");
 		return 0;
@@ -2216,7 +2215,7 @@ int loadpreviousgame(void)
 		return 0;
 		}
 
-	gameindex = preview_to_game_index_map[i-1];
+	gameindex = game_previews[i - 1].game_index;
 
 	sprintf(str,"should load game %i",gameindex);
 	dbstring = loadPDNdbstring(database);
@@ -2286,9 +2285,8 @@ int selectgame(int how)
 	char headername[256],headervalue[256];
 	char token[1024];
 	int searchhit;
-	int ngames_matching;
 	gamepreview preview;
-	std::vector<int> partial_match_preview_map;
+	std::vector<int> games_with_pos_match;	/* Index of games matching the position part of search criteria */
 
 	sprintf(str, "wait ...");
 	SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
@@ -2334,7 +2332,6 @@ int selectgame(int how)
 				return 0;
 			}
 
-
 		// set directory to games directory
 		SetCurrentDirectory(gCBoptions.userdirectory);
 		// get a valid database filename. if we already have one, we reuse it,
@@ -2360,7 +2357,6 @@ int selectgame(int how)
 			i=PDNparseGetnumberofgames(database);
 			sprintf(str,"%i games in database",i);
 
-
 			if(how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR ||
 				(how == SEARCHMASK && searchwithposition == 1))
 				// search for a position: this is done by calling pdnopen to index
@@ -2385,20 +2381,19 @@ int selectgame(int how)
 
 				sprintf(str,"searching database...");
 				SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
-				preview_to_game_index_map.clear();
-				if(how == GAMEFIND)
-					ngames_matching = pdnfind(&currentposition, color, preview_to_game_index_map, &r);
+				if (how == GAMEFIND)
+					pdnfind(&currentposition, color, games_with_pos_match, &r);
 				if (how == SEARCHMASK)
-					ngames_matching = pdnfind(&currentposition, color, partial_match_preview_map, &r);
-				if(how == GAMEFINDCR)
-					ngames_matching = pdnfind(&currentposition, CB_CHANGECOLOR(color), preview_to_game_index_map, &r);
-				if(how == GAMEFINDTHEME)
-					ngames_matching = pdnfindtheme(&currentposition, preview_to_game_index_map);
+					pdnfind(&currentposition, color, games_with_pos_match, &r);
+				if (how == GAMEFINDCR)
+					pdnfind(&currentposition, CB_CHANGECOLOR(color), games_with_pos_match, &r);
+				if (how == GAMEFINDTHEME)
+					pdnfindtheme(&currentposition, games_with_pos_match);
 
-				// preview_to_game_index_map now contains a list of games with the current position
-				if(ngames_matching == 0)
+				// games_with_pos_match now contains a list of games matching the position part of search criteria
+				if (games_with_pos_match.size() == 0)
 					{
-					sprintf(str,"no games matching search criteria found");
+					sprintf(str,"no games matching position criteria found");
 					re_search_ok = 0;
 					game_previews.clear();
 					SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
@@ -2406,7 +2401,7 @@ int selectgame(int how)
 					}
 				else
 					{
-					sprintf(str,"%i games matching search criteria found", ngames_matching);
+					sprintf(str,"%zd games matching position criteria found", games_with_pos_match.size());
 					re_search_ok = 1;
 					}
 				}
@@ -2437,9 +2432,10 @@ int selectgame(int how)
 					{
 					// we already know what should go in the list, no point parsing
 					i++;
-					if (entry >= preview_to_game_index_map.size())
-						continue;
-					if(i != preview_to_game_index_map[entry])
+					if (entry >= games_with_pos_match.size())
+						break;	/* done*/
+
+					if (i != games_with_pos_match[entry])
 						continue;
 					}
 
@@ -2498,12 +2494,12 @@ int selectgame(int how)
 						case GAMEFIND:
 						case GAMEFINDCR:
 						case GAMEFINDTHEME:
+							preview.game_index = i;
 							game_previews.push_back(preview);
 							entry++;
 							break;
 						case GAMELOAD:
 							//	remember what game number this has
-							preview_to_game_index_map.push_back(entry);
 							game_previews.push_back(preview);
 							entry++;
 							break;
@@ -2511,15 +2507,12 @@ int selectgame(int how)
 							// add the entry to the list
 							// only if the name matches one of the players
 							searchhit = 1;
-							if(searchwithposition)
-								{
-								searchhit = 0;
-								for(j=0;j<ngames_matching;j++)
-									{
-									if(i == partial_match_preview_map[j])
-										searchhit = 1;
-									}
-								}
+							if (searchwithposition) {
+								if (std::find(games_with_pos_match.begin(), games_with_pos_match.end(), i) == games_with_pos_match.end())
+									searchhit = 0;
+								else
+									searchhit = 1;
+							}
 
 							// if a player name to search is set, search for that name
 							if(strcmp(playername,"") != 0)
@@ -2560,9 +2553,7 @@ int selectgame(int how)
 
 							if(searchhit == 1)
 								{
-								// remember what entry in the list corresponds 
-								// to which game
-								preview_to_game_index_map.push_back(i);
+								preview.game_index = i;
 								game_previews.push_back(preview);
 								entry++;
 								}
@@ -2575,9 +2566,9 @@ int selectgame(int how)
 						SetCurrentDirectory(CBdirectory);
 						return(0);
 					}
-
 				}
-			sprintf(str,"%i games found",entry);
+			assert(entry == game_previews.size());
+			sprintf(str, "%i games found matching search criteria", entry);
 
 			if(how == SEARCHMASK && searchwithposition)
 				{
@@ -2611,14 +2602,14 @@ int selectgame(int how)
 	// headers loaded into 'game_previews', display load game dialog 
 	if (game_previews.size()) {
 		if (DialogBox(g_hInst, "IDD_SELECTGAME", hwnd, (DLGPROC)DialogFuncSelectgame)) {
-			if (gameindex < 0 || gameindex >= preview_to_game_index_map.size())
+			if (selected_game < 0 || selected_game >= game_previews.size())
 				// dialog box didn't select a proper preview index
 				gameindex = oldgameindex;
 			else {
-				// a game was selected; with index <gameindex> in the dialog box 
-				sprintf(str, "game previews index is %i", gameindex);
+				// a game was selected; with index <selected_game> in the dialog box 
+				sprintf(str, "game previews index is %i", selected_game);
 				// transform dialog box index to game index in database
-				gameindex = preview_to_game_index_map[gameindex];
+				gameindex = game_previews[selected_game].game_index;
 				// load game with index 'gameindex' 
 				loadgamefromPDNstring(gameindex, dbstring);
 			}

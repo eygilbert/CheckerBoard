@@ -88,6 +88,7 @@ struct package
 
 /* This type is used to display game previews in the game select dialog. */
 struct gamepreview {
+	int game_index;		/* index of game into the current pdn database. */
 	char black[64];
 	char white[64];
 	char result[10];

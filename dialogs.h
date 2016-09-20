@@ -101,3 +101,4 @@ int get_more_engine_options_from_dialog(HWND hwnd, MORE_ENGINE_OPTIONS *options)
 #define IDC_DELETE 3
 #define IDC_PREVIEW 101
 
+extern int selected_game;
