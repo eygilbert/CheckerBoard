@@ -3,6 +3,9 @@
 // relevant for the entire program are defined in
 // CBconsts.h
 
+#pragma once
+#include <vector>
+
 // version 
 #define VERSION "1.73a"
 #define PLACE "September 15, 2016"
@@ -85,6 +88,7 @@ void	PDNgametoPDNstring(struct PDNgame *game, char *pdnstring, char *lf);
 void	pdntogame(int startposition[8][8], int startcolor);
 void	setcurrentengine(int engine);
 int		SetMenuLanguage(int language);
+void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT &res);
 int		selectgame(int how);
 int		setanimationbusy(int value);
 int		setenginebusy(int value);

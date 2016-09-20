@@ -125,7 +125,7 @@ void reset_pdn_positions()
 }
 
 
-int pdnfind(struct pos *p, int color, std::vector<int> &matching_games, RESULT *r)
+int pdnfind(struct pos *p, int color, std::vector<int> &matching_games)
 	{
 	// pdnfind populates a list of game indexes in the pdn database which 
 	// contain the current position, i.e. matching_games[0] is the first game index
@@ -145,10 +145,6 @@ int pdnfind(struct pos *p, int color, std::vector<int> &matching_games, RESULT *
 	white = p->wm|p->wk;
 	kings = p->bk|p->wk;
 
-	r->win = 0;
-	r->loss = 0;
-	r->draw = 0;
-
 	nfound = 0;
 	for (i = 0; i < (int)pdn_positions.size(); ++i) {
 		if ((pdn_positions[i].black == black) && (pdn_positions[i].white == white) && 
@@ -160,12 +156,6 @@ int pdnfind(struct pos *p, int color, std::vector<int> &matching_games, RESULT *
 
 			matching_games.push_back(pdn_positions[i].gameindex);
 			nfound++;
-			if (pdn_positions[i].result == CB_WIN)
-				r->win++;
-			if (pdn_positions[i].result == CB_LOSS)
-				r->loss++;
-			if (pdn_positions[i].result == CB_DRAW)
-				r->draw++;
 		}
 	}
 
@@ -225,9 +215,9 @@ int pdnfindtheme(struct pos *p, std::vector<int> &matching_games)
 int pdnopen(char filename[256], int gametype)
 	{
 	// parses a pdn file and makes it ready to be used by PDNfind 
-	// the games are read and the struct PDN_position positions is used
-	// to store all games.
-	// PDN_position contains the game index in the database, so it can
+	// the games are read and vector pdn_positions is used
+	// to store the positions of the games.
+	// pdn_positions contains the game index in the database, so it can
 	// be retrieved from a position
 
 	int games_in_pdn;

@@ -214,7 +214,6 @@ static CHOOSECOLOR ccs;
 // reindex is set to 1 if a game is saved, a game is replaced, or the
 // database changed. and initialized to 1.
 int reindex = 1;
-RESULT r;
 int re_search_ok = 0;
 char piecesetname[MAXPIECESET][256];
 int maxpieceset=0;
@@ -2337,7 +2336,6 @@ int selectgame(int how)
 	int i;
 	static int oldgameindex;
 	int entry;
-	RESULT r;
 	char *dbstring = NULL;
 	char *gamestring = NULL;
 	char *p;
@@ -2371,10 +2369,6 @@ int selectgame(int how)
 		}
 	}
 	else {
-		r.win = 0;
-		r.draw = 0;
-		r.loss = 0;
-
 		// if we're looking for a player name, get it
 		if (how == SEARCHMASK) {
 			// this dialog box sets the variables 
@@ -2430,11 +2424,11 @@ int selectgame(int how)
 				sprintf(str, "searching database...");
 				SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 				if (how == GAMEFIND)
-					pdnfind(&currentposition, color, pos_match_games, &r);
+					pdnfind(&currentposition, color, pos_match_games);
 				if (how == SEARCHMASK)
-					pdnfind(&currentposition, color, pos_match_games, &r);
+					pdnfind(&currentposition, color, pos_match_games);
 				if (how == GAMEFINDCR)
-					pdnfind(&currentposition, CB_CHANGECOLOR(color), pos_match_games, &r);
+					pdnfind(&currentposition, CB_CHANGECOLOR(color), pos_match_games);
 				if (how == GAMEFINDTHEME)
 					pdnfindtheme(&currentposition, pos_match_games);
 
@@ -2560,12 +2554,6 @@ int selectgame(int how)
 			}
 			assert(entry == game_previews.size());
 			sprintf(str, "%i games found matching search criteria", entry);
-
-			if (how == SEARCHMASK && searchwithposition) {
-				// the result is wrong, because it comes from pdnfind without 
-				// filtering for names!
-				get_pdnsearch_stats(game_previews, r);
-			}
 
 			// total number of games is saved in <gamenumber>
 			gamenumber = entry; 
@@ -4571,7 +4559,6 @@ void doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8]
 			/* In PDN 3.0, the game terminator is '*'. Allow old style game result terminators, 
 			 * but don't interpret them as results.
 			 */
-			/* sprintf(PDNgame->resultstring,"%s",token); */
 			break;
 			}
 		if(token[0]=='{' || state==PDN_FLUFF)

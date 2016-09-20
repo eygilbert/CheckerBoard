@@ -14,7 +14,7 @@ struct PDN_position
 	unsigned int color:2;	
 	};
 
-int pdnfind(struct pos *position, int color, std::vector<int> &preview_to_game_index_map, RESULT *r);
+int pdnfind(struct pos *position, int color, std::vector<int> &preview_to_game_index_map);
 int pdnfindtheme(struct pos *position, std::vector<int> &preview_to_game_index_map);
 int pdnopen(char filename[256], int gametype);
 void reset_pdn_positions();

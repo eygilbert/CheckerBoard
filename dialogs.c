@@ -242,7 +242,7 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 	extern std::vector<gamepreview> game_previews;
 	HD_NOTIFY *hdnptr;
 	HD_ITEM *hdiptr;
-	extern RESULT r; // from checkerboard.c
+	RESULT res;
 	double percent;
 	char c='%';
 
@@ -292,13 +292,13 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 				SendDlgItemMessage(hdwnd,IDC_SELECT,LB_ADDSTRING,0,(LPARAM)Lstr); 			
 				}
 
-			if(r.draw + r.loss + r.win > 0)
-				{
+			get_pdnsearch_stats(game_previews, res);
+			if (res.draw + res.loss + res.win > 0) {
 				// display stats in dialog title
-				percent = 100.0*((double)r.win+0.5*r.draw)/(double)(r.win+r.draw+r.loss);
-				sprintf(Lstr,"Search statistics: %i red wins, %i white wins, %i draws (%.1f%c)",r.win, r.loss,r.draw,percent,c);
-				SetWindowText(hdwnd,Lstr);
-				}
+				percent = 100.0 * ((double)res.win + 0.5 * res.draw) / (double)(res.win + res.draw + res.loss);
+				sprintf(Lstr, "Search statistics: %i red wins, %i white wins, %i draws (%.1f%c)", res.win, res.loss, res.draw, percent, c);
+				SetWindowText(hdwnd, Lstr);
+			}
 			return 1;
 			break;
 		
