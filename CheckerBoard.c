@@ -135,7 +135,6 @@ int playnow = 0; 						/* playnow is passed to the checkers engines, it is set t
 int analyze = 0;						/* is set to 1 if the computer is analyzing the game - obsolete?*/
 int reset = 0;
 int gameindex = 0;						/* game to load/replace from/in a database*/
-int gamenumber = 0;					/* number of games in the database */
 
 /* dll globals */
 /* CB uses function pointers to access the dll.
@@ -2554,9 +2553,6 @@ int selectgame(int how)
 			}
 			assert(entry == game_previews.size());
 			sprintf(str, "%i games found matching search criteria", entry);
-
-			// total number of games is saved in <gamenumber>
-			gamenumber = entry; 
 
 			// save old game index
 			oldgameindex = gameindex;
