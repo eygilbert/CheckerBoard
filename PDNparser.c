@@ -51,11 +51,9 @@ int PDNparseGetnumberofgames(char *filename)
 	char *buffer;
 	char game[MAXGAMESIZE];
 	char *p;
-	//int filesize;
 	size_t filesize;
-	int n=0;
-//	int bytesread=0;
-	size_t bytesread=0;
+	int ngames;
+	size_t bytesread;
 
 	filesize = getfilesize(filename);
 	if(filesize == -1)
@@ -80,13 +78,13 @@ int PDNparseGetnumberofgames(char *filename)
 	buffer[bytesread] = 0;
 	
 	p=buffer;
-	
+	ngames = 0;
 	while(PDNparseGetnextgame(&p,game))
-		n++;
+		++ngames;
 	buffer[bytesread] = 0;
 	
 	free(buffer);
-	return n-1;
+	return(ngames);
 	}
 
 
@@ -199,7 +197,7 @@ int PDNparseGetnextgame(char **start,char *game)
 			strncpy(game,*start,(p-*start));
 			game[p-*start]=0;
 			*start=p;
-			return (p-p_org);
+			return (int)(p-p_org);
 			}
 		if(p[0]=='1' && p[1]=='-' && p[2]=='0' )
 			{
@@ -207,7 +205,7 @@ int PDNparseGetnextgame(char **start,char *game)
 			strncpy(game,*start,(p-*start));
 			game[p-*start]=0;
 			*start=p;
-			return (p-p_org);
+			return (int)(p-p_org);
 			}
 		if(p[0]=='0' && p[1]=='-' && p[2]=='1' && !isdigit(p[3]))
 			{
@@ -215,7 +213,7 @@ int PDNparseGetnextgame(char **start,char *game)
 			strncpy(game,*start,p-(*start));
 			game[p-*start]=0;
 			*start=p;
-			return (p-p_org);
+			return (int)(p-p_org);
 			}
 		if(p[0]=='*')
 			{
@@ -223,7 +221,7 @@ int PDNparseGetnextgame(char **start,char *game)
 			strncpy(game,*start,p-(*start));
 			game[p-*start]=0;
 			*start=p;
-			return (p-p_org);
+			return (int)(p-p_org);
 			}
 		if(p[0]=='1' && p[1]=='/' && p[2]=='2' && p[3]=='-' && p[4]=='1' && p[5]== '/' && p[6]=='2')
 			{
@@ -231,7 +229,7 @@ int PDNparseGetnextgame(char **start,char *game)
 			strncpy(game,*start,p-(*start));
 			game[p-*start]=0;
 			*start=p;
-			return (p-p_org);
+			return (int)(p-p_org);
 			}
 		p++;
 		}
@@ -240,7 +238,7 @@ int PDNparseGetnextgame(char **start,char *game)
 		strncpy(game, *start, p - (*start));
 		game[p - *start] = 0;
 		*start = p;
-		return(p - p_org);
+		return (int)(p - p_org);
 	}
 
 	return 0;
@@ -429,7 +427,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			tokentype = PDN_FLUFF;
 			if (isdigit(*p) || *p == '{' || *p == '(' || *p == '"') {
 				state = PDN_DONE;
-				len = p - tok_start;
+				len = (int)(p - tok_start);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -443,7 +441,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			if (*p == '}') {
 				state = PDN_DONE;
 				++p;
-				len = p - tok_start;
+				len = (int)(p - tok_start);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -459,7 +457,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			if (*p == ')') {
 				state = PDN_DONE;
 				++p;
-				len = p - tok_start;
+				len = (int)(p - tok_start);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -535,7 +533,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			else {
 				/* Finished reading a valid move. */
 				state = PDN_DONE;
-				len = p - tok_start;
+				len = (int)(p - tok_start);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -552,7 +550,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			else {
 				/* No move separator, roll back to the end of move. */
 				state = PDN_DONE;
-				len = possible_end - tok_start;
+				len = (int)(possible_end - tok_start);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
@@ -574,7 +572,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			else {
 				/* We did not get another 'to' square.  Return the valid move that we already passed. */
 				state = PDN_DONE;
-				len = possible_end - tok_start;
+				len = (int)(possible_end - tok_start);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
@@ -590,13 +588,13 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 		if (state == PDN_WAITING_SEP || state == PDN_WAITING_TO || state == PDN_WAITING_OPTIONAL_SEP ||
 						state == PDN_WAITING_OPTIONAL_TO) {
 			if (possible_end) {
-				len = possible_end - tok_start;
+				len = (int)(possible_end - tok_start);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
 				}
 			else {
-				len = p - tok_start;
+				len = (int)(p - tok_start);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -606,7 +604,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			trim_trailing_whitespace(token, len);
 			return(tokentype);
 		}
-		len = p - tok_start;
+		len = (int)(p - tok_start);
 		memcpy(token, tok_start, len);
 		token[len] = 0;
 		*start = p;

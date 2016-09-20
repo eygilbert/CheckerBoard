@@ -153,9 +153,9 @@ BOOL CALLBACK ThreeMoveDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARA
 					EndDialog(hdwnd,0);
 					return 1;
 				case IDC_OK:
-					gCBoptions.op_crossboard=SendDlgItemMessage(hdwnd,IDC_BOARD,BM_GETCHECK,0,0);
-					gCBoptions.op_mailplay=SendDlgItemMessage(hdwnd,IDC_MAILPLAY,BM_GETCHECK,0,0);
-					gCBoptions.op_barred=SendDlgItemMessage(hdwnd,IDC_BARRED,BM_GETCHECK,0,0);
+					gCBoptions.op_crossboard = (int)SendDlgItemMessage(hdwnd,IDC_BOARD,BM_GETCHECK,0,0);
+					gCBoptions.op_mailplay = (int)SendDlgItemMessage(hdwnd,IDC_MAILPLAY,BM_GETCHECK,0,0);
+					gCBoptions.op_barred = (int)SendDlgItemMessage(hdwnd,IDC_BARRED,BM_GETCHECK,0,0);
 					EndDialog(hdwnd,0);
 					return 1;
 				}
@@ -258,7 +258,7 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 			// create a header control: 
 			hHead=InitHeader(hdwnd);
 			ShowWindow(hHead,SW_SHOW);
-			i=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_RESETCONTENT,0,0);
+			i = (int)SendDlgItemMessage(hdwnd,IDC_SELECT,LB_RESETCONTENT,0,0);
 			
 			Tabs[0]=columns[0];
 			Tabs[1]=columns[0]+columns[1];
@@ -335,33 +335,33 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 				case IDC_SELECT:
 					// a notify message...
 					// set move preview 
-					i=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
+					i = (int)SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
 					if (i >= 0)
 						SetDlgItemText(hdwnd,IDC_PREVIEW,game_previews[i].PDN);
 					if(HIWORD(wParam)==LBN_DBLCLK)
 						{
 						// select the game and end dialog 
-						selected_game=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L); 	
+						selected_game = (int)SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L); 	
 						EndDialog(hdwnd,1);
 						return 1;
 						}
 					break;
 				case IDC_DELETE:
 					// delete the currently selected game 
-					selected_game=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
+					selected_game = (int)SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
 					SendDlgItemMessage(hdwnd,IDC_SELECT,LB_DELETESTRING,selected_game,0L);
 					
 					return 1;
 				case IDC_OK:
 					// select the game and end dialog 
-					selected_game=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L); 	
+					selected_game = (int)SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L); 	
 					EndDialog(hdwnd,1);
 					return 1;
 				case IDC_CANCEL:
 					EndDialog(hdwnd,0);
 					return 0;
 				default:
-					i=SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
+					i = (int)SendDlgItemMessage(hdwnd,IDC_SELECT,LB_GETCURSEL,0,0L);
 					SetDlgItemText(hdwnd,IDC_PREVIEW,game_previews[i].black);					
 					return 1;
 				}
@@ -398,24 +398,24 @@ HWND InitHeader(HWND hParent)
 	// insert items into header 
 	hditem.mask = HDI_FORMAT|HDI_WIDTH|HDI_TEXT;
 	hditem.pszText="Black";
-	hditem.cchTextMax = strlen(hditem.pszText);
+	hditem.cchTextMax = (int)strlen(hditem.pszText);
 	hditem.cxy=columns[0];
 	hditem.fmt=HDF_STRING|HDF_LEFT;
 	Header_InsertItem(hHead,0,&hditem);
 
 	hditem.pszText="White";
 	hditem.cxy=columns[1];
-	hditem.cchTextMax = strlen(hditem.pszText);
+	hditem.cchTextMax = (int)strlen(hditem.pszText);
 	Header_InsertItem(hHead,1,&hditem);
 	
 	hditem.pszText="Result";
 	hditem.cxy=columns[2];
-	hditem.cchTextMax = strlen(hditem.pszText);
+	hditem.cchTextMax = (int)strlen(hditem.pszText);
 	Header_InsertItem(hHead,2,&hditem);
 
 	hditem.pszText="Event";
 	hditem.cxy=columns[3];
-	hditem.cchTextMax = strlen(hditem.pszText);
+	hditem.cchTextMax = (int)strlen(hditem.pszText);
 	Header_InsertItem(hHead,3,&hditem);
 
 	ShowWindow(hHead,SW_SHOW);

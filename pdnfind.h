@@ -1,8 +1,6 @@
 #pragma once
 #include <vector>
 
-#define GAMESIZE 10000
-
 
 // pdn find structures 
 

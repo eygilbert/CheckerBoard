@@ -756,7 +756,7 @@ int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, int b[8][8])
 				if(!((x+y)%2))
 					{
 					sprintf(s,"%i",coorstonumber(x,y, GPDNgame.gametype));
-					TextOut(hdc,(int)(size*(i)+1+xoffset),(int)(size*(7-j)+upperoffset+yoffset),s,strlen(s));
+					TextOut(hdc,(int)(size*(i)+1+xoffset),(int)(size*(7-j)+upperoffset+yoffset),s,(int)strlen(s));
 					}
 				}
 			}

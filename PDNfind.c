@@ -234,7 +234,7 @@ int pdnopen(char filename[256], int gametype)
 	int maxpos;
 	int i,ply,gamenumber;
 	FILE *fp;
-	char *start, *startheader, *starttoken, *buffer, game[GAMESIZE],header[256],token[1024];
+	char *start, *startheader, *starttoken, *buffer, game[MAXGAMESIZE],header[256],token[1024];
 	int from,to;
 	size_t bytesread;
 	struct pos p;
@@ -254,7 +254,7 @@ int pdnopen(char filename[256], int gametype)
 	// Reserve space for database positions. 
 	// Not a hard limit. It just makes it more efficient to build the list.
 	// hans' 22'000 game archive has about 1.2 million positions, avg 54 pos/game.
-	maxpos = 1000 + 54 * games_in_pdn;
+	maxpos = 54 * games_in_pdn;
 	try {
 		pdn_positions.clear();
 		pdn_positions.reserve(maxpos);
@@ -296,7 +296,7 @@ int pdnopen(char filename[256], int gametype)
 		// load headers 
 		startheader = game;
 		// double check zero termination of game
-		game[GAMESIZE-1]=0;
+		game[MAXGAMESIZE-1]=0;
 		sprintf(setup,"");
 		result = CB_UNKNOWN;
 		while(PDNparseGetnextheader(&startheader,header))

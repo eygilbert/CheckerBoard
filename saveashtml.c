@@ -475,7 +475,7 @@ void PDNgametoPDNHTMLstring(struct PDNgame *game, char *pdnstring)
 		if(i%2)
 			{
       		sprintf(s,"%i. ",(int)((i+1)/2));
-			counter+=strlen(s);
+			counter += (int)strlen(s);
 			strcat(pdnstring,s);
 			}
 		/* print the move */
@@ -491,7 +491,7 @@ void PDNgametoPDNHTMLstring(struct PDNgame *game, char *pdnstring)
 
 	/* add game terminator */
 	sprintf(s, "*");		/* Game terminator is '*' as per PDN 3.0. See http://pdn.fmjd.org/ */
-	counter+=strlen(s);
+	counter += (int)strlen(s);
 	strcat(pdnstring,s);
 	}
 

@@ -1170,7 +1170,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 					if(CBstate == BOOKVIEW && userbooknum!=0)
 						{
 						// want to delete book move here:
-						for(i=userbookcur;i<(int)userbooknum-1;i++)
+						for(size_t i=userbookcur;i<(int)userbooknum-1;i++)
 							userbook[i] = userbook[i+1];
 						userbooknum--;
 						// if we deleted last position, move to new last position.
@@ -2064,7 +2064,7 @@ int handlegamereplace(int replaceindex, char *databasename)
 	char *gamestring, *dbstring, *p;
 	size_t bytesread;
 	int i;
-	int filesize = getfilesize(databasename);
+	size_t filesize = getfilesize(databasename);
 	// give the user a chance to save new results / names 
 	if(DialogBox(g_hInst,"IDD_SAVEGAME",hwnd,(DLGPROC)DialogFuncSavegame))
 		{
@@ -2140,7 +2140,7 @@ int handlegamereplace(int replaceindex, char *databasename)
 
 
 int loadnextgame(void)
-	{
+{
 	// load the next game of the last search.
 	char *dbstring;
 	int i;
@@ -2150,40 +2150,38 @@ int loadnextgame(void)
 		return(0);
 	}
 
-	for(i=0;i<(int)game_previews.size();i++)
-		if(gameindex == game_previews[i].game_index)
+	for (i = 0; i < (int)game_previews.size(); i++)
+		if (gameindex == game_previews[i].game_index)
 			break;
 
-	if (i >= game_previews.size())
+	if (i >= (int)game_previews.size())
 		return(0);
 
-	if(gameindex != game_previews[i].game_index)
-		{
-		sprintf(str,"error while looking for next game...");
+	if (gameindex != game_previews[i].game_index) {
+		sprintf(str, "error while looking for next game...");
 		return 0;
-		}
+	}
 
-	if(i+1 >= (int)game_previews.size())
-		{
-		sprintf(str,"at last game in list");
+	if (i >= (int)game_previews.size() - 1) {
+		sprintf(str, "at last game in list");
 		return 0;
-		}
+	}
 
 	gameindex = game_previews[i + 1].game_index;
 
 	// ok, if we arrive here, we have a valid game index for the game to load.
-	sprintf(str,"should load game %i",gameindex);
+	sprintf(str, "should load game %i", gameindex);
 	// load the database into memory
 	dbstring = loadPDNdbstring(database);
 	// extract game from database
 	loadgamefromPDNstring(gameindex, dbstring);
 	// free up database memory
 	free(dbstring);
-	sprintf(str,"loaded game %i of %i", i+2, (int)game_previews.size());
+	sprintf(str,"loaded game %i of %i", i + 2, (int)game_previews.size());
 
 	// return the number of the game we loaded
-	return i+2;
-	}
+	return(i + 2);
+}
 
 int loadpreviousgame(void)
 	{
@@ -2200,7 +2198,7 @@ int loadpreviousgame(void)
 		if(gameindex == game_previews[i].game_index)
 			break;
 
-	if (i >= game_previews.size())
+	if (i >= (int)game_previews.size())
 		return(0);
 
 	if(gameindex != game_previews[i].game_index)
@@ -2232,8 +2230,8 @@ char *loadPDNdbstring(char *dbname)
 	// string dbstring - checks for existence of that
 	// file, allocates enough memory for the file, and loads it.
 	FILE *fp;
-	int filesize;
-	int bytesread;
+	size_t filesize;
+	size_t bytesread;
 	char *dbstring;
 
 	filesize = getfilesize(dbname);
@@ -2260,6 +2258,71 @@ char *loadPDNdbstring(char *dbname)
 	return dbstring;
 	}
 
+
+/*
+ * Get headers and moves for this game
+ */
+void assign_headers(gamepreview &preview, char *pdn)
+{
+	char *tag;
+	char header[256];
+	char headername[256], headervalue[256];
+	char token[1024];
+
+	preview.white[0] = 0;
+	preview.black[0] = 0;
+	preview.event[0] = 0;
+	preview.result[0] = 0;
+	preview.date[0] = 0;
+
+	// parse headers
+	while(PDNparseGetnextheader(&pdn, header)) {
+		tag = header;
+		PDNparseGetnexttoken(&tag, headername);
+		PDNparseGetnexttag(&tag, headervalue);
+		if (strcmp(headername, "Event") == 0)
+			sprintf(preview.event, "%s", headervalue);
+		else if (strcmp(headername, "White") == 0)
+			sprintf(preview.white, "%s", headervalue);
+		else if (strcmp(headername, "Black") == 0)
+			sprintf(preview.black, "%s", headervalue);
+		else if (strcmp(headername,"Result") == 0)
+			sprintf(preview.result, "%s", headervalue);
+		else if (strcmp(headername, "Date") == 0)
+			sprintf(preview.date, "%s", headervalue);
+	}
+
+	// headers parsed
+	// add the first few moves to the preview structure to display them
+	// when the user selects a game.
+	sprintf(preview.PDN, "");
+	for (int i = 0; i < 48; ++i) {
+		if (!PDNparseGetnextPDNtoken(&pdn, token))
+			break;
+		if (strlen(preview.PDN) + strlen(token) < sizeof(preview.PDN) - 1) {
+			strcat(preview.PDN, token);
+			strcat(preview.PDN, " ");
+		}
+		else
+			break;
+	}
+}
+
+
+void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT &res)
+{
+	memset(&res, 0, sizeof(res));
+	for (int i = 0; i < (int)previews.size(); ++i) {
+		if (strcmp(game_previews[i].result, "1-0") == 0)
+			res.win++;
+		else if (strcmp(game_previews[i].result, "1/2-1/2") == 0)
+			res.draw++;
+		else if (strcmp(game_previews[i].result, "0-1") == 0)
+			res.loss++;
+	}
+}
+
+
 int selectgame(int how)
 // lets the user select a game from a PDN database in a dialog box.
 // how describes which games are displayed: 
@@ -2270,141 +2333,124 @@ int selectgame(int how)
 //		GAMEFINDCR:		only games with current board position color-reversed
 //		FINDTHEME:		only games with the current board position as "theme"
 //		LASTSEARCH:		re-display results of the last search
-
-// i should rewrite this code - it was originally designed for a simple search,
-// now, CB has lots of different search options and the code is a bit unreadable!
-
-	{
-	int i, j;
+{
+	int i;
 	static int oldgameindex;
 	int entry;
+	RESULT r;
 	char *dbstring = NULL;
 	char *gamestring = NULL;
-	char *p, *start, *tag;
-	char header[256];
-	char headername[256],headervalue[256];
-	char token[1024];
+	char *p;
 	int searchhit;
 	gamepreview preview;
-	std::vector<int> games_with_pos_match;	/* Index of games matching the position part of search criteria */
+	std::vector<int> pos_match_games;	/* Index of games matching the position part of search criteria */
 
 	sprintf(str, "wait ...");
-	SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
+	SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 	// stop engine
 	PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
 
-	if(how == RE_SEARCH)
-		{
+	if (how == RE_SEARCH) {
 		// the easiest: re-display the result of the last search.
 		// only possible if there is a last search!
 		// re-uses game_previews array.
-		if(re_search_ok == 0)
-			{
-			sprintf(str,"no old search to re-search!");
+		if (re_search_ok == 0) {
+			sprintf(str, "no old search to re-search!");
 			return 0;
-			}
+		}
 
-		sprintf(str,"re-searching! game_previews.size() is %zd", game_previews.size());
+		sprintf(str, "re-searching! game_previews.size() is %zd", game_previews.size());
 		// load database into dbstring:
 		dbstring = loadPDNdbstring(database);
 
-		gamestring = (char *) malloc(GAMEBUFSIZE);
-		if(gamestring == NULL)
-			{
-			MessageBox(hwnd,"not enough memory for this operation","Error",MB_OK);
+		gamestring = (char *)malloc(GAMEBUFSIZE);
+		if (gamestring == NULL) {
+			MessageBox(hwnd, "not enough memory for this operation", "Error", MB_OK);
 			SetCurrentDirectory(CBdirectory);
 			return 0;			
-			}
 		}
-
-	else
-		{
+	}
+	else {
 		r.win = 0;
 		r.draw = 0;
 		r.loss = 0;
 
 		// if we're looking for a player name, get it
-		if(how == SEARCHMASK)
-			{
+		if (how == SEARCHMASK) {
 			// this dialog box sets the variables 
 			// <playername>, <eventname> and <datename>
-			if(DialogBox(g_hInst,"IDD_SEARCHMASK",hwnd,(DLGPROC)DialogSearchMask) == 0)
+			if (DialogBox(g_hInst, "IDD_SEARCHMASK", hwnd, (DLGPROC)DialogSearchMask) == 0)
 				return 0;
-			}
+		}
 
 		// set directory to games directory
 		SetCurrentDirectory(gCBoptions.userdirectory);
+
 		// get a valid database filename. if we already have one, we reuse it,
 		// else we prompt the user to select a PDN database
-		if(strcmp(database,"")==0)
+		if (strcmp(database, "") == 0) {
 			// no valid database name
-			{ // display a dialog box with the available databases
-			sprintf(database,"%s",gCBoptions.userdirectory);
+			// display a dialog box with the available databases
+			sprintf(database, "%s", gCBoptions.userdirectory);
 			result = getfilename(database,OF_LOADGAME); // 1 on ok, 0 on cancel
-			if(!result)
-				sprintf(database,"");
-			}
-		else
-			{
-			sprintf(str,"database is '%s'",database);
+			if (!result)
+				sprintf(database, "");
+		}
+		else {
+			sprintf(str, "database is '%s'", database);
 			result = 1;
-			}
+		}
 
-		if(strcmp(database,"")!=0 && result)
-			{
-			sprintf(str,"loading...");
+		if (strcmp(database, "") != 0 && result) {
+			sprintf(str, "loading...");
 			// get number of games
-			i=PDNparseGetnumberofgames(database);
-			sprintf(str,"%i games in database",i);
+			i = PDNparseGetnumberofgames(database);
+			sprintf(str, "%i games in database", i);
 
-			if(how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR ||
-				(how == SEARCHMASK && searchwithposition == 1))
+			if (how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR ||
+				(how == SEARCHMASK && searchwithposition == 1)) {
+
 				// search for a position: this is done by calling pdnopen to index
 				// the pdn file, pdnfind to return a list of games with the current position
-				{
-				// reset pdn find module
-				if(reindex)
-					{
+				if (reindex) {
 					reset_pdn_positions();
-					sprintf(str,"indexing database...");
-					SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
+					sprintf(str, "indexing database...");
+					SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 					// index database with pdnopen; fills pdn_positions[].
 					pdnopen(database, GPDNgame.gametype);
 					reindex = 0;
-					}
+				}
 
 				// search for games with current position
 				// transform the current position into a bitboard:
 				boardtobitboard(board8, &currentposition);
-				if(how == GAMEFINDCR)
+				if (how == GAMEFINDCR)
 					boardtocrbitboard(board8, &currentposition);
 
-				sprintf(str,"searching database...");
-				SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) str);
+				sprintf(str, "searching database...");
+				SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 				if (how == GAMEFIND)
-					pdnfind(&currentposition, color, games_with_pos_match, &r);
+					pdnfind(&currentposition, color, pos_match_games, &r);
 				if (how == SEARCHMASK)
-					pdnfind(&currentposition, color, games_with_pos_match, &r);
+					pdnfind(&currentposition, color, pos_match_games, &r);
 				if (how == GAMEFINDCR)
-					pdnfind(&currentposition, CB_CHANGECOLOR(color), games_with_pos_match, &r);
+					pdnfind(&currentposition, CB_CHANGECOLOR(color), pos_match_games, &r);
 				if (how == GAMEFINDTHEME)
-					pdnfindtheme(&currentposition, games_with_pos_match);
+					pdnfindtheme(&currentposition, pos_match_games);
 
-				// games_with_pos_match now contains a list of games matching the position part of search criteria
-				if (games_with_pos_match.size() == 0)
-					{
-					sprintf(str,"no games matching position criteria found");
+				// pos_match_games now contains a list of games matching the position part of search criteria
+				if (pos_match_games.size() == 0) {
+					sprintf(str, "no games matching position criteria found");
 					re_search_ok = 0;
 					game_previews.clear();
 					SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 					return 0;
-					}
-				else
-					{
-					sprintf(str,"%zd games matching position criteria found", games_with_pos_match.size());
-					re_search_ok = 1;
-					}
 				}
+				else {
+					sprintf(str, "%zd games matching position criteria found", pos_match_games.size());
+					re_search_ok = 1;
+				}
+			}
 			
 			SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 
@@ -2412,181 +2458,114 @@ int selectgame(int how)
 			dbstring = loadPDNdbstring(database);
 
 			// fill the struct 'data' with the PDN headers 
-			gamestring = (char *) malloc(GAMEBUFSIZE);
-			if(gamestring == NULL)
-				{
-				MessageBox(hwnd,"not enough memory for this operation","Error",MB_OK);
+			gamestring = (char *)malloc(GAMEBUFSIZE);
+			if (gamestring == NULL) {
+				MessageBox(hwnd, "not enough memory for this operation", "Error", MB_OK);
 				SetCurrentDirectory(CBdirectory);
 				return 0;			
-				}
-			p=dbstring;
-			entry=0;
+			}
+			p = dbstring;
+			entry = 0;
 			game_previews.clear();
-			i=0;
-			if(how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR)
-				i=-1;
-
-			while(PDNparseGetnextgame(&p, gamestring))
-				{
-				if(how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR)
-					{
+			for (i = 0; PDNparseGetnextgame(&p, gamestring); ++i) {
+				if (how == GAMEFIND || how == GAMEFINDTHEME || how == GAMEFINDCR) {
 					// we already know what should go in the list, no point parsing
-					i++;
-					if (entry >= games_with_pos_match.size())
+					if (entry >= (int)pos_match_games.size())
 						break;	/* done*/
 
-					if (i != games_with_pos_match[entry])
+					if (i != pos_match_games[entry])
 						continue;
-					}
+				}
 
-				// get headers and moves for this game
-				sprintf(preview.white,"");
-				sprintf(preview.black,"");
-				sprintf(preview.event,"");
-				sprintf(preview.result,"");
-				sprintf(preview.date,"");
-
-				start=gamestring;
-
-				// parse headers
-				while(PDNparseGetnextheader(&start,header))
-					{
-					tag=header;
-					PDNparseGetnexttoken(&tag,headername);
-					PDNparseGetnexttag(&tag,headervalue);
-					if(strcmp(headername,"Event")==0)
-						sprintf(preview.event,"%s",headervalue);
-					if(strcmp(headername,"White")==0)
-						sprintf(preview.white,"%s",headervalue);
-					if(strcmp(headername,"Black")==0)
-						sprintf(preview.black,"%s",headervalue);
-					if(strcmp(headername,"Result")==0)
-						sprintf(preview.result,"%s",headervalue);
-					if(strcmp(headername,"Date")==0)
-						sprintf(preview.date,"%s",headervalue);
-					}
-				// headers parsed
-				// add the first few moves to the preview structure to display them
-				// when the user selects a game.
-				//sprintf(game_previews[entry].white,"game %i",i);
-
-				sprintf(preview.PDN,"");
-				for(j=0;j<48;j++)
-					{
-					if(!PDNparseGetnextPDNtoken(&start, token))
-						break;
-					if(strlen(preview.PDN) + strlen(token) < 255)
-						{
-						strcat(preview.PDN,token);
-						strcat(preview.PDN," ");
-						}
-					else
-						break;
-					}
+				/* Parse the game text and fill in the headers of the preview struct. */
+				assign_headers(preview, gamestring);
+				preview.game_index = i;
 
 				// now, depending on what we are doing, we add this game to the list of
 				// games to display
 				// remember: entry is our running variable, from 0...numberofgames in db
-				// i is 
+				// i is index of game in the pdn database file.
 				try {
-					switch(how)
-						{
-						case GAMEFIND:
-						case GAMEFINDCR:
-						case GAMEFINDTHEME:
-							preview.game_index = i;
-							game_previews.push_back(preview);
-							entry++;
-							break;
-						case GAMELOAD:
-							//	remember what game number this has
-							game_previews.push_back(preview);
-							entry++;
-							break;
-						case SEARCHMASK:
-							// add the entry to the list
-							// only if the name matches one of the players
-							searchhit = 1;
-							if (searchwithposition) {
-								if (std::find(games_with_pos_match.begin(), games_with_pos_match.end(), i) == games_with_pos_match.end())
-									searchhit = 0;
-								else
-									searchhit = 1;
-							}
+					switch (how) {
+					case GAMEFIND:
+					case GAMEFINDCR:
+					case GAMEFINDTHEME:
+						game_previews.push_back(preview);
+						entry++;
+						break;
 
-							// if a player name to search is set, search for that name
-							if(strcmp(playername,"") != 0)
-								{
-								if (strstr(preview.black,playername) || 
-									strstr(preview.white,playername))
-									searchhit &= 1;
-								else
-									searchhit = 0;
-								}
+					case GAMELOAD:
+						//	remember what game number this has
+						game_previews.push_back(preview);
+						entry++;
+						break;
 
-							// if an event name to search is set, search for that event
-							if(strcmp(eventname,"") != 0)
-								{
-								if(strstr(preview.event, eventname))
-									searchhit &=1;
-								else
-									searchhit = 0;
-								}
-
-							// if a date to search is set, search for that date
-							if(strcmp(datename,"") != 0)
-								{
-								if(strstr(preview.date, datename))
-									searchhit &= 1;
-								else
-									searchhit = 0;
-								}
-
-							// if a comment is defined, search for that comment
-							if(strcmp(commentname,"") != 0)
-								{
-								if(strstr(gamestring, commentname))
-									searchhit &= 1;
-								else
-									searchhit = 0;
-								}
-
-							if(searchhit == 1)
-								{
-								preview.game_index = i;
-								game_previews.push_back(preview);
-								entry++;
-								}
-							i++;
-							break;
+					case SEARCHMASK:
+						// add the entry to the list
+						// only if the name matches one of the players
+						searchhit = 1;
+						if (searchwithposition) {
+							if (std::find(pos_match_games.begin(), pos_match_games.end(), i) == pos_match_games.end())
+								searchhit = 0;
+							else
+								searchhit = 1;
 						}
-					}
-					catch (...) {
-						MessageBox(hwnd,"not enough memory for this operation","Error",MB_OK);
-						SetCurrentDirectory(CBdirectory);
-						return(0);
+
+						// if a player name to search is set, search for that name
+						if (strcmp(playername, "") != 0) {
+							if (strstr(preview.black, playername) || strstr(preview.white, playername))
+								searchhit &= 1;
+							else
+								searchhit = 0;
+						}
+
+						// if an event name to search is set, search for that event
+						if (strcmp(eventname, "") != 0) {
+							if (strstr(preview.event, eventname))
+								searchhit &= 1;
+							else
+								searchhit = 0;
+						}
+
+						// if a date to search is set, search for that date
+						if (strcmp(datename, "") != 0) {
+							if (strstr(preview.date, datename))
+								searchhit &= 1;
+							else
+								searchhit = 0;
+						}
+
+						// if a comment is defined, search for that comment
+						if (strcmp(commentname, "") != 0) {
+							if (strstr(gamestring, commentname))
+								searchhit &= 1;
+							else
+								searchhit = 0;
+						}
+
+						if (searchhit == 1) {
+							game_previews.push_back(preview);
+							entry++;
+						}
+						break;
 					}
 				}
+
+				/* Catch memory allocation errors from push_back(). */
+				catch (...) {
+					MessageBox(hwnd, "not enough memory for this operation", "Error", MB_OK);
+					SetCurrentDirectory(CBdirectory);
+					return(0);
+				}
+			}
 			assert(entry == game_previews.size());
 			sprintf(str, "%i games found matching search criteria", entry);
 
-			if(how == SEARCHMASK && searchwithposition)
-				{
+			if (how == SEARCHMASK && searchwithposition) {
 				// the result is wrong, because it comes from pdnfind without 
 				// filtering for names!
-				r.draw = 0;
-				r.win = 0;
-				r.loss = 0;
-				for(j=0;j<entry;j++)
-					{
-					if(strcmp(game_previews[j].result,"1-0") == 0)
-						r.win++;
-					if(strcmp(game_previews[j].result,"1/2-1/2") == 0)
-						r.draw++;
-					if(strcmp(game_previews[j].result,"0-1") == 0)
-						r.loss++;
-					}
-				}
+				get_pdnsearch_stats(game_previews, r);
+			}
 
 			// total number of games is saved in <gamenumber>
 			gamenumber = entry; 
@@ -2596,13 +2575,13 @@ int selectgame(int how)
 
 			// default game index 
 			gameindex = 0;  
-			}
-		}			
+		}
+	}			
 
 	// headers loaded into 'game_previews', display load game dialog 
 	if (game_previews.size()) {
 		if (DialogBox(g_hInst, "IDD_SELECTGAME", hwnd, (DLGPROC)DialogFuncSelectgame)) {
-			if (selected_game < 0 || selected_game >= game_previews.size())
+			if (selected_game < 0 || selected_game >= (int)game_previews.size())
 				// dialog box didn't select a proper preview index
 				gameindex = oldgameindex;
 			else {
@@ -2628,7 +2607,7 @@ int selectgame(int how)
 
 	SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 	return 1;
-	}
+}
 
 
 int loadgamefromPDNstring(int gameindex, char *dbstring)
