@@ -91,12 +91,10 @@ int PDNparseGetnumberofgames(char *filename)
 void log_non_ascii(char *p)
 {
 	char partial_line[70];
-	char buf[120];
 
 	strncpy_s(partial_line, sizeof(partial_line), p, sizeof(partial_line) - 1);
 	partial_line[sizeof(partial_line) - 1] = 0;
-	sprintf_s(buf, sizeof(buf), "non-ASCII char (0x%x) at %s", *p & 0xff, partial_line);
-	CBlog(buf);
+	cblog("non-ASCII char (0x%x) at %s\n", *p & 0xff, partial_line);
 }
 
 
@@ -104,7 +102,8 @@ void log_non_ascii(char *p)
  * Some people use word processors to edit pdn files,
  * leaving unrecognizable characters in the files that messes up the parsing.
  * Log these in cblog file and clear the msb. Sometimes these characters are
- * just an ASCII space with the msb set.
+ * the non-breakable space used on web pages, which is the ASCII space char with
+ * the msb set.
  */
 inline void handle_non_ascii(char *p)
 {

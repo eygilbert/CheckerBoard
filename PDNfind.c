@@ -119,12 +119,6 @@ void log_moves(struct pos *p, int color, struct move *movelist, int nmoves)
 }
 
 
-void reset_pdn_positions()
-{
-	pdn_positions.clear();
-}
-
-
 int pdnfind(struct pos *p, int color, std::vector<int> &matching_games)
 	{
 	// pdnfind populates a list of game indexes in the pdn database which 
@@ -200,7 +194,7 @@ int pdnfindtheme(struct pos *p, std::vector<int> &matching_games)
 	}
 	
 	nfound = 0;
-	for (i = 0; i < histogram.size(); ++i) {
+	for (i = 0; i < (int)histogram.size(); ++i) {
 		if (histogram[i] > minplies) {
 			matching_games.push_back(i);
 			nfound++;
@@ -237,7 +231,7 @@ int pdnopen(char filename[256], int gametype)
 	int board8[8][8];
 	size_t filesize;
 	PDN_position position;
-	
+
 	// get number of games in PDN
 	games_in_pdn = PDNparseGetnumberofgames(filename);
 

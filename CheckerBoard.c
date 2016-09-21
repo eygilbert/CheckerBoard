@@ -1168,7 +1168,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam
 					if(CBstate == BOOKVIEW && userbooknum!=0)
 						{
 						// want to delete book move here:
-						for(size_t i=userbookcur;i<(int)userbooknum-1;i++)
+						for(size_t i=userbookcur;i<userbooknum-1;i++)
 							userbook[i] = userbook[i+1];
 						userbooknum--;
 						// if we deleted last position, move to new last position.
@@ -2406,7 +2406,6 @@ int selectgame(int how)
 				// search for a position: this is done by calling pdnopen to index
 				// the pdn file, pdnfind to return a list of games with the current position
 				if (reindex) {
-					reset_pdn_positions();
 					sprintf(str, "indexing database...");
 					SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM)0, (LPARAM)str);
 					// index database with pdnopen; fills pdn_positions[].

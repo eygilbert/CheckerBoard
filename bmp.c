@@ -64,17 +64,15 @@ HBITMAP getCBbitmap(int type)
 
 int initbmp(HWND hwnd, char dir[256])
 	{
-	static HDC  hdc;  
+	static HDC hdc;  
 	char filename[256];
 
 	// get device context
 	hdc = GetDC(hwnd);
 	
-	CBlog("current directory is...");
-	GetCurrentDirectory(255,filename);
-	CBlog(filename);
-	CBlog("bitmap dir is ");
-	CBlog(dir);
+	GetCurrentDirectory(255, filename);
+	cblog("initbmp(): current directory is %s\n", filename);
+	cblog("bitmap dir is %s\n", dir);
 	CBlog("loading bitmaps...");
 	// load bitmaps.
 	sprintf(filename,"%s\\manmask.bmp",dir);
@@ -109,7 +107,7 @@ int initbmp(HWND hwnd, char dir[256])
 	CBlog(filename);
 	bmp_dark = CreateBitmapObjectFromDibFile(hdc,filename);
 
-	ReleaseDC(hwnd,hdc);
+	ReleaseDC(hwnd, hdc);
 
 	return 0;
 	}
