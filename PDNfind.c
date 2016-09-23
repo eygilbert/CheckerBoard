@@ -218,7 +218,7 @@ int pdnopen(char filename[256], int gametype)
 	int maxpos;
 	int i,ply,gamenumber;
 	FILE *fp;
-	char *start, *startheader, *starttoken, *buffer, game[MAXGAMESIZE],header[256],token[1024];
+	char *start, *tag, *startheader, *starttoken, *buffer, game[MAXGAMESIZE],header[256],token[1024];
 	int from,to;
 	size_t bytesread;
 	struct pos p;
@@ -227,7 +227,6 @@ int pdnopen(char filename[256], int gametype)
 	int result;
 	int win=0,loss=0,draw=0,unknown=0;
 	char FEN[255];
-	char setup[255];
 	int board8[8][8];
 	size_t filesize;
 	PDN_position position;
@@ -281,56 +280,49 @@ int pdnopen(char filename[256], int gametype)
 		startheader = game;
 		// double check zero termination of game
 		game[MAXGAMESIZE-1]=0;
-		sprintf(setup,"");
 		result = CB_UNKNOWN;
+		FEN[0] = 0;
 		while(PDNparseGetnextheader(&startheader,header))
 			{
-			sscanf(header,"%s %s",headername,headervalue);
+			tag = header;
+			PDNparseGetnexttoken(&tag, headername);
+			PDNparseGetnexttag(&tag, headervalue);
 			for(i=0; i<(int)strlen(headername);i++)
 				headername[i] = (char)tolower(headername[i]);
 			
 			if(strcmp(headername,"result")==0)
 				{
-				if(strcmp(headervalue,"\"1/2-1/2\"")==0)
+				if(strcmp(headervalue,"1/2-1/2")==0)
 					{
 					result=CB_DRAW;
 					draw++;
 					}
-				if(strcmp(headervalue,"\"1-0\"")==0)
+				else if(strcmp(headervalue,"1-0")==0)
 					{
 					result=CB_WIN;
 					win++;
 					}
-				if(strcmp(headervalue,"\"0-1\"")==0)
+				else if(strcmp(headervalue,"0-1")==0)
 					{
 					result=CB_LOSS;
 					loss++;
 					}
-				if(strcmp(headervalue,"\"*\"")==0)
+				else if(strcmp(headervalue,"*")==0)
 					{
 					result=CB_UNKNOWN;
 					unknown++;
 					}
 				}
 			
-			if(strcmp(headername,"setup")==0)
-				sprintf(setup,"%s",headervalue);
-			if(strcmp(headername,"fen")==0)
-				{
-				// headervalue+1 because headervalue contains "W:...", it has these """" thingies in.
-				sprintf(FEN,"%s",headervalue+1);
-				// pdn requires that fen tag is accompanied by "setup "1"" tag, which is
-				// kind of redundant. so i just set that anyway to make it work always.
-				sprintf(setup,"\"1\"");
-				}
+			if (strcmp(headername, "fen") == 0)
+				sprintf(FEN, "%s", headervalue);
 			}
 
-		if(strcmp(setup,"\"1\"")==0)
+		if (strlen(FEN) > 0)
 			{
-			FENtoboard8(board8,FEN,&color, gametype);
+			FENtoboard8(board8, FEN, &color, gametype);
 			// it's a setup position - have to parse FEN!
-			boardtobitboard(board8,&p);
-			ply=0;
+			boardtobitboard(board8, &p);
 			}
 		else
 			{
@@ -341,7 +333,6 @@ int pdnopen(char filename[256], int gametype)
 			p.wm=0xFFF00000;
 			bitboardtoboard8(&p, board8);
 			color = get_startcolor(gametype);
-			ply = 0;
 			}
 		// save position:
 		position.black = p.bm|p.bk;
@@ -361,6 +352,7 @@ int pdnopen(char filename[256], int gametype)
 		// load moves 
 
 		starttoken = startheader;
+		ply = 0;
 		while(PDNparseGetnexttoken(&starttoken,token))
 			{
 			// if it's a move, continue

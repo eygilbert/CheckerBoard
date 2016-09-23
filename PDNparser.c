@@ -88,29 +88,15 @@ int PDNparseGetnumberofgames(char *filename)
 	}
 
 
-void log_non_ascii(char *p)
+inline bool is_pdnquote(uint8_t c)
 {
-	char partial_line[70];
-
-	strncpy_s(partial_line, sizeof(partial_line), p, sizeof(partial_line) - 1);
-	partial_line[sizeof(partial_line) - 1] = 0;
-	cblog("non-ASCII char (0x%x) at %s\n", *p & 0xff, partial_line);
-}
-
-
-/*
- * Some people use word processors to edit pdn files,
- * leaving unrecognizable characters in the files that messes up the parsing.
- * Log these in cblog file and clear the msb. Sometimes these characters are
- * the non-breakable space used on web pages, which is the ASCII space char with
- * the msb set.
- */
-inline void handle_non_ascii(char *p)
-{
-	if (*p & 0x80) {
-		log_non_ascii(p);
-		*p &= 0x7f;
+	if (c == '"')
+		return(true);
+	if (c & 0x80) {
+		if (c == UTF8_LEFT_DBLQUOTE || c == UTF8_RIGHT_DBLQUOTE)
+			return(true);
 	}
+	return(false);
 }
 
 
@@ -138,21 +124,18 @@ int PDNparseGetnextgame(char **start,char *game)
 	p_org = p;
 	while (*p!=0)
 		{
-		handle_non_ascii(p);
 
 		/* skip headers */
 		if(*p == '[' && !headersdone)
 			{
 			p++;
 			while (*p!=']' && *p!=0) {
-				handle_non_ascii(p);
 
 				/* Ignore anything inside quotes (e.g. ']') within headers. */
-				if (*p == '"') {
+				if (is_pdnquote(*p)) {
 					++p;
-					while (*p != '"' && *p != 0) {
+					while (!is_pdnquote(*p) && *p != 0) {
 						++p;
-						handle_non_ascii(p);
 					}
 					if (*p == 0)
 						break;
@@ -162,13 +145,11 @@ int PDNparseGetnextgame(char **start,char *game)
 			}
 		if(*p == 0) break;
 		/* skip comments */
-		handle_non_ascii(p);
 		if(*p == '{')
 			{
 			p++;
 			while(*p!='}' && *p!=0) {
 				p++;
-				handle_non_ascii(p);
 			}
 			}
 
@@ -179,14 +160,13 @@ int PDNparseGetnextgame(char **start,char *game)
 			p++;
 			while(*p!=')' && *p!=0) {
 				p++;
-				handle_non_ascii(p);
 			}
 			}
 #endif
 		if(*p == 0) break;
 		
 		// try to detect whether we are through with the headers
-		if(isdigit(*p)) 
+		if(isdigit((uint8_t)*p)) 
 			headersdone=1;
 
 		/* check for game terminators*/
@@ -206,7 +186,7 @@ int PDNparseGetnextgame(char **start,char *game)
 			*start=p;
 			return (int)(p-p_org);
 			}
-		if(p[0]=='0' && p[1]=='-' && p[2]=='1' && !isdigit(p[3]))
+		if(p[0]=='0' && p[1]=='-' && p[2]=='1' && !isdigit((uint8_t)p[3]))
 			{
 			p+=3;
 			strncpy(game,*start,p-(*start));
@@ -302,15 +282,17 @@ int PDNparseGetnexttag(char **start,char *tag)
 	char *p,*q;
 	int i;
 	
-	if((*start)==0) return 0;
+	if ((*start)==0)
+		return 0;
 	p=(*start);
-	while (*p!='"' && *p!=0)
+	while (!is_pdnquote(*p) && *p!=0)
 		p++;
 	/* if no opening " is found... */
-	if(*p==0) return 0;
+	if(*p==0)
+		return 0;
 
 	q=p+1;i=0;
-	while(*q!='"' && *q!=0)
+	while(!is_pdnquote(*q) && *q!=0)
 		{
 		tag[i]=*q;
 		q++;
@@ -319,7 +301,8 @@ int PDNparseGetnexttag(char **start,char *tag)
 	tag[i]=0;
 
 	/* if no closing " is found */
-	if(*q==0) return 0;
+	if(*q==0)
+		return 0;
 
 	/* ok, we have found a tag, it is written to *tag, now 
 		we set the start pointer */
@@ -328,40 +311,23 @@ int PDNparseGetnexttag(char **start,char *tag)
 }
 
 
-__inline int is_pdn_space(int val)
+inline int is_pdnspace(uint8_t val)
 {
-	return(val == ' ' || val == '\t' || val == '\r' || val == '\n');
+	return(isspace(val) || val == UTF8_NOBREAK_SPACE);
 }
 
 
-__inline int is_pdn_move_sep(int val)
+inline int is_pdn_move_sep(int val)
 {
 	return(val == '-' || tolower(val) == 'x');
 }
 
 
-/*
- * Return true if there is a quote character on this line after *p.
- * Normally we stop parsing a 'fluff' token if we see a number, since that number
- * could be part of a move.  But in case the number is part of the name in a header,
- * like [Player1 "John Smith"] we need to return the token as Player1.
- */
-/*
-__inline int line_has_quote(char *p)
-{
-return 0;	
-for ( ; *p && *p != '\n' && *p != '\r'; ++p)
-		if (*p == '"')
-			return(1);
-	return(0);
-}*/
-
-
-__inline void trim_trailing_whitespace(char *buf, int len)
+inline void trim_trailing_whitespace(char *buf, int len)
 {
 	char *p;
 
-	for (p = buf + len; p > buf && is_pdn_space(*(p - 1)); --p)
+	for (p = buf + len; p > buf && is_pdnspace(*(p - 1)); --p)
 		;
 	*p = 0;
 }
@@ -392,7 +358,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 
 	/* Skip past leading white space. */
 	p = (*start);
-	while (is_pdn_space(*p))
+	while (is_pdnspace(*p))
 		++p;
 
 	if (!*p)
@@ -405,7 +371,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 		switch (state) {
 		case PDN_IDLE:
 			/* We are only in idle until we see the first non-space. */
-			if (isdigit(*p) /*&& !line_has_quote(p)*/)
+			if (isdigit((uint8_t)*p))
 				state = PDN_READING_FROM;
 			else if (*p == '{')
 				state = PDN_CURLY_COMMENT;
@@ -413,7 +379,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			else if (*p == '(')
 				state = PDN_NEMESIS_COMMENT;
 #endif
-			else if (!is_pdn_space(*p))
+			else if (!is_pdnspace(*p))
 				state = PDN_FLUFF;
 			++p;
 			break;
@@ -424,7 +390,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			 * until we see something we recognize, then return the fluff as a non-move.
 			 */
 			tokentype = PDN_FLUFF;
-			if (isdigit(*p) || *p == '{' || *p == '(' || *p == '"') {
+			if (isdigit((uint8_t)*p) || *p == '{' || *p == '(' || is_pdnquote(*p)) {
 				state = PDN_DONE;
 				len = (int)(p - tok_start);
 				memcpy(token, tok_start, len);
@@ -467,7 +433,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 #endif
 
 		case PDN_READING_FROM:
-			if (isdigit(*p))
+			if (isdigit((uint8_t)*p))
 				++p;
 			/* If we get a forward slash then its a good chance we have a game draw result. */
 			else if (*p == '/' && strncmp(p - 1, "1/2-1/2", 7) == 0) {
@@ -485,7 +451,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			/* Here we allow white space or a move separator.  Anything else
 			 * means its not a move and we call it fluff.
 			 */
-			if (is_pdn_space(*p))
+			if (is_pdnspace(*p))
 				++p;
 			else if (is_pdn_move_sep(*p)) {
 				++p;
@@ -501,11 +467,11 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			/* Here we allow white space or a move number.  Anything else 
 			 * means its not a move and we call it fluff.
 			 */
-			if (isdigit(*p)) {
+			if (isdigit((uint8_t)*p)) {
 				++p;
 				state = PDN_READING_TO;
 			}
-			else if (is_pdn_space(*p))
+			else if (is_pdnspace(*p))
 				++p;
 			else {
 				/* Its not a space or move separator, so this is non-pdn fluff. */
@@ -514,14 +480,14 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			break;
 
 		case PDN_READING_TO:
-			if (isdigit(*p))
+			if (isdigit((uint8_t)*p))
 				++p;
 			else if (is_pdn_move_sep(*p)) {
 				possible_end = p;			/* Remember in case this was the end of the move. */
 				++p;
 				state = PDN_WAITING_OPTIONAL_TO;
 			}
-			else if (is_pdn_space(*p)) {
+			else if (is_pdnspace(*p)) {
 				/* This is normally the end of the move, but maybe its just a space
 				 * before another jump move separator. 
 				 */
@@ -540,7 +506,7 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			break;
 
 		case PDN_WAITING_OPTIONAL_SEP:
-			if (is_pdn_space(*p))
+			if (is_pdnspace(*p))
 				++p;
 			else if (is_pdn_move_sep(*p)) {
 				++p;
@@ -560,13 +526,13 @@ int PDNparseGetnextPDNtoken(char **start, char *token)
 			/* Here we allow white space or a move number.  Anything else 
 			 * means its not more jump moves and we roll back to the end of the valid move.
 			 */
-			if (isdigit(*p)) {
+			if (isdigit((uint8_t)(*p))) {
 				/* This is now part of a good move, so we can cancel any previous rollback point. */
 				possible_end = 0;
 				++p;
 				state = PDN_READING_TO;
 			}
-			else if (is_pdn_space(*p))
+			else if (is_pdnspace(*p))
 				++p;
 			else {
 				/* We did not get another 'to' square.  Return the valid move that we already passed. */
@@ -639,7 +605,7 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 			/* In idle we have't seen the beginning of a move yet.  Skip past anything
 			 * that isn't a number.
 			 */
-			if (isdigit(token[i])) {
+			if (isdigit((uint8_t)token[i])) {
 				*from = token[i] - '0';
 				state = PDN_READING_FROM;
 			}
@@ -655,7 +621,7 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 			/* Take more digits of the from square, else defer to the state machine
 			 * to handle anything that isn't a digit.
 			 */
-			if (isdigit(token[i])) {
+			if (isdigit((uint8_t)token[i])) {
 				*from = 10 * *from + token[i] - '0';
 				++i;
 			}
@@ -674,7 +640,7 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 
 		case PDN_WAITING_TO:
 			/* Ignore anything but a digit here. */
-			if (isdigit(token[i])) {
+			if (isdigit((uint8_t)token[i])) {
 				*to = token[i] - '0';
 				state = PDN_READING_TO;
 			}
@@ -683,7 +649,7 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 
 		case PDN_READING_TO:
 			/* Continue reading the digits of the to square. */
-			if (isdigit(token[i])) {
+			if (isdigit((uint8_t)token[i])) {
 				*to = 10 * *to + token[i] - '0';
 				++i;
 			}
@@ -730,7 +696,7 @@ int PDNparseGetnexttoken(char **start,char *token)
 	p=(*start);
 
 	// skip leading whitespace characters 
-	while (*p==' ' || *p=='\n' || *p=='\t' || *p=='\r')
+	while (is_pdnspace((uint8_t)*p))
 		*p++;
 	
 	i=0;
@@ -772,7 +738,7 @@ int PDNparseGetnexttoken(char **start,char *token)
 	else
 		{
 		// normal token 
-		while (*p!=' ' && *p!='\n' && *p!='\r' && *p!=0 && *p!='.' && *p!='\t')
+		while (!is_pdnspace((uint8_t)*p) && *p != 0 && *p != '.')
 			{
 			token[i]=*p;
 			p++;

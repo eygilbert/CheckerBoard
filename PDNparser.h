@@ -1,5 +1,9 @@
 #define MAXGAMESIZE 65536 // number of bytes we reasonably expect every game to be smaller than
 
+#define UTF8_LEFT_DBLQUOTE 147
+#define UTF8_RIGHT_DBLQUOTE 148
+#define UTF8_NOBREAK_SPACE 160
+
 int PDNparseGetnextgame(char **start,char *game);		/* gets whats between **start and game terminator */
 int PDNparseGetnextheader(char **start,char *header);/* gets whats betweeen [] from **start */
 int PDNparseGetnexttag(char **start,char *tag);		/* gets whats between "" from **start */
