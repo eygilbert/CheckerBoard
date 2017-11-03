@@ -14,7 +14,7 @@ struct move2 {
 					/* m[2] and up have the jumped squares info. */
 };
 
-int generatemovelist(int b[46], struct move2 movelist[MAXMOVES], int color);
-int generatecapturelist(int b[46], struct move2 movelist[MAXMOVES], int color);
-void domove(int b[46], struct move2 &move);
-void undomove(int b[46], struct move2 &move);
+int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color);
+int generatecapturelist(int b[46], move2 movelist[MAXMOVES], int color);
+void domove(int b[46], move2 &move);
+void undomove(int b[46], move2 &move);

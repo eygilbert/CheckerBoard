@@ -7,24 +7,16 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-
-// instead of #include afxres.h use the following two lines:
-#include <windows.h>
-#define IDC_STATIC (-1) 
-
-
-
+#include "afxres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -32,17 +24,22 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 101                     BITMAP                  "Bitmap_1.bmp"
+
 102                     BITMAP                  "Bitmap_2.bmp"
+
 105                     BITMAP                  "Bitmap_3.bmp"
+
 111                     BITMAP                  "Bitmap_4.bmp"
+
 300                     BITMAP                  "Bitmap_5.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
 //
 
-MENUDEUTSCH MENU 
+MENUDEUTSCH MENU
 BEGIN
     POPUP "Datei"
     BEGIN
@@ -106,10 +103,11 @@ BEGIN
         POPUP "Spielstufe"
         BEGIN
             MENUITEM "Exakt",                       340
+            MENUITEM SEPARATOR
             MENUITEM "Sofort",                      341
-	    MENUITEM "0.1 Sekunden",		    357
-	    MENUITEM "0.2 Sekunden",		    358
-	    MENUITEM "0.5 Sekunden",		    359
+            MENUITEM "0.1 Sekunden",                357
+            MENUITEM "0.2 Sekunden",                358
+            MENUITEM "0.5 Sekunden",                359
             MENUITEM "1 Sekunde",                   342
             MENUITEM "2 Sekunden",                  343
             MENUITEM "5 Sekunden",                  344, CHECKED
@@ -122,7 +120,9 @@ BEGIN
             MENUITEM "15 Minuten",                  350
             MENUITEM "30 Minuten",                  351
             MENUITEM "Unendlich",                   352
-            MENUITEM "Inkrement",                   353
+            MENUITEM SEPARATOR
+            MENUITEM "Inkremental...",              353
+            MENUITEM "Reset\t<Delete>",             ID_CLOCK_RESET
             MENUITEM "Zeit hinzufügen\t+",          354
             MENUITEM "Zeit abziehen\t-",            355
         END
@@ -181,9 +181,9 @@ BEGIN
         MENUITEM "Run Test Set",                805
         MENUITEM "Handicap Mode",               806
     END
- END
+END
 
-MENUENGLISH MENU 
+MENUENGLISH MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -247,10 +247,11 @@ BEGIN
         POPUP "Level"
         BEGIN
             MENUITEM "Exact",                       340
+            MENUITEM SEPARATOR
             MENUITEM "Instant",                     341
-	    MENUITEM "0.1 seconds",		    357
-	    MENUITEM "0.2 seconds",		    358
-	    MENUITEM "0.5 seconds",		    359
+            MENUITEM "0.1 seconds",                 357
+            MENUITEM "0.2 seconds",                 358
+            MENUITEM "0.5 seconds",                 359
             MENUITEM "1 second",                    342
             MENUITEM "2 seconds",                   343
             MENUITEM "5 seconds",                   344, CHECKED
@@ -263,9 +264,11 @@ BEGIN
             MENUITEM "15 minutes",                  350
             MENUITEM "30 minutes",                  351
             MENUITEM "Infinite",                    352
-            MENUITEM "Increment",                   353
-            MENUITEM "add time\t+",                 354
-            MENUITEM "subtract time\t-",            355
+            MENUITEM SEPARATOR
+            MENUITEM "Incremental...",              353
+            MENUITEM "Reset\t<Delete>",             ID_CLOCK_RESET
+            MENUITEM "Add time\t+",                 354
+            MENUITEM "Subtract time\t-",            355
         END
         POPUP "Display"
         BEGIN
@@ -323,7 +326,7 @@ BEGIN
     END
 END
 
-MENUFRANCAIS MENU 
+MENUFRANCAIS MENU
 BEGIN
     POPUP "&Fichier"
     BEGIN
@@ -387,10 +390,11 @@ BEGIN
         POPUP "Niveau"
         BEGIN
             MENUITEM "Exact",                       340
+            MENUITEM SEPARATOR
             MENUITEM "Instantané",                  341
-	    MENUITEM "0.1 secondes",		    357
-	    MENUITEM "0.2 secondes",		    358
-	    MENUITEM "0.5 secondes",		    359
+            MENUITEM "0.1 secondes",                357
+            MENUITEM "0.2 secondes",                358
+            MENUITEM "0.5 secondes",                359
             MENUITEM "1 seconde",                   342
             MENUITEM "2 secondes",                  343
             MENUITEM "5 secondes",                  344, CHECKED
@@ -403,7 +407,9 @@ BEGIN
             MENUITEM "15 minutes",                  350
             MENUITEM "30 minutes",                  351
             MENUITEM "Infini",                      352
-            MENUITEM "Increment",                   353
+            MENUITEM SEPARATOR
+            MENUITEM "Incremental...",              353
+            MENUITEM "Reset\t<Delete>",             ID_CLOCK_RESET
             MENUITEM "add time\t+",                 354
             MENUITEM "subtract time\t-",            355
         END
@@ -463,7 +469,7 @@ BEGIN
     END
 END
 
-MENUESPANOL MENU 
+MENUESPANOL MENU
 BEGIN
     POPUP "Archivo"
     BEGIN
@@ -527,10 +533,11 @@ BEGIN
         POPUP "Nivel"
         BEGIN
             MENUITEM "Exacto",                      340
+            MENUITEM SEPARATOR
             MENUITEM "Instantaneo",                 341
-	    MENUITEM "0.1 segundos",		    357
-	    MENUITEM "0.2 segundos",		    358
-	    MENUITEM "0.5 segundos",		    359
+            MENUITEM "0.1 segundos",                357
+            MENUITEM "0.2 segundos",                358
+            MENUITEM "0.5 segundos",                359
             MENUITEM "1 segundo",                   342
             MENUITEM "2 segundos",                  343
             MENUITEM "5 segundos",                  344, CHECKED
@@ -543,7 +550,9 @@ BEGIN
             MENUITEM "15 minutos",                  350
             MENUITEM "30 minutos",                  351
             MENUITEM "Infinito",                    352
-            MENUITEM "Incremental",                 353
+            MENUITEM SEPARATOR
+            MENUITEM "Incremental...",              353
+            MENUITEM "Reset\t<Delete>",             ID_CLOCK_RESET
             MENUITEM "Añadir tiempo\t+",            354
             MENUITEM "Restar tiempo\t-",            355
         END
@@ -603,7 +612,7 @@ BEGIN
     END
 END
 
-MENUITALIANO MENU 
+MENUITALIANO MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -667,10 +676,11 @@ BEGIN
         POPUP "Tempo risposta"
         BEGIN
             MENUITEM "Preciso",                     340
+            MENUITEM SEPARATOR
             MENUITEM "Instantaneo",                 341
-	    MENUITEM "0.1 secondi",		    356
-	    MENUITEM "0.2 secondi",		    357
-	    MENUITEM "0.5 secondi",		    358
+            MENUITEM "0.1 secondi",                 356
+            MENUITEM "0.2 secondi",                 357
+            MENUITEM "0.5 secondi",                 358
             MENUITEM "1 secondo",                   342
             MENUITEM "2 secondi",                   343
             MENUITEM "5 secondi",                   344, CHECKED
@@ -683,9 +693,11 @@ BEGIN
             MENUITEM "15 minuti",                   350
             MENUITEM "30 minuti",                   351
             MENUITEM "Infinito",                    352
-            MENUITEM "Increment",                   353
-            MENUITEM "add time\t+",                 354
-            MENUITEM "subtract time\t-",            355
+            MENUITEM SEPARATOR
+            MENUITEM "Incremental...",              353
+            MENUITEM "Reset\t<Delete>",             ID_CLOCK_RESET
+            MENUITEM "Add time\t+",                 354
+            MENUITEM "Subtract time\t-",            355
         END
         POPUP "Schermata"
         BEGIN
@@ -771,8 +783,8 @@ CAPTION "About CheckerBoard"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "OK",1,50,193,50,14,BS_CENTER
-    LTEXT           "This is CheckerBoard 1.73a\nCopyright (c) 2000-2016 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
-    CONTROL         VK_NUMPAD5,-1,"Static",SS_BITMAP | SS_REALSIZEIMAGE,4,4,143,80
+    LTEXT           "This is CheckerBoard 1.73e\nCopyright (c) 2000-2017 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
+    CONTROL         AFX_IDC_CHANGE,-1,"Static",SS_BITMAP | SS_REALSIZEIMAGE,4,4,143,80
 END
 
 IDD_COMMENT DIALOGEX 0, 0, 186, 66
@@ -818,7 +830,7 @@ CAPTION "Download progress"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Cancel",2,83,73,50,14
-    CONTROL         "Progress1",1012,"msctls_progress32",WS_BORDER | 0x1,15,50,198,14
+    CONTROL         "Progress1",1012,"msctls_progress32",PBS_SMOOTH | WS_BORDER,15,50,198,14
     LTEXT           "download \n progress status",1010,21,19,188,16
     GROUPBOX        "Status:",-1,15,7,199,34
 END
@@ -910,7 +922,7 @@ BEGIN
     LTEXT           "Name (e.g. Tinsley)",-1,5,78,68,8
     LTEXT           "Event (e.g. Petal)",-1,5,108,62,8
     LTEXT           "Date (e.g. 1981)",-1,5,138,59,8
-    CONTROL         105,-1,"Static",SS_BITMAP,0,0,174,38
+    CONTROL         IDD_INCREMENTAL_TIMES,-1,"Static",SS_BITMAP,0,0,174,38
     EDITTEXT        1004,5,179,161,12,ES_AUTOHSCROLL
     LTEXT           "Full Text (e.g. a great move)",-1,5,167,96,8
     CONTROL         "Search with position",1005,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,200,79,10
@@ -959,6 +971,38 @@ BEGIN
     GROUPBOX        "Parallel Search",IDC_STATIC,7,224,202,48
 END
 
+IDD_INCREMENTAL_TIMES DIALOGEX 0, 0, 189, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Incremental Time Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDC_OK,55,116,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,119,116,50,14
+    EDITTEXT        IDC_INITIAL_TIME,113,23,56,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_TIME_INCREMENT,113,49,56,14,ES_AUTOHSCROLL
+    LTEXT           "Initial time (secs)",IDC_STATIC,21,27,84,8,0,WS_EX_RIGHT
+    LTEXT           "Increment (secs)",IDC_STATIC,21,52,84,8,0,WS_EX_RIGHT
+END
+
+IDD_START_ENGINE_MATCH DIALOGEX 0, 0, 367, 200
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Start Engine Match"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Start",ID_START_MATCH,251,179,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,309,179,50,14
+    COMBOBOX        IDC_START_POSITIONS,265,74,75,36,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "Start positions",IDC_STATIC,192,77,66,8
+    DEFPUSHBUTTON   "Resume",ID_RESUME_MATCH,193,179,50,14
+    EDITTEXT        IDC_MATCH_REPEAT_COUNT,308,23,32,14,ES_RIGHT | ES_AUTOHSCROLL
+    RTEXT           "Match repeat count",IDC_STATIC,230,25,72,8
+    CONTROL         "Allow early game adjudication",IDC_EARLY_GAME_ADJ_CHECK,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,198,52,142,10,WS_EX_RIGHT
+    EDITTEXT        IDC_START_POS_FILENAME,82,102,258,14,ES_AUTOHSCROLL
+    RTEXT           "Start positions file",IDC_STATIC,7,105,65,8
+    DEFPUSHBUTTON   "Browse...",ID_BROWSE,290,128,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -968,6 +1012,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 ICON1                   ICON                    "Icon_1.ico"
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -998,7 +1043,7 @@ END
 // Accelerator
 //
 
-MENUENGLISH ACCELERATORS 
+MENUENGLISH ACCELERATORS
 BEGIN
     "N",            101,                    VIRTKEY, CONTROL, NOINVERT
     "3",            102,                    VIRTKEY, CONTROL, NOINVERT
@@ -1029,8 +1074,9 @@ BEGIN
     VK_ESCAPE,      310,                    VIRTKEY, NOINVERT
     "2",            315,                    VIRTKEY, CONTROL, NOINVERT
     "+",            354,                    ASCII,  NOINVERT
-    VK_INSERT,      355,                    VIRTKEY, NOINVERT
     "M",            800,                    VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_DELETE,      ID_CLOCK_RESET,         VIRTKEY, NOINVERT
+    "-",            355,                    ASCII,  NOINVERT
 END
 
 
@@ -1040,8 +1086,12 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
+    "IDD_ENGINEOPTIONS", DIALOG
+    BEGIN
+    END
+
     IDD_MORE_ENGINE_OPTIONS_DIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -1049,8 +1099,45 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 296
     END
+
+    IDD_INCREMENTAL_TIMES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 182
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 143
+    END
+
+    IDD_START_ENGINE_MATCH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 360
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 193
+    END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_INCREMENTAL_TIMES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_START_ENGINE_MATCH AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_MORE_ENGINE_OPTIONS_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1058,14 +1145,14 @@ END
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     101                     "3move text  espanol"
     102                     "3move text italiano"
     103                     "3move text deutsch"
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -1075,8 +1162,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
-
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

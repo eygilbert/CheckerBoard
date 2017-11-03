@@ -17,7 +17,7 @@ void usage();
 
 
 
-int build_movelist(int board[46], int color, struct move2 movelist[MAXMOVES])
+int build_movelist(int board[46], int color, move2 movelist[MAXMOVES])
 {
 	int movecount;
 
@@ -95,7 +95,7 @@ INT64 Perft(int board[46], int color, int depth, int ply, int printpos)
 	int nmoves, i;
 	INT64 nodes, sumnodes;
 	char fenbuf[150];
-	struct move2 movelist[MAXMOVES];
+	move2 movelist[MAXMOVES];
 
 	nmoves = build_movelist(board, color, movelist);
 	if (depth == 1)

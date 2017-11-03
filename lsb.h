@@ -10,4 +10,3 @@ inline int LSB(unsigned int x)
 	else
 		return(0);
 }
-

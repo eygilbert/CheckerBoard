@@ -7,9 +7,8 @@
 #include <vector>
 
 // version 
-#define VERSION "1.73a"
-#define PLACE "September 15, 2016"
-// 1.721 fixes a bug in search position which lets CB crash on new windows systems
+#define VERSION "1.73e"
+#define PLACE "October 31, 2017"
 
 #define OP_BOARD 0			// different opening decks
 #define OP_MAILPLAY 1
@@ -33,73 +32,78 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
-
 // window functions
-BOOL	InitApplication(HINSTANCE);
-BOOL	InitInstance(HINSTANCE, int);
+BOOL InitApplication(HINSTANCE);
+BOOL InitInstance(HINSTANCE, int);
 LRESULT CALLBACK WindowFunc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK CB_edit_func(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 // thread functions
-DWORD	AutoThreadFunc(LPVOID param);
-DWORD	ThreadFunc(LPVOID param);
+DWORD AutoThreadFunc(LPVOID param);
+DWORD SearchThreadFunc(LPVOID param);
 
 // my functions in alphabetical list
-void	abortengine();
-int		addmovetouserbook(int b[8][8], struct CBmove *move);
-void	add_piecesets_to_menu(HMENU hmenu);
-int		appendmovetolist(struct CBmove);
-int		builtinislegal(int board[8][8], int color, int from, int to, struct CBmove *move);
-int		changeCBstate(int oldstate,int newstate);
-HWND	CreateAToolBar(HWND hwndParent); 
-int		createcheckerboard(HWND hwnd);
-void	doload(struct PDNgame *PDNgame, char *gamestring, int *color, int board8[8][8]);
-int		domove(struct CBmove m,int b[8][8]);
-int		dostats(int result, int movecount, int gamenumber, int *wins, int *draws, int *losses, int *unknowns, int *blackwins, int *blacklosses, char *matchlogstring);
-int		enginecommand(char command[256],char reply[ENGINECOMMAND_REPLY_SIZE]);
-int		enginename(char str[256]);
-int		getfilename(char filename[255],int what);
-int		getanimationbusy(void);
-int		getenginebusy(void);
-int		getenginestarting(void);
-int		gametype(void);
-int		getmovenumber(struct listentry *cur);
-int		handlegamereplace(int replaceindex, char *databasename);
-int get_startcolor(int gametype);
-int is_mirror_gametype(int gametype);
-int		handlesetupcc(int *color);
-int		handletimer(void);
-int		handle_lbuttondown(int x, int y);
-int		handle_rbuttondown(int x, int y);
-void	InitCheckerBoard(int b[8][8]);
-void	initengines(void);
-void	loadengines(char *pri_fname, char *sec_fname);
-HWND	InitHeader(HWND hwnd);
-int		initlinkedlist(void);
-void	InitStatus(HWND hwnd);
-int		loadgamefromPDNstring(int gameindex, char *dbstring);
-int		loadnextgame(void);
-int		loadpreviousgame(void);
-char	*loadPDNdbstring(char *dbname);
-int		makeanalysisfile(char *filename);
-void	move4tonotation(struct CBmove, char str[80]);
-void	newgame(void);
-void	PDNgametoPDNstring(struct PDNgame *game, char *pdnstring, char *lf);
-void	pdntogame(int startposition[8][8], int startcolor);
-void	setcurrentengine(int engine);
-int		SetMenuLanguage(int language);
+void abortengine();
+int addmovetouserbook(int b[8][8], CBmove *move);
+void add_piecesets_to_menu(HMENU hmenu);
+void appendmovetolist(CBmove &move);
+int builtinislegal(int board[8][8], int color, int from, int to, CBmove *move);
+int changeCBstate(int oldstate, int newstate);
+HWND CreateAToolBar(HWND hwndParent);
+int createcheckerboard(HWND hwnd);
+bool doload(PDNgame *PDNgame, const char *gamestring, int *color, int board8[8][8], std::string &errormsg);
+int domove(CBmove m, int b[8][8]);
+int dostats(int result, int movecount, int gamenumber, emstats_t *stats);
+void emlog_filename(char *filename);
+void empdn_filename(char *filename);
+void emprogress_filename(char *filename);
+void emstats_filename(char *filename);
+int enginecommand(char command[256], char reply[ENGINECOMMAND_REPLY_SIZE]);
+int enginename(char str[MAXNAME]);
+void get_game_clocks(double *black_clock, double *white_clock);
 void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT &res);
-int		selectgame(int how);
-int		setanimationbusy(int value);
-int		setenginebusy(int value);
-int		setenginestarting(int value);
-int		showfile(char *filename);
-int		start3move(void);
-int		texttoclipboard(char *text);
-int		undomove(struct CBmove m,int b[8][8]);
+int get_startcolor(int gametype);
+int getfilename(char filename[255], int what);
+int getanimationbusy(void);
+int getenginebusy(void);
+int getenginestarting(void);
+int getmovelist(int color, CBmove movelist[MAXMOVES], int b[8][8], int *isjump);
+int gametype(void);
+int handlegamereplace(int replaceindex, char *databasename);
+int handlesetupcc(int *color);
+int handletimer(void);
+int handle_lbuttondown(int x, int y);
+int handle_rbuttondown(int x, int y);
+void InitCheckerBoard(int b[8][8]);
+void initengines(void);
+int is_mirror_gametype(int gametype);
+void loadengines(char *pri_fname, char *sec_fname);
+HWND InitHeader(HWND hwnd);
+void InitStatus(HWND hwnd);
+int loadgamefromPDNstring(int gameindex, char *dbstring);
+int loadnextgame(void);
+int loadpreviousgame(void);
+char *loadPDNdbstring(char *dbname);
+int makeanalysisfile(char *filename);
+bool match_is_resumable(void);
+void move4tonotation(CBmove, char str[80]);
+void newgame(void);
+int num_ballots(void);
+void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm);
+bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::string &errormsg);
+int read_match_stats(void);
+void reset_match_stats(void);
+void setcurrentengine(int engine);
+int SetMenuLanguage(int language);
+int selectgame(int how);
+int setanimationbusy(int value);
+int setenginebusy(int value);
+int setenginestarting(int value);
+int showfile(char *filename);
+int start3move(int opening_index);
+int undomove(CBmove m, int b[8][8]);
 
-int getmovelist(int color,struct CBmove m[MAXMOVES], int b[8][8], int *isjump);
-extern char CBdirectory[256];	// holds the directory from where CB is started:
+extern char CBdirectory[MAX_PATH];	// holds the directory from where CB is started:
 extern char CBdocuments[MAX_PATH];
 
 #define random(x) (rand() % x);
@@ -138,7 +142,6 @@ extern char CBdocuments[MAX_PATH];
 #define LOADPREVIOUS 126
 #define GAMEANALYZEPDN 127
 #define SAMPLEDIAGRAM 128
-#define START11MAN 129
 
 #define MOVESPLAY 201
 #define MOVESBACK 202
@@ -148,7 +151,6 @@ extern char CBdocuments[MAX_PATH];
 #define MOVESCOMMENT 207
 #define INTERRUPTENGINE 206
 #define ABORTENGINE 208
-
 
 // options menu
 #define LEVELEXACT 340
@@ -194,14 +196,12 @@ extern char CBdocuments[MAX_PATH];
 #define CM_2PLAYER 315
 #define ENGINEVSENGINE 316
 
-
 #define COLORBOARDNUMBERS 330
 #define COLORHIGHLIGHT 331
 
 #define BOOKMODE_VIEW 360
 #define BOOKMODE_ADD 361
 #define BOOKMODE_DELETE 362
-
 
 
 // help menu
@@ -233,7 +233,5 @@ extern char CBdocuments[MAX_PATH];
 
 #define CM_BUILDEGDB 900
 
-
 #define IDTB_BMP 300
 #define ID_TOOLBAR 200
-

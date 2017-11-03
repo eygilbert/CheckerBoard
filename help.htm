@@ -23,16 +23,15 @@ bgcolor="#FFFFFF">
 <tr>
 <td>
 <font color="red">
-What's new in CheckerBoard 1.64? <br>There is a new feature called <em>Analyze PDN</em>, there is a new language
-option which allows you to select the menu language, and the directory structure has changed: there
-are two new subdirectories in the CB directory, <em>engines</em> and <em>analysis</em>. All engines for
-CB reside in the engines directory, and all analysis output (from <em>analyze game</em>, and <em>analyze PDN</em>) is put
-in the analysis directory.
+What's new in CheckerBoard 1.74? <br>
+Incremental 'Fischer Clock' time control, PDN search and load handles much
+larger files and works with all checkers variants supported by Checkerboard.
+Engine match capability is expanded and documented here.
 </font>
 <p>
 
 <font color="#000000" size="3" face="Ventura">
-CheckerBoard is updated frequently. The newest version of CheckerBoard can probably be found on the
+The newest version of CheckerBoard can probably be found on the
 <a href="http://www.fierz.ch/checkers.htm">CheckerBoard homepage</a>. Any news about new versions 
 of CheckerBoard or engines for CheckerBoard are also posted there. Visit often :-)
 
@@ -112,7 +111,8 @@ The toolbar has buttons for some of the most commonly used commands. From left t
 
 <LI>Engine section
 <UL>
-<LI>Go: Start engine or force move if the engine is already thinking
+<LI>Go: Start engine or force move if the engine is already thinking. The exclamation mark
+turns red while the engine is calculating and is black when the engine has stopped.
 <LI>Book mode: Cycles through the 4 different book settings an engine can have - book off, all kinds
 of moves, good moves, or best moves only. All kinds of moves is represented by a small question mark
 in the toolbar icon, best moves with a star in the icon.
@@ -356,7 +356,12 @@ positions.
 	the default checkers engine, Cake, is very strong, and will probably beat you most of the time
 	even on the low levels. You can choose the 'instant' level to make the computer play very fast
 	and much worse than normal. For the weakest possible opponent, make 'simple checkers' your
-	primary engine and set the level to 'instant'.
+	primary engine and set the level to 'instant'.<br>
+  Starting with CheckerBoard version 1.17, there is a Fischer Clock time
+  control. Select <b>Options, Level, Incremental,</b> and set an intial time and
+  increment added to the clock for each move. When Incremental time is selected,
+  the remaining time for Black and White is displayed in a rectangular region
+  above the board.&nbsp;
 
 <LI><b>Display</b>: here you can invert the board, have the last move highlighted and 
 	toggle board number display on and off.
@@ -404,7 +409,11 @@ positions.
 			hashtable and for the endgame database cache. You can set preferred sizes for
 			these here. Again, this does not mean the engine will do as you say. CheckerBoard
 			will not allow you to use all memory of your system, as this would result in 
-			lots of paging. 
+			lots of paging.
+		<LI>More Options: this button takes you to another dialog where you can
+          set more specific options for endgame db, parallel search, and opening
+          book. Some engines will not use these settings, in which case they may
+          appear grayed out. 
 		</UL>
 	You can set all of these options even if the engine does not support them; 
 	refer to the engine help file to find out how it will respond to these settings. 
@@ -414,7 +423,7 @@ positions.
 	The reason for this is that although the common engine options will probably cover most 
 	options an engine has, there may be additional options an engine programmer has thought
 	of that are not covered. If this is the case, you can type in a command to the engine directly
-	here.
+	here. This is primarlily for use by engine developers.
 
 <LI><b>About and Help</b> show an about box and a help file for the current engine.
 	</UL>
@@ -432,22 +441,46 @@ on checkers both for beginners and experts.
 <LI><b>CheckerBoard homepage</b> goes to the CheckerBoard homepage in the internet.
 </UL> 
 
-<h4>The Database Menu</h4>
-If you want to improve the playing strength of Cake 'Sans Souci', you can build the Cake 
-6-piece database. To simplify this task, I have
-added a menu item to build the database. Just choose <b>Build 6-piece database</b>, and 
-the database will be created on your computer. The database generator is a separate program,
-which is invoked by this command. You will see a black window pop up, with rapidly scrolling
-text in it - a DOS box. Close CheckerBoard, and wait for the generator to complete - you know
-it is finished when the black window has disappeared. Note that this will take a while: on a fast computer
-it takes 4 hours (Athlon 1.4GHz), so you best do this over night. You will also need roughly 
-200MB free disk space temporarily. After the database generator is finished, the database menu
-item should disappear 
-on the next start of CheckerBoard  if you have successfully built the 6-piece database. If
-you use Cake 'Sans Souci' after building the endgame database, it will tell you that it is
-using it in the engine about box.
 
-<H3><a name="typical"></a>Some typical tasks explained</a></H3>
+
+<h4>Developer</h4>
+<ul>
+  <li><b>Engine Match</b> allows you to play automated games between two
+    engines. Select a primary engine and secondary engine for the match using <b>Engine</b>,
+    <b>Select</b>. The start positions for the match can be 3-move ballots,
+    using the <b>3-move deck</b> selected in the <b>Options</b> menu, or
+    positions taken from a PDN file. There are 11-man ballot start files for
+    both English and Italian checkers in the CheckerBoard program directory. Use the &quot;<b>Start positions</b>&quot;
+    control to choose, and use the <b>Browse</b> button to select a PDN file if
+    &quot;<b>from a PDN file</b>&quot; is selected for the start positions. Each
+    match game starts at the position following the last move in PDN file games.
+    <ul>
+      <li>Since engine match involves using 2 engines, it is important that
+        computer memory be shared equitably between them. When using
+        CheckerBoard with only one engine, that engine is often given most of
+        the computer's memory for egdb cache and hashtable to get best search
+        performance. With 2 engines running in an engine match, adjust memory
+        usage of both engines so the sum does not exceed the memory in the
+        computer, and leave 1 or 2 GB remaining for Windows to use. You can use
+        Windows Task Manager to see how much memory CheckerBoard is using during
+        an engine match.</li>
+      <li>During engine matches, CheckerBoard keeps track of the time used by
+        each engine, and allocates time for each move based on how much they
+        have already used. It does this in both fixed time per move and
+        incremental time Levels.</li>
+      <li>An engine match can be stopped by hitting the Escape key. An
+        unfinished, stopped match can be resumed with the Resume button.&nbsp;</li>
+      <li>Details of an engine match are logged in the files stats.txt,
+        match.pdn, match_progress.txt, and matchlog.txt. You can find these
+        files under your user Documents directory in ..\Martin
+        Fierz\CheckerBoard\games\matches.</li>
+    </ul>
+  </li>
+</ul>
+
+
+
+<H3><a name="typical"></a>Some typical tasks explained</H3>
 This section gives you a step-by-step guide to some things you might want to do with CheckerBoard.
 <H4>Send a game by email to a friend</H4>
 You just played this great game and want to share it with somebody? If you both have CheckerBoard,
@@ -540,5 +573,8 @@ CheckerBoard website.
 Once you have finished your engine, you must copy the dll into the CheckerBoard folder and select your engine with 'engine-&gt;select...'. 
 Of course I would love to hear from you if you do write an engine for CheckerBoard. If you do, please 
 send me a mail to <i>nospam1 at fierz dot ch</i>. I would like to link to your page, or, if you don't have one, I would put your engine on my server.
+<P>
+The source code for CheckerBoard is available on GitHub here: <a href="https://github.com/eygilbert/CheckerBoard">https://github.com/eygilbert/CheckerBoard</a>
 <HR>
-<address>Last modified by Martin Fierz on September 17, 2005</Address>
+<address>Last modified by Ed Gilbert on October 31, 2017</Address>
+</font>
