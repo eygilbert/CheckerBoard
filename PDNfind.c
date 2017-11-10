@@ -93,14 +93,6 @@ void print_fen(pos *p, int color, char *buf)
 	sprintf(buf + strlen(buf), ".\"]");
 }
 
-void log_fen(pos *p, int color)
-{
-	char buf[150];
-
-	print_fen(p, color, buf);
-	CBlog(buf);
-}
-
 void log_moves(pos *p, int color, move *movelist, int nmoves)
 {
 	int i, fromsq, tosq;

@@ -642,32 +642,6 @@ int builtingametype(void)
 	return GT_ENGLISH;
 }
 
-char *piecestr(int piece)
-{
-	if (piece == 0)
-		return(".");
-	if (piece & CB_BLACK)
-		if (piece & CB_KING)
-			return("bk");
-		else
-			return("bm");
-	if (piece & CB_WHITE)
-		if (piece & CB_KING)
-			return("wk");
-		else
-			return("wm");
-	return(".");
-}
-
-void log_fen(char *msg, int board[8][8], int color)
-{
-	char buf[150];
-
-	sprintf(buf, "%s: ", msg);
-	board8toFEN(board, buf + strlen(buf), color, gametype());
-	CBlog(buf);
-}
-
 /*
  * Separate the filename from the path.
  * Return 0 on success, 1 if no separators are found.

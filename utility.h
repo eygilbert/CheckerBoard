@@ -8,7 +8,6 @@ enum READ_TEXT_FILE_ERROR_TYPE {
 	RTF_NO_ERROR, RTF_FILE_ERROR, RTF_MALLOC_ERROR
 };
 
-void log_fen(char *msg, int board[8][8], int color);
 int builtingametype(void);
 void CBlog(char *text);
 void cblog(const char *fmt, ...);
