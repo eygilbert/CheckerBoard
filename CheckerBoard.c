@@ -114,7 +114,7 @@ int upperoffset = 20;				//20;
 char szWinName[] = "CheckerBoard";	/* name of window class */
 int cbboard8[8][8];					/* the board being displayed in the GUI*/
 int cbcolor = CB_BLACK;				/* the side to move next in the GUI */
-int setup;							/* 1 if in setup mode */
+bool setup_mode;
 static int addcomment;
 int handicap;
 int testset_number;
@@ -380,7 +380,7 @@ void get_game_clocks(double *black_clock, double *white_clock)
 }
 
 /*
- * Decided if the move described by moveindex is a first player or second player move.
+ * Decide if the move described by moveindex is a first player or second player move.
  * If the game has a normal start position, even moves are first player, odd moves are second player.
  * If the game has a FEN setup, see if the start color is the same as the gametype's start color.
  * If the same, then even moves are first player, odd moves are second player.
@@ -422,6 +422,31 @@ int moveindex2movenum(PDNgame &game, int moveindex)
 		return(1 + moveindex / 2);
 	else
 		return(1 + (moveindex + 1) / 2);
+}
+
+/* Transition to or from setup mode. */
+void set_setup_mode(bool state)
+{
+	if (state) {
+
+		// entering setup mode
+		PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+		CheckMenuItem(hmenu, SETUPMODE, MF_CHECKED);
+		sprintf(statusbar_txt, "Setup mode...");
+	}
+	else {
+
+		// leaving setup mode;
+		CheckMenuItem(hmenu, SETUPMODE, MF_UNCHECKED);
+		reset_move_history = true;
+		x1 = -1;
+		sprintf(statusbar_txt, "Setup done");
+
+		// get FEN string
+		reset_game(cbgame);
+		board8toFEN(cbboard8, cbgame.FEN, cbcolor, cbgame.gametype);
+	}
+	setup_mode = state;
 }
 
 LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -555,7 +580,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				break;
 			if (fixed_time_needed_msg())
 				break;
-			changeCBstate(CBstate, ANALYZEGAME);
+			changeCBstate(ANALYZEGAME);
 			startmatch = TRUE;
 
 			// the rest is taken care of in the AutoThreadFunc section
@@ -566,7 +591,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				break;
 			if (fixed_time_needed_msg())
 				break;
-			changeCBstate(CBstate, ANALYZEPDN);
+			changeCBstate(ANALYZEPDN);
 			startmatch = TRUE;
 
 			// the rest is taken care of in the AutoThreadFunc section
@@ -741,7 +766,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			break;
 
 		case GAME_FENTOCLIPBOARD:
-			if (setup) {
+			if (setup_mode) {
 				MessageBox(hwnd,
 						   "Cannot copy position in setup mode.\nLeave the setup mode first if you\nwant to copy this position.",
 					   "Error",
@@ -774,7 +799,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			break;
 
 		case GAMECOPY:
-			if (setup) {
+			if (setup_mode) {
 				MessageBox(hwnd,
 						   "Cannot copy game in setup mode.\nLeave the setup mode first if you\nwant to copy this game.",
 						   "Error",
@@ -828,6 +853,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case MOVESPLAY:
 			// force the engine to either play now, or to start calculating
 			// this is the only place where the engine is started
+			if (setup_mode)
+				set_setup_mode(false);
 			if (!getenginebusy() && !getanimationbusy()) {
 
 				// TODO think about synchronization issues here!
@@ -1229,9 +1256,9 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			}
 
 			if (CBstate == BOOKVIEW)
-				changeCBstate(CBstate, NORMAL);
+				changeCBstate(NORMAL);
 			else {
-				changeCBstate(CBstate, BOOKVIEW);
+				changeCBstate(BOOKVIEW);
 
 				// now display the first user book position
 				userbookcur = 0;
@@ -1255,9 +1282,9 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case BOOKMODE_ADD:
 			// go in add/edit book mode
 			if (CBstate == BOOKADD)
-				changeCBstate(CBstate, NORMAL);
+				changeCBstate(NORMAL);
 			else
-				changeCBstate(CBstate, BOOKADD);
+				changeCBstate(BOOKADD);
 			break;
 
 		case BOOKMODE_DELETE:
@@ -1320,9 +1347,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case CM_AUTOPLAY:
 			if (CBstate == BOOKVIEW || CBstate == BOOKADD)
 				break;
-			changeCBstate(CBstate, AUTOPLAY);
-
-			//setenginebusy(FALSE); // what is this here for?
+			changeCBstate(AUTOPLAY);
 			break;
 
 		case CM_ENGINEMATCH:
@@ -1330,13 +1355,13 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				break;
 			if (DialogBox(g_hInst, MAKEINTRESOURCE(IDD_START_ENGINE_MATCH), hwnd, (DLGPROC)DialogStartEngineMatchFunc)) {
 				startmatch = TRUE;
-				changeCBstate(CBstate, ENGINEMATCH);
+				changeCBstate(ENGINEMATCH);
 			}
 			break;
 
 		case ENGINEVSENGINE:
 			startmatch = TRUE;
-			changeCBstate(CBstate, ENGINEGAME);
+			changeCBstate(ENGINEGAME);
 			break;
 
 		case CM_ANALYSIS:
@@ -1346,7 +1371,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			if (cboptions.use_incremental_time)
 				PostMessage(hwnd, WM_COMMAND, LEVELINFINITE, 0);
 
-			changeCBstate(CBstate, OBSERVEGAME);
+			changeCBstate(OBSERVEGAME);
 			break;
 
 		case CM_2PLAYER:
@@ -1360,11 +1385,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				Sleep(10);
 			}
 			else {
-				changeCBstate(CBstate, NORMAL);
+				changeCBstate(NORMAL);
 				stop_clock();
-
-				//setenginebusy(FALSE);
-				//setanimationbusy(FALSE);
 			}
 			break;
 
@@ -1446,35 +1468,14 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			break;
 
 		case SETUPMODE:
-			// toggle from play to setup mode
-			PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
-			toggle(&setup);
-			if (setup) {
-
-				// entering setup mode
-				CheckMenuItem(hmenu, SETUPMODE, MF_CHECKED);
-			}
-			else {
-
-				// leaving setup mode;
-				CheckMenuItem(hmenu, SETUPMODE, MF_UNCHECKED);
-				reset_move_history = true;
-				x1 = -1;
-			}
-
-			if (setup)
-				sprintf(statusbar_txt, "Setup mode...");
-			if (!setup) {
-				sprintf(statusbar_txt, "Setup done");
-
-				// get FEN string
-				reset_game(cbgame);
-				board8toFEN(cbboard8, cbgame.FEN, cbcolor, cbgame.gametype);
-			}
+			set_setup_mode(!setup_mode);
 			break;
 
 		case SETUPCLEAR:
-			// clear board
+			// clear board. Forces setup mode.
+			if (!setup_mode)
+				set_setup_mode(true);
+
 			memset(cbboard8, 0, sizeof(cbboard8));
 			updateboardgraphics(hwnd);
 			break;
@@ -1484,9 +1485,9 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				break;
 			toggle(&togglemode);
 			if (togglemode)
-				changeCBstate(CBstate, ENTERGAME);
+				changeCBstate(ENTERGAME);
 			else
-				changeCBstate(CBstate, NORMAL);
+				changeCBstate(NORMAL);
 			break;
 
 		case TOGGLEBOOK:
@@ -1593,7 +1594,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case CM_RUNTESTSET:
 			// let CB run over a set of test positions in the current pdn database
 			testset_number = 0;
-			changeCBstate(CBstate, RUNTESTSET);
+			changeCBstate(RUNTESTSET);
 			break;
 		}
 		break;
@@ -1742,7 +1743,7 @@ int handlesetupcc(int *color)
 
 int handle_rbuttondown(int x, int y)
 {
-	if (setup) {
+	if (setup_mode) {
 		coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
 		if ((x + y + 1) % 2) {
 			switch (cbboard8[x][y]) {
@@ -1773,7 +1774,7 @@ int handle_lbuttondown(int x, int y)
 	CBmove localmove;
 
 	// if we are in setup mode, add a black piece.
-	if (setup) {
+	if (setup_mode) {
 		coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
 		if ((x + y + 1) % 2) {
 			switch (cbboard8[x][y]) {
@@ -3534,7 +3535,7 @@ bool read_user_ballots_file(void)
 	return(false);
 }
 
-int changeCBstate(int oldstate, int newstate)
+int changeCBstate(int newstate)
 {
 	// changes the state of Checkerboard from old state to new state
 	// does whatever is necessary to do this - checks/unchecks menu buttons
@@ -3544,9 +3545,9 @@ int changeCBstate(int oldstate, int newstate)
 	PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
 
 	// toolbar buttons
-	if (oldstate == BOOKVIEW)
+	if (CBstate == BOOKVIEW)
 		SendMessage(tbwnd, TB_CHECKBUTTON, (WPARAM) BOOKMODE_VIEW, MAKELONG(0, 0));
-	if (oldstate == BOOKADD)
+	if (CBstate == BOOKADD)
 		SendMessage(tbwnd, TB_CHECKBUTTON, (WPARAM) BOOKMODE_ADD, MAKELONG(0, 0));
 
 	CBstate = (enum state)newstate;
@@ -3602,7 +3603,7 @@ int changeCBstate(int oldstate, int newstate)
 		/* Read ballots file if being used. */
 		if (cboptions.em_start_positions == START_POS_FROM_FILE) {
 			if (read_user_ballots_file()) {
-				changeCBstate(NORMAL, NORMAL);
+				changeCBstate(NORMAL);
 				break;
 			}
 		}
@@ -3850,7 +3851,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			for (i = 0; i <= testset_number; i++) {
 				fgets(FEN, 255, Lfp);
 				if (feof(Lfp)) {
-					changeCBstate(RUNTESTSET, NORMAL);
+					changeCBstate(NORMAL);
 				}
 			}
 
@@ -3875,7 +3876,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			// check if game is over, if yes, go from autoplay to normal state
 			if (gameover == TRUE) {
 				gameover = FALSE;
-				changeCBstate(CBstate, NORMAL);
+				changeCBstate(NORMAL);
 				sprintf(statusbar_txt, "game over");
 			}
 
@@ -3894,7 +3895,7 @@ DWORD AutoThreadFunc(LPVOID param)
 		case ENGINEGAME:
 			if (gameover == TRUE) {
 				gameover = FALSE;
-				changeCBstate(CBstate, NORMAL);
+				changeCBstate(NORMAL);
 				setcurrentengine(1);
 				break;
 			}
@@ -3918,7 +3919,7 @@ DWORD AutoThreadFunc(LPVOID param)
 		case ANALYZEGAME:
 			if (gameover == TRUE) {
 				gameover = FALSE;
-				changeCBstate(CBstate, NORMAL);
+				changeCBstate(NORMAL);
 				sprintf(statusbar_txt, "Game analysis finished!");
 				strcpy(analysisfilename, CBdocuments);
 				PathAppend(analysisfilename, "analysis");
@@ -3985,7 +3986,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			if (gamenumber == 0) {
 
 			// we're done with the file
-				changeCBstate(CBstate, NORMAL);
+				changeCBstate(NORMAL);
 				sprintf(statusbar_txt, "PDN analysis finished!");
 				break;
 			}
@@ -4188,7 +4189,7 @@ DWORD AutoThreadFunc(LPVOID param)
 				sprintf(statusbar_txt, "gamenumber is %i\n", gamenumber);
 
 				if (matchcontinues == 0) {
-					changeCBstate(CBstate, NORMAL);
+					changeCBstate(NORMAL);
 					setcurrentengine(1);
 
 					// write final result in window title bar

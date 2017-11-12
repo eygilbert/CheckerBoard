@@ -48,7 +48,7 @@ int addmovetouserbook(int b[8][8], CBmove *move);
 void add_piecesets_to_menu(HMENU hmenu);
 void appendmovetolist(CBmove &move);
 int builtinislegal(int board[8][8], int color, int from, int to, CBmove *move);
-int changeCBstate(int oldstate, int newstate);
+int changeCBstate(int newstate);
 HWND CreateAToolBar(HWND hwndParent);
 int createcheckerboard(HWND hwnd);
 bool doload(PDNgame *PDNgame, const char *gamestring, int *color, int board8[8][8], std::string &errormsg);
