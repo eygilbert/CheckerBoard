@@ -171,13 +171,12 @@ char pdn_filename[MAX_PATH];			// current PDN database
 char userbookname[MAX_PATH];			// current userbook
 CBmove cbmove;
 char savegame_filename[MAX_PATH];
-int currentengine = 1;					// 1=primary, 2=secondary
 emstats_t emstats;						// engine match stats and state
 std::vector<BALLOT_INFO>user_ballots;
 
 int togglemode;							// 1-2-player toggle state
 int togglebook;							// engine book state (0/1/2/3)
-int toggleengine = 1;					// primary/secondary engine (1/2)
+int currentengine = 1;					// 1=primary, 2=secondary
 int maxmovecount = 300;					// engine match limit; use 200 if early_game_adjudication is enabled.
 
 // keep a small user book
@@ -1504,11 +1503,11 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case TOGGLEENGINE:
 			if (getenginebusy() || getanimationbusy())
 				break;
-			toggleengine++;
-			if (toggleengine > 2)
-				toggleengine = 1;
 
-			setcurrentengine(toggleengine);
+			if (currentengine == 1)
+				setcurrentengine(2);
+			else
+				setcurrentengine(1);
 
 			// reset game if an engine of different game type was selected!
 			if (gametype() != cbgame.gametype) {
@@ -2056,7 +2055,7 @@ int handletimer(void)
 	static int oldcolor;
 	static int oldtogglemode;
 	static int oldtogglebook;
-	static int oldtoggleengine;
+	static int oldengine;
 	static int engineIcon;
 	int ch = '=';
 
@@ -2119,12 +2118,12 @@ int handletimer(void)
 	}
 
 	// update toolbar to display active engine (primary/secondary)
-	if (oldtoggleengine != toggleengine) {
-		if (toggleengine == 1)
+	if (oldengine != currentengine) {
+		if (currentengine == 1)
 			SendMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM) TOGGLEENGINE, MAKELPARAM(0, 0));
 		else
 			SendMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM) TOGGLEENGINE, MAKELPARAM(1, 0));
-		oldtoggleengine = toggleengine;
+		oldengine = currentengine;
 		InvalidateRect(hwnd, NULL, 0);
 	}
 
@@ -4455,8 +4454,6 @@ void setcurrentengine(int engineN)
 		strcat(windowtitle, s);
 		SetWindowText(hwnd, windowtitle);
 	}
-
-	toggleengine = currentengine;
 
 	// get book state of current engine
 	if (enginecommand("get book", s))
