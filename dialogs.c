@@ -727,12 +727,11 @@ BOOL CALLBACK EngineOptionsFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 	int rbprimary, rbsecondary;
 	static int availableMB;
 	int i, egdb_max;
+	MEMORYSTATUSEX memstat;
 
 	extern char reply[MAXNAME];
 	extern int currentengine;
-	extern int togglebook;
 
-	MEMORYSTATUSEX memstat;
 
 	switch (message) {
 	case WM_INITDIALOG:

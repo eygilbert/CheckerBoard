@@ -174,8 +174,8 @@ char savegame_filename[MAX_PATH];
 emstats_t emstats;						// engine match stats and state
 std::vector<BALLOT_INFO>user_ballots;
 
-int togglemode;							// 1-2-player toggle state
-int togglebook;							// engine book state (0/1/2/3)
+bool two_player_mode;					// true if in 2-player mode
+int book_state;							// engine book state (0/1/2/3)
 int currentengine = 1;					// 1=primary, 2=secondary
 int maxmovecount = 300;					// engine match limit; use 200 if early_game_adjudication is enabled.
 
@@ -1400,7 +1400,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			DialogBox(g_hInst, "IDD_ENGINEOPTIONS", hwnd, (DLGPROC) EngineOptionsFunc);
 			setcurrentengine(oldengine);
 			enginecommand("get book", Lstr);
-			togglebook = atoi(Lstr);
+			book_state = atoi(Lstr);
 			break;
 
 		case ENGINEEVAL:
@@ -1482,8 +1482,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case TOGGLEMODE:
 			if (getenginebusy() || getanimationbusy())
 				break;
-			toggle(&togglemode);
-			if (togglemode)
+			two_player_mode = !two_player_mode;
+			if (two_player_mode)
 				changeCBstate(ENTERGAME);
 			else
 				changeCBstate(NORMAL);
@@ -1492,11 +1492,11 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case TOGGLEBOOK:
 			if (getenginebusy() || getanimationbusy())
 				break;
-			togglebook++;
-			togglebook %= 4;
+			book_state++;
+			book_state %= 4;
 
 			// set opening book on/off
-			sprintf(Lstr, "set book %i", togglebook);
+			sprintf(Lstr, "set book %i", book_state);
 			enginecommand(Lstr, statusbar_txt);
 			break;
 
@@ -2053,8 +2053,8 @@ int handletimer(void)
 	static char oldstr[1024];
 	char filename[MAX_PATH];
 	static int oldcolor;
-	static int oldtogglemode;
-	static int oldtogglebook;
+	static bool old_two_player_mode;
+	static int oldbook_state;
 	static int oldengine;
 	static int engineIcon;
 	int ch = '=';
@@ -2084,18 +2084,18 @@ int handletimer(void)
 	}
 
 	// update toolbar to display what mode (normal/2player) we're in
-	if (oldtogglemode != togglemode) {
-		if (togglemode == 0)
+	if (old_two_player_mode != two_player_mode) {
+		if (two_player_mode == false)
 			SendMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM) TOGGLEMODE, MAKELPARAM(17, 0));
 		else
 			SendMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM) TOGGLEMODE, MAKELPARAM(18, 0));
-		oldtogglemode = togglemode;
+		old_two_player_mode = two_player_mode;
 		InvalidateRect(hwnd, NULL, 0);
 	}
 
 	// update toolbar to display book mode (on/off) we're in
-	if (oldtogglebook != togglebook) {
-		switch (togglebook) {
+	if (oldbook_state != book_state) {
+		switch (book_state) {
 		case 0:
 			SendMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM) TOGGLEBOOK, MAKELPARAM(3, 0));
 			break;
@@ -2113,7 +2113,7 @@ int handletimer(void)
 			break;
 		}
 
-		oldtogglebook = togglebook;
+		oldbook_state = book_state;
 		InvalidateRect(hwnd, NULL, 0);
 	}
 
@@ -4457,7 +4457,7 @@ void setcurrentengine(int engineN)
 
 	// get book state of current engine
 	if (enginecommand("get book", s))
-		togglebook = atoi(s);
+		book_state = atoi(s);
 }
 
 int gametype(void)
