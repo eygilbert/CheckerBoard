@@ -3216,6 +3216,8 @@ DWORD SearchThreadFunc(LPVOID param)
 
 		setenginebusy(FALSE);
 		setenginestarting(FALSE);
+		CloseHandle(hAniThread);
+		setanimationbusy(FALSE);
 		return 1;
 	}
 
