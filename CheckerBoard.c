@@ -3215,6 +3215,7 @@ DWORD SearchThreadFunc(LPVOID param)
 		}
 
 		setenginebusy(FALSE);
+		setenginestarting(FALSE);
 		return 1;
 	}
 
