@@ -94,9 +94,7 @@ TBBUTTON tbButtons[NUMBUTTONS];		/* for the toolbar */
 int abortcalculation;				// used to tell the SearchThreadFunc that the calculation has been aborted
 static BOOL enginebusy;				/* true while engine thread is busy */
 static BOOL animationbusy;			/* true while animation thread is busy */
-static BOOL enginestarting;			// true when a play command is issued to the engine but engine has
-
-// not started yet
+static BOOL enginestarting;			// true when a play command is issued to the engine but engine has not started yet
 BOOL gameover;						/* true when autoplay or engine match game is finished */
 BOOL startmatch = TRUE;				/* startmatch is only true before engine match was started */
 BOOL newposition = TRUE;			/* is true when position has changed. used in analysis mode to
@@ -104,13 +102,13 @@ BOOL newposition = TRUE;			/* is true when position has changed. used in analysi
 BOOL startengine;					/* is true if engine is expected to start */
 int game_result;					/* CB_DRAW, CB_WIN, CB_LOSS, or CB_UNKNOWN. */
 time_ctrl_t time_ctrl;				/* Clock control. */
-int toolbarheight = 30;				//30;
+int toolbarheight = 30;
 int clockheight;					/* 0 or CLOCKHEIGHT when clock is visible. */
-int statusbarheight = 20;			//20;
-int menuheight = 16;				//16;
-int titlebarheight = 12;			//12;
-int offset = 40;					//40;
-int upperoffset = 20;				//20;
+int statusbarheight = 20;
+int menuheight = 16;
+int titlebarheight = 12;
+int offset = 40;
+int upperoffset = 20;
 char szWinName[] = "CheckerBoard";	/* name of window class */
 int cbboard8[8][8];					/* the board being displayed in the GUI*/
 int cbcolor = CB_BLACK;				/* the side to move next in the GUI */
@@ -141,15 +139,11 @@ CB_GETSTRING enginename1, enginename2;
 CB_GETGAMETYPE CBgametype;			// built in gametype and islegal functions
 CB_ISLEGAL CBislegal;
 
-int enginename(char name[MAXNAME]);
-BOOL fFreeResult;
-
 // instance and window handles
 HINSTANCE g_hInst;				//instance of checkerboard
 HWND hwnd;						// main window
 HWND hStatusWnd;				// status window
 static HWND tbwnd;				// toolbar window
-HWND hDlgSelectgame;
 
 std::vector<gamepreview> game_previews;	// preview info displayed in game select dialog.
 
@@ -172,7 +166,7 @@ char userbookname[MAX_PATH];			// current userbook
 CBmove cbmove;
 char savegame_filename[MAX_PATH];
 emstats_t emstats;						// engine match stats and state
-std::vector<BALLOT_INFO>user_ballots;
+std::vector<BALLOT_INFO> user_ballots;
 
 bool two_player_mode;					// true if in 2-player mode
 int book_state;							// engine book state (0/1/2/3)
@@ -1610,10 +1604,11 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		// save settings
 		savesettings(&cboptions);
 
-		//Shell_NotifyIcon(NIM_DELETE,&pnid); // remove tray icon
 		// unload engines
-		fFreeResult = FreeLibrary(hinstLib1);
-		fFreeResult = FreeLibrary(hinstLib2);
+		{
+			BOOL fFreeResult = FreeLibrary(hinstLib1);
+			fFreeResult = FreeLibrary(hinstLib2);
+		}
 
 		PostQuitMessage(0);
 		break;
@@ -3138,12 +3133,13 @@ double maxtime_for_non_incremental_tc(double remaining, double increment)
 
 /*
  * Keep track of the ratio of maxtime to actual search time for each engine's searches.
- * Write the average ratio to cblog every 25 searches.
+ * Write the average ratio to cblog every 100 searches.
  */
 void save_time_stats(int enginenum, double maxtime, double elapsed)
 {
 	static double ratio_sum1, ratio_sum2;
 	static int count1, count2;
+	const int interval = 100;
 
 	/* Dont count searches that were probably terminated early due to forced moves, etc. */
 	if (elapsed < 0.5 * maxtime || elapsed < .04)
@@ -3151,13 +3147,13 @@ void save_time_stats(int enginenum, double maxtime, double elapsed)
 	if (enginenum == 1) {
 		ratio_sum1 += elapsed / maxtime;
 		++count1;
-		if ((count1 % 25) == 0 && count1)
+		if ((count1 % interval) == 0 && count1)
 			cblog("%d: primary engine search time ratio %.2f\n", count1, ratio_sum1 / count1);
 	}
 	else {
 		ratio_sum2 += elapsed / maxtime;
 		++count2;
-		if ((count2 % 25) == 0 && count2)
+		if ((count2 % interval) == 0 && count2)
 			cblog("%d: secondary engine search time ratio %.2f\n", count2, ratio_sum2 / count2);
 	}
 }
@@ -3197,22 +3193,20 @@ DWORD SearchThreadFunc(LPVOID param)
 
 	abortcalculation = 0;				// if this remains 0, we will execute the move - else not
 
-	// test if there is a move at all: if not, return and set state to NORMAL
+	// test if there is a move at all
 	nmoves = getmovelist(cbcolor, movelist, cbboard8, &iscapture);
 	if (nmoves == 0) {
-		sprintf(statusbar_txt, "there is no move in this position");
-
-		// if this happens in autoplay or in an enginematch, set mode back to normal
-		if (CBstate == AUTOPLAY) {
-			gameover = TRUE;
-			sprintf(statusbar_txt, "game over");
-		}
-
 		if (CBstate == ENGINEMATCH || CBstate == ENGINEGAME) {
 			gameover = TRUE;
 			game_result = CB_LOSS;
 			sprintf(statusbar_txt, "game over");
 		}
+		else if (CBstate == AUTOPLAY) {
+			gameover = TRUE;
+			sprintf(statusbar_txt, "game over");
+		}
+		else
+			sprintf(statusbar_txt, "there is no move in this position");
 
 		setenginebusy(FALSE);
 		setenginestarting(FALSE);
@@ -3306,6 +3300,7 @@ DWORD SearchThreadFunc(LPVOID param)
 			/* Display the Play! bitmap with black foreground when the engine is not searching. */
 			PostMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM) MOVESPLAY, MAKELPARAM(2, 0));
 
+#ifdef LOG_CUMULATIVE_TIME_USED
 			if (CBstate == ENGINEMATCH) {
 				time_ctrl.cumulative_time_used[currentengine] += elapsed;
 				++time_ctrl.searchcount;
@@ -3313,7 +3308,7 @@ DWORD SearchThreadFunc(LPVOID param)
 					cblog("Total time used (engine 1, engine 2): %.2f min, %.2f min\n",
 						time_ctrl.cumulative_time_used[1] / 60, time_ctrl.cumulative_time_used[2] / 60);
 			}
-
+#endif
 			if (cboptions.use_incremental_time) {
 				if (cbcolor == CB_BLACK) {
 					if (time_ctrl.black_time_remaining - elapsed < 0)
@@ -3338,7 +3333,9 @@ DWORD SearchThreadFunc(LPVOID param)
 					time_ctrl.white_time_remaining -= elapsed;
 
 				/* Keep track of how well the engine's average search time tracks the maxtime param. */
+#ifdef LOG_CUMULATIVE_TIME_USED
 				save_time_stats(currentengine, maxtime, elapsed);
+#endif
 			}
 		}
 		else
@@ -3378,6 +3375,9 @@ DWORD SearchThreadFunc(LPVOID param)
 				}
 			}
 		}
+
+		if (CBstate == ENGINEGAME && game_result != CB_UNKNOWN)
+			gameover = TRUE;
 
 		// got board8 & a copy before move was made
 		if (CBstate != OBSERVEGAME && CBstate != ANALYZEGAME && CBstate != ANALYZEPDN && !abortcalculation) {
@@ -3816,10 +3816,9 @@ DWORD AutoThreadFunc(LPVOID param)
 		case NORMAL:
 			if (startengine) {
 
-				/* after determining the user move startengine flag is set and
-					the move is animated. */
-				PostMessage(hwnd, (UINT) WM_COMMAND, (WPARAM) MOVESPLAY, (LPARAM) 0);
+				/* after determining the user move startengine flag is set and the move is animated. */
 				setenginestarting(TRUE);
+				PostMessage(hwnd, (UINT) WM_COMMAND, (WPARAM) MOVESPLAY, (LPARAM) 0);
 				startengine = FALSE;
 			}
 			break;
@@ -3881,13 +3880,10 @@ DWORD AutoThreadFunc(LPVOID param)
 				changeCBstate(NORMAL);
 				sprintf(statusbar_txt, "game over");
 			}
-
-			// else continue game by sending a play command
 			else {
-				if (getenginestarting() || getanimationbusy() || getenginebusy())
-					break;
-				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+				// else continue game by sending a play command
 				setenginestarting(TRUE);
+				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 
 				// sleep a bit to allow engine to start
 				Sleep(SLEEPTIME);
@@ -3913,8 +3909,8 @@ DWORD AutoThreadFunc(LPVOID param)
 				SetWindowText(hwnd, statusbar_txt);
 			}
 
-			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 			setenginestarting(TRUE);
+			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 
 			break;
 
@@ -3932,8 +3928,8 @@ DWORD AutoThreadFunc(LPVOID param)
 
 			if (currentengine != 1)
 				setcurrentengine(1);
-			PostMessage(hwnd, WM_COMMAND, MOVESFORWARDALL, 0);
 
+			PostMessage(hwnd, WM_COMMAND, MOVESFORWARDALL, 0);
 			Sleep(SLEEPTIME);
 
 			// start analysis logfile - overwrite anything old
@@ -3944,8 +3940,8 @@ DWORD AutoThreadFunc(LPVOID param)
 			sprintf(statusbar_txt, "played in game: 1. %s", cbgame.moves[cbgame.movesindex - 1].PDN);
 			logtofile(analysisfilename, statusbar_txt, "a");
 
-			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 			setenginestarting(TRUE);
+			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 
 			// go into a for loop until the game is completely analyzed
 			for (;;) {
@@ -3955,8 +3951,8 @@ DWORD AutoThreadFunc(LPVOID param)
 				if (!getenginebusy() && !getanimationbusy()) {
 					PostMessage(hwnd, WM_COMMAND, MOVESBACK, 0);
 					if (CBstate == ANALYZEGAME && gameover == FALSE) {
-						PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 						setenginestarting(TRUE);
+						PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 					}
 				}
 			}
@@ -3987,7 +3983,7 @@ DWORD AutoThreadFunc(LPVOID param)
 
 			if (gamenumber == 0) {
 
-			// we're done with the file
+				// we're done with the file
 				changeCBstate(NORMAL);
 				sprintf(statusbar_txt, "PDN analysis finished!");
 				break;
@@ -3996,9 +3992,10 @@ DWORD AutoThreadFunc(LPVOID param)
 			// this is the signal that we are at the start of the analysis of a game
 			if (currentengine != 1)
 				setcurrentengine(1);
+
 			PostMessage(hwnd, WM_COMMAND, MOVESFORWARDALL, 0);
-			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 			setenginestarting(TRUE);
+			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 
 			// analyze entire game in this for loop
 			for (;;) {
@@ -4009,10 +4006,10 @@ DWORD AutoThreadFunc(LPVOID param)
 					PostMessage(hwnd, WM_COMMAND, MOVESBACK, 0);
 
 					// give the main thread some time to stop analysis if
-					//we are at the end of the game
+					// we are at the end of the game
 					if (CBstate == ANALYZEPDN && gameover == FALSE) {
-						PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 						setenginestarting(TRUE);
+						PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 					}
 				}
 			}
@@ -4026,8 +4023,8 @@ DWORD AutoThreadFunc(LPVOID param)
 			// start engine if we have a new position.
 			if (newposition) {
 				playnow = 0;
-				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 				setenginestarting(TRUE);
+				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 				newposition = 0;
 			}
 			break;
@@ -4231,8 +4228,8 @@ DWORD AutoThreadFunc(LPVOID param)
 				if (movecount <= 2)
 					reset_move_history = true;
 
-				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 				setenginestarting(TRUE);
+				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 
 				// give main thread some time to handle this message
 				Sleep(SLEEPTIME);
