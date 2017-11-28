@@ -561,22 +561,22 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 }
 
 /*
- * Parse a substring that may contain a checkers move, e.g. 17-21 or 2x10.
- * If a valid move is parsed, return the *from and *to move numbers and the function return value is true.
+ * Parse a substring that may contain a checkers move, e.g. 17-21 or 2x10, or
+ * a fully qualified jump move, e.g. 8x15x24x31x22.
+ * If a valid move is parsed, return the list of square numbers in vector move, and the function return value is true.
  * If a valid move is not parsed, the function return value is false.
  * Allow white space anywhere between the numbers and the move separator, e.g. 1 - 5
  * Allow non-numeric junk that might be appended to the tail end of the 'to' square, e.g. 17-21,foo.
  * Allow non-numeric junk that might come before the move, as in hello2-6
- * Allow jump moves that contain intermediate square numbers, as in 8x15x24x31x22.
  */
-int PDNparseTokentonumbers(char *token, int *from, int *to)
+int PDNparseMove(char *token, std::vector<int> &move)
 {
-	int i;
+	int i, square;
 	int len;
 	PDN_PARSE_STATE state;
 
 	len = (int)strlen(token);
-
+	move.clear();
 	for (i = 0, state = PDN_IDLE; i < len;) {
 		switch (state) {
 		case PDN_IDLE:
@@ -584,7 +584,7 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 			 * that isn't a number.
 			 */
 			if (isdigit((uint8_t) token[i])) {
-				*from = token[i] - '0';
+				square = token[i] - '0';
 				state = PDN_READING_FROM;
 			}
 			else if (token[i] == '(' || token[i] == '{')
@@ -600,13 +600,15 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 			 * to handle anything that isn't a digit.
 			 */
 			if (isdigit((uint8_t) token[i])) {
-				*from = 10 **from + token[i] - '0';
+				square = 10 * square + token[i] - '0';
 				++i;
 			}
 			else if (token[i] == '/')
 				return(0);	/* dont allow slashes in moves, its probably a 1/2-1/2. */
-			else
+			else {
+				move.push_back(square);
 				state = PDN_WAITING_SEP;
+			}
 			break;
 
 		case PDN_WAITING_SEP:
@@ -619,7 +621,7 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 		case PDN_WAITING_TO:
 			/* Ignore anything but a digit here. */
 			if (isdigit((uint8_t) token[i])) {
-				*to = token[i] - '0';
+				square = token[i] - '0';
 				state = PDN_READING_TO;
 			}
 
@@ -629,11 +631,13 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 		case PDN_READING_TO:
 			/* Continue reading the digits of the to square. */
 			if (isdigit((uint8_t) token[i])) {
-				*to = 10 **to + token[i] - '0';
+				square = 10 * square + token[i] - '0';
 				++i;
 			}
-			else
+			else {
+				move.push_back(square);
 				state = PDN_WAITING_OPTIONAL_SEP;
+			}
 			break;
 
 		case PDN_WAITING_OPTIONAL_SEP:
@@ -646,8 +650,12 @@ int PDNparseTokentonumbers(char *token, int *from, int *to)
 	}
 
 	/* If we left in a reasonable termination state, then it's a complete and valid move. */
-	if (state == PDN_WAITING_OPTIONAL_SEP || state == PDN_READING_TO)
+	if (state == PDN_WAITING_OPTIONAL_SEP)
 		return(1);
+	else if (state == PDN_READING_TO) {
+		move.push_back(square);
+		return(1);
+	}
 	else
 		return(0);			/* not a move. */
 }

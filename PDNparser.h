@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 
 #define UTF8_LEFT_DBLQUOTE 147
@@ -14,8 +15,8 @@ typedef enum {
 int PDNparseGetnextgame(char **start, std::string &game);		/* gets whats between **start and game terminator */
 int PDNparseGetnextheader(const char **start,char *header);		/* gets whats betweeen [] from **start */
 int PDNparseGetnexttag(const char **start,char *tag);			/* gets whats between "" from **start */
-int PDNparseTokentonumbers(char *token,int *from, int *to);
-int PDNparseGetnexttoken(const char **start, char *token);	/* gets the next token from **start */
+int PDNparseMove(char *token, std::vector<int> &move);			/* gets move as a list of squares. */
+int PDNparseGetnexttoken(const char **start, char *token);		/* gets the next token from **start */
 int PDNparseGetnextPDNtoken(const char ** start, char *token);
 int PDNparseGetnumberofgames(char *filename);
 

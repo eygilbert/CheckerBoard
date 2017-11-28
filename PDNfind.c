@@ -1,12 +1,3 @@
-// pdnfind.c
-//
-// adds the functionality to search pdn databases:
-//
-// pdnopen(filename, gametype)
-//	indexes a pdn database
-//
-// int pdnfind(pos position, std::vector<int> &matching_games);
-//	returns the number of games found, and returns the indices of these games in the pdn database in the array list
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -208,10 +199,10 @@ int pdnopen(char filename[256], int gametype)
 	int maxpos;
 	int ply, gamenumber;
 	std::string game;
+	std::vector<int> squares;
 	char *start, *buffer, header[256], token[1024];
 	const char *startheader, *tag;
 	const char *starttoken;
-	int from, to;
 	pos p;
 	int color = CB_BLACK;
 	char headername[MAXNAME], headervalue[MAXNAME];
@@ -318,9 +309,17 @@ int pdnopen(char filename[256], int gametype)
 		// load moves
 		starttoken = startheader;
 		ply = 0;
-		while (PDNparseGetnexttoken(&starttoken, token)) {
+		while (1) {
+			int status;
+			const char *lastp;
+			CBmove move;
+			extern CB_ISLEGAL islegal;
 
-			// if it's a move, continue
+			lastp = starttoken;
+			if (!PDNparseGetnexttoken(&starttoken, token))
+				break;
+
+			// if it's a move number, continue
 			if (token[strlen(token) - 1] == '.')
 				continue;
 
@@ -332,18 +331,20 @@ int pdnopen(char filename[256], int gametype)
 			if (token[0] == '(')
 				continue;
 
-			PDNparseTokentonumbers(token, &from, &to);
+			status = PDNparseMove(token, squares);
+			if (!status)
+				continue;
 
 			// we now have the from and to squares of the move in
 			// the variables from, to
 			// find the move which corresponds to this
-			CBmove move;
-			extern CB_ISLEGAL islegal;
-			if (islegal(board8, color, from, to, &move)) {
-				domove(move, board8);
-				boardtobitboard(board8, &p);
-				color = CB_CHANGECOLOR(color);
-			}
+			status = islegal_check(board8, color, squares, &move, gametype);
+			if (!status)
+				continue;
+
+			domove(move, board8);
+			boardtobitboard(board8, &p);
+			color = CB_CHANGECOLOR(color);
 
 			// save position:
 			position.black = p.bm | p.bk;

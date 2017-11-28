@@ -449,7 +449,6 @@ void PDNgametoPDNHTMLstring(PDNgame *game, std::string &pdnstring)
 	i = 1;
 	counter = 0;
 	for (movei = 0; movei < game->moves.size(); ++movei) {
-		move4tonotation(game->moves[movei].move, game->moves[movei].PDN);
 
 		// print anchor
 		sprintf(s, "<a href=\"javascript:moveto(%i)\" name=\"%i\" class=\"move\">", i, i);

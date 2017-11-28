@@ -137,7 +137,6 @@ CB_ENGINECOMMAND enginecommand1, enginecommand2;
 CB_ISLEGAL islegal, islegal1, islegal2;
 CB_GETSTRING enginename1, enginename2;
 CB_GETGAMETYPE CBgametype;			// built in gametype and islegal functions
-CB_ISLEGAL CBislegal;
 
 // instance and window handles
 HINSTANCE g_hInst;				//instance of checkerboard
@@ -1839,9 +1838,15 @@ int handle_lbuttondown(int x, int y)
 				// if we are in user book mode, add it to user book!
 				if (islegal(cbboard8, cbcolor, from, to, &localmove) != 0) {
 
-					// a legal move!
-					// insert move in the linked list
-					appendmovetolist(localmove);
+					// a legal move! Add move to the game list.
+					// For English checkers we can fully describe ambiguous captures.
+					if (gametype() == GT_ENGLISH) {
+						char pdn[40];
+						move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn);
+						addmovetogame(localmove, pdn);
+					}
+					else
+						addmovetogame(localmove, nullptr);
 
 					// animate the move:
 					cbmove = localmove;
@@ -1952,7 +1957,7 @@ int handle_lbuttondown(int x, int y)
 
 					// a legal move!
 					// insert move in the linked list
-					appendmovetolist(localmove);
+					addmovetogame(localmove, nullptr);
 
 					// animate the move:
 					cbmove = localmove;
@@ -1999,9 +2004,9 @@ int handle_lbuttondown(int x, int y)
 						&localmove) != 0
 			) {
 
-			// a legal move!
+				// a legal move!
 				// insert move in the linked list
-				appendmovetolist(localmove);
+				addmovetogame(localmove, nullptr);
 
 				// animate the move:
 				cbmove = localmove;
@@ -2984,12 +2989,12 @@ int start_user_ballot(int bnum)
 void game_to_colors_reversed_pdn(char *pdn)
 {
 	int gindex;
-	int from, to;
+	std::vector<int> move;
 
 	pdn[0] = 0;
 	for (gindex = 0; gindex < cbgame.movesindex; ++gindex) {
-		PDNparseTokentonumbers(cbgame.moves[gindex].PDN, &from, &to);
-		sprintf(pdn + strlen(pdn), "%d-%d ", 33 - from, 33 - to);
+		PDNparseMove(cbgame.moves[gindex].PDN, move);
+		sprintf(pdn + strlen(pdn), "%d-%d ", 33 - move[0], 33 - move[move.size() - 1]);
 	}
 }
 
@@ -3022,17 +3027,17 @@ int start3move(int opening_index)
 
 	getmovelist(cbcolor, movelist, cbboard8, &iscapture);
 	domove(movelist[three[opening_index][0]], cbboard8);
-	appendmovetolist(movelist[three[opening_index][0]]);
+	addmovetogame(movelist[three[opening_index][0]], nullptr);
 
 	cbcolor = CB_CHANGECOLOR(cbcolor);
 	getmovelist(cbcolor, movelist, cbboard8, &iscapture);
 	domove(movelist[three[opening_index][1]], cbboard8);
-	appendmovetolist(movelist[three[opening_index][1]]);
+	addmovetogame(movelist[three[opening_index][1]], nullptr);
 
 	cbcolor = CB_CHANGECOLOR(cbcolor);
 	getmovelist(cbcolor, movelist, cbboard8, &iscapture);
 	domove(movelist[three[opening_index][2]], cbboard8);
-	appendmovetolist(movelist[three[opening_index][2]]);
+	addmovetogame(movelist[three[opening_index][2]], nullptr);
 
 	cbcolor = CB_CHANGECOLOR(cbcolor);
 
@@ -3175,6 +3180,7 @@ DWORD SearchThreadFunc(LPVOID param)
 	int founduserbookmove = 0;
 	double elapsed, maxtime;
 
+	PDN[0] = 0;
 	if (cboptions.use_incremental_time && CBstate != ENGINEMATCH && CBstate != AUTOPLAY && CBstate != ENGINEGAME) {
 
 		/* Player must have just made a move.
@@ -3393,9 +3399,9 @@ DWORD SearchThreadFunc(LPVOID param)
 					memcpy(b8copy, original8board, sizeof(b8copy));
 					domove(movelist[i], b8copy);
 					if (memcmp(cbboard8, b8copy, sizeof(cbboard8)) == 0) {
-						move4tonotation(movelist[i], PDN);
 						cbmove = movelist[i];
 						found = 1;
+						move_to_pdn_english(nmoves, movelist, &cbmove, PDN);
 						break;
 					}
 				}
@@ -3419,7 +3425,7 @@ DWORD SearchThreadFunc(LPVOID param)
 	// now we execute the move, but only if we are not in the mode
 	// ANALYZEGAME or OBSERVEGAME
 	if ((CBstate != OBSERVEGAME) && (CBstate != ANALYZEGAME) && (CBstate != ANALYZEPDN) && found && !abortcalculation) {
-		appendmovetolist(cbmove);
+		addmovetogame(cbmove, PDN);
 
 		// if sound is on we make a beep
 		if (cboptions.sound)
@@ -3520,11 +3526,13 @@ bool read_user_ballots_file(void)
 
 		/* Move to the last position in the game. */
 		for (int i = 0; i < (int)game.moves.size(); ++i) {
-			int from, to;
+			int status;
+			std::vector<int> squares;
 			CBmove move;
 
-			PDNparseTokentonumbers(game.moves[i].PDN, &from, &to);
-			if (islegal(ballot.board8, ballot.color, from, to, &move)) {
+			PDNparseMove(game.moves[i].PDN, squares);
+			status = islegal_check(ballot.board8, ballot.color, squares, &move, gametype());
+			if (status) {
 				game.moves[i].move = move;
 				ballot.color = CB_CHANGECOLOR(ballot.color);
 				domove(move, ballot.board8);
@@ -4636,8 +4644,6 @@ void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm)
 	// print PDN
 	counter = 0;
 	for (i = 0; i < (int)game.moves.size(); ++i) {
-		move4tonotation(game.moves[i].move, game.moves[i].PDN);
-
 		// print the move number
 		if (!is_second_player(game, i)) {
 			sprintf(s, "%i. ", moveindex2movenum(game, i));
@@ -4690,7 +4696,7 @@ void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm)
  * The move is added after the current position into the moves list, cbgame.movesindex.
  * If this is not the end of moves[], delete all the entries starting at movesindex.
  */
-void appendmovetolist(CBmove &move)
+void addmovetogame(CBmove &move, char *pdn)
 {
 	gamebody_entry entry;
 
@@ -4701,7 +4707,10 @@ void appendmovetolist(CBmove &move)
 	entry.analysis[0] = 0;
 	entry.comment[0] = 0;
 	entry.move = move;
-	move4tonotation(move, entry.PDN);
+	if (pdn != nullptr && pdn[0])
+		strcpy(entry.PDN, pdn);
+	else
+		move4tonotation(move, entry.PDN);
 	try {
 		cbgame.moves.push_back(entry);
 	}
@@ -4798,15 +4807,18 @@ bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::stri
 	/* called by loadgame and gamepaste */
 	int i, color;
 	int b8[8][8];
-	int from, to;
 	CBmove legalmove;
 
 	/* set the starting values */
 	color = startcolor;
 	memcpy(b8, startposition, sizeof(b8));
 	for (i = 0; i < (int)game.moves.size(); ++i) {
-		PDNparseTokentonumbers(game.moves[i].PDN, &from, &to);
-		if (islegal(b8, color, from, to, &legalmove)) {
+		int status;
+		std::vector<int> move;
+
+		PDNparseMove(game.moves[i].PDN, move);
+		status = islegal_check(b8, color, move, &legalmove, gametype());
+		if (status) {
 			game.moves[i].move = legalmove;
 			color = CB_CHANGECOLOR(color);
 			domove(legalmove, b8);
@@ -4825,29 +4837,44 @@ bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::stri
 	return(false);
 }
 
-int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
+int builtinislegal(int board8[8][8], int color, std::vector<int> &squares, CBmove *move)
 {
 	// make all moves and try to find out if this move is legal
 	int i, n;
-	coor c;
 	int Lfrom, Lto;
 	int isjump;
 	CBmove movelist[MAXMOVES];
 
 	n = getmovelist(color, movelist, board8, &isjump);
 	for (i = 0; i < n; i++) {
-		c.x = movelist[i].from.x;
-		c.y = movelist[i].from.y;
-		Lfrom = coortonumber(c, cbgame.gametype);
-		c.x = movelist[i].to.x;
-		c.y = movelist[i].to.y;
-		Lto = coortonumber(c, cbgame.gametype);
-		if (Lfrom == from && Lto == to) {
+		Lfrom = coortonumber(movelist[i].from, cbgame.gametype);
+		Lto = coortonumber(movelist[i].to, cbgame.gametype);
+		if (Lfrom == squares[0] && Lto == squares[squares.size() - 1]) {
 
-			// we have found a legal move
-			// todo: continue to see whether this move is ambiguous!
-			*move = movelist[i];
-			return 1;
+			/* If more than 2 squares, the intermediates have to match also. */
+			if (squares.size() > 2) {
+				if (squares.size() - 2 != movelist[i].jumps - 1)	/* jumps has the number of landed squares in path[]. */
+					continue;
+
+				bool match = true;
+				for (size_t k = 1; k < squares.size() - 1; ++k) {
+					int intermediate = coortonumber(movelist[i].path[k], cbgame.gametype);
+					if (squares[k] != intermediate) {
+						match = false;
+						break;
+					}
+				}
+				if (match) {
+					/* Found a match of fully described capture move. */
+					*move = movelist[i];
+					return(1);
+				}
+			}
+			else {
+				/* Found a matching move described with only from and to squares. */
+				*move = movelist[i];
+				return(1);
+			}
 		}
 	}
 
@@ -4855,8 +4882,77 @@ int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
 		sprintf(statusbar_txt, "illegal move - you must jump! for multiple jumps, click only from and to square");
 	}
 	else
-		sprintf(statusbar_txt, "%i-%i not a legal move", from, to);
+		sprintf(statusbar_txt, "%d-%d not a legal move", squares[0], squares[squares.size() - 1]);
 	return 0;
+}
+
+/*
+ * Although we assign the islegal function pointer to this function for English checkers, it
+ * does not get used. All islegal decisions are made through islegal_check().
+ */
+int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
+{
+	std::vector<int> squares;
+
+	squares.push_back(from);
+	squares.push_back(to);
+	return(builtinislegal(board8, color, squares, move));
+}
+
+/*
+ * For English game type we can use the builtin legal checker to resolve ambiguous moves, so send
+ * it all squares that are needed to uniquely describe the move. Unfortunately, the interface to the 
+ * engines does not allow sending intermediate squares, so we can't do this for the other game types.
+ */
+int islegal_check(int board8[8][8], int color, std::vector<int> &squares, CBmove *move, int gametype)
+{
+	if (gametype == GT_ENGLISH)
+		return(builtinislegal(board8, color, squares, move));
+	else
+		return(islegal(board8, color, squares[0], squares[squares.size() - 1], move));
+}
+
+/*
+ * Take a CBmove and write the move in PDN text format.
+ * Write capture moves in long format if needed to unambiguously describe them.
+ * This function is only for English checkers.
+ * Return true on error, false on success.
+ */
+bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, char *pdn)
+{
+	int i, count;
+	char separator;
+
+	/* Find the number of moves that match the from and to squares. */
+	pdn[0] = 0;
+	count = 0;
+	for (i = 0; i < nmoves; ++i) {
+		if (coortonumber(movelist[i].from, GT_ENGLISH) == coortonumber(move->from, GT_ENGLISH) &&
+					coortonumber(movelist[i].to, GT_ENGLISH) == coortonumber(move->to, GT_ENGLISH))
+			++count;
+	}
+	if (count == 0)
+		return(true);
+
+	separator = move->jumps ? 'x' : '-';
+	if (count == 1)
+		sprintf(pdn, "%d%c%d", coortonumber(move->from, GT_ENGLISH), separator, coortonumber(move->to, GT_ENGLISH));
+	else {
+		sprintf(pdn, "%d%c", coortonumber(move->from, GT_ENGLISH), separator);
+		for (i = 1; i < move->jumps; ++i)
+			sprintf(pdn + strlen(pdn), "%d%c", coortonumber(move->path[i], GT_ENGLISH), separator);
+		sprintf(pdn + strlen(pdn), "%d", coortonumber(move->to, GT_ENGLISH));
+	}
+	return(false);
+}
+
+bool move_to_pdn_english(int board8[8][8], int color, CBmove *move, char *pdn)
+{
+	int isjump, nmoves;
+	CBmove movelist[MAXMOVES];
+
+	nmoves = getmovelist(color, movelist, board8, &isjump);
+	return(move_to_pdn_english(nmoves, movelist, move, pdn));
 }
 
 void newgame(void)
@@ -4913,11 +5009,13 @@ bool doload(PDNgame *game, const char *gamestring, int *color, int board8[8][8],
 			sprintf(game->resultstring, "%s", headervalue);
 			if (strcmp(headervalue, "1-0") == 0)
 				game->result = CB_WIN;
-			if (strcmp(headervalue, "0-1") == 0)
+			else if (strcmp(headervalue, "0-1") == 0)
 				game->result = CB_LOSS;
-			if (strcmp(headervalue, "1/2-1/2") == 0)
+			else if (strcmp(headervalue, "1/2-1/2") == 0)
 				game->result = CB_DRAW;
-			if (strcmp(headervalue, "*") == 0)
+			else if (strcmp(headervalue, "*") == 0)
+				game->result = CB_UNKNOWN;
+			else
 				game->result = CB_UNKNOWN;
 		}
 
@@ -5081,7 +5179,7 @@ int load_engine
 		*getmovefn = (CB_GETMOVE) GetProcAddress(*lib, "getmove");
 		*islegalfn = (CB_ISLEGAL) GetProcAddress(*lib, "islegal");
 		if (*islegalfn == NULL)
-			*islegalfn = CBislegal;
+			*islegalfn = builtinislegal;
 		return(0);
 	}
 	else {
@@ -5114,7 +5212,6 @@ void loadengines(char *pri_fname, char *sec_fname)
 
 	// set built in functions
 	CBgametype = (CB_GETGAMETYPE) builtingametype;
-	CBislegal = (CB_ISLEGAL) builtinislegal;
 
 	// load engine dlls
 	// first, primary engine

@@ -61,11 +61,11 @@ struct CBmove {
 	int jumps;				/* number of pieces jumped. */
 	int newpiece;			/* piece type that lands on the 'to' square. */
 	int oldpiece;			/* piece type that disappears from the 'from' square. */
-	coor from;		/* coordinates of the from piece in 8x8 notation. */
-	coor to;			/* coordinates of the to piece in 8x8 notation. */
-	coor path[12];	/* intermediate path coordinates of the moving pieces. */
+	coor from;				/* coordinates of the from piece in 8x8 notation. */
+	coor to;				/* coordinates of the to piece in 8x8 notation. */
+	coor path[12];			/* intermediate path coordinates of the moving pieces. */
 							/* Starts at path[1]; path[0] is not used. */
-	coor del[12];	/* squares of pieces that are captured. */
+	coor del[12];			/* squares of pieces that are captured. */
 	int delpiece[12];		/* piece type of pieces that are captured. */
 };
 
