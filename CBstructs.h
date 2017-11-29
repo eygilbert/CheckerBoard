@@ -130,7 +130,21 @@ struct emstats_t {
 	int opening_index;	/* index into 3-move table, 1 less than the ACF ballot number. */
 };
 
-struct squarelist {
-	char size;
+class Squarelist {
+	char m_size;
 	char squares[13];
+
+public:
+	Squarelist() {clear();}
+	void clear() {m_size = 0;}
+	int first() {return(squares[0]);}
+	int last() {return(squares[m_size - 1]);}
+	int size() {return(m_size);}
+	int read(int index) {return(squares[index]);}
+	void append(int square) {
+		if (m_size < sizeof(squares)) {
+			squares[m_size] = square;
+			++m_size;
+		}
+	}
 };

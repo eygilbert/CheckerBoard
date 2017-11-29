@@ -112,3 +112,4 @@ void coorstocoors(int *x, int *y, int invert, int mirror)
 	if (mirror)
 		*x = 7 -*x;
 }
+

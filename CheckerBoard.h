@@ -47,7 +47,7 @@ void abortengine();
 int addmovetouserbook(int b[8][8], CBmove *move);
 void add_piecesets_to_menu(HMENU hmenu);
 void addmovetogame(CBmove &move, char *pdn);
-int islegal_check(int board8[8][8], int color, squarelist &squares, CBmove *move, int gametype);
+int islegal_check(int board8[8][8], int color, Squarelist &squares, CBmove *move, int gametype);
 bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, char *pdn);
 bool move_to_pdn_english(int board8[8][8], int color, CBmove *move, char *pdn);
 int changeCBstate(int newstate);

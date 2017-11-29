@@ -75,7 +75,7 @@
 
 //---------------------------------------------------------------------
 // globals - should be identified in code by g_varname but aren't all...
-PDNgame cbgame;
+PDNgame cbgame;						/* The current game. */
 
 // all checkerboard options are collected in CBoptions; like this, they can be saved
 // as one struct in the registry, instead of using lots of commands.
@@ -154,8 +154,8 @@ char datename[MAXNAME];			// date we're searching for
 char commentname[MAXNAME];		// comment we're searching for
 int searchwithposition;			// search with position?
 HMENU hmenu;					// menu handle
-double xmetric, ymetric;		//gives the size of the board8: one square is xmetric*ymetric
-int x1 = -1, x2 = -1, y1_ = -1, y2 = -1;
+double xmetric, ymetric;		// gives the size of the board8: one square is xmetric*ymetric
+Squarelist clicks;				// user clicks on the board
 
 char reply[ENGINECOMMAND_REPLY_SIZE];	// holds reply of engine to command requests
 char CBdirectory[MAX_PATH];				// holds the directory from where CB is started:
@@ -431,7 +431,7 @@ void set_setup_mode(bool state)
 		// leaving setup mode;
 		CheckMenuItem(hmenu, SETUPMODE, MF_UNCHECKED);
 		reset_move_history = true;
-		x1 = -1;
+		clicks.clear();
 		sprintf(statusbar_txt, "Setup done");
 
 		// get FEN string
@@ -857,7 +857,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			}
 			else
 				SendMessage(hwnd, WM_COMMAND, INTERRUPTENGINE, 0);
-			x1 = -1;
+			clicks.clear();
 			break;
 
 		case INTERRUPTENGINE:
@@ -1738,7 +1738,7 @@ int handle_rbuttondown(int x, int y)
 {
 	if (setup_mode) {
 		coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
-		if ((x + y + 1) % 2) {
+		if (is_valid_board8_square(x, y)) {
 			switch (cbboard8[x][y]) {
 			case CB_WHITE | CB_MAN:
 				cbboard8[x][y] = CB_WHITE | CB_KING;
@@ -1766,23 +1766,25 @@ int handle_lbuttondown(int x, int y)
 	int from, to;
 	CBmove localmove;
 
+	/* Convert screen coords to board8 coords. */
+	coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
+	if (!is_valid_board8_square(x, y))
+		return 0;
+
 	// if we are in setup mode, add a black piece.
 	if (setup_mode) {
-		coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
-		if ((x + y + 1) % 2) {
-			switch (cbboard8[x][y]) {
-			case CB_BLACK | CB_MAN:
-				cbboard8[x][y] = CB_BLACK | CB_KING;
-				break;
+		switch (cbboard8[x][y]) {
+		case CB_BLACK | CB_MAN:
+			cbboard8[x][y] = CB_BLACK | CB_KING;
+			break;
 
-			case CB_BLACK | CB_KING:
-				cbboard8[x][y] = 0;
-				break;
+		case CB_BLACK | CB_KING:
+			cbboard8[x][y] = 0;
+			break;
 
-			default:
-				cbboard8[x][y] = CB_BLACK | CB_MAN;
-				break;
-			}
+		default:
+			cbboard8[x][y] = CB_BLACK | CB_MAN;
+			break;
 		}
 
 		updateboardgraphics(hwnd);
@@ -1794,19 +1796,17 @@ int handle_lbuttondown(int x, int y)
 	if ((getenginebusy() || getanimationbusy()) && (CBstate != OBSERVEGAME))
 		return 0;
 
-	if (x1 == -1) {
+	clicks.append(coorstonumber(x, y, cbgame.gametype));
+	if (clicks.size() == 1) {
 
-		//then its the first click
-		x1 = x;
-		y1_ = y;
-		coorstocoors(&x1, &y1_, cboptions.invert, cboptions.mirror);
+		// then its the first click
+		from = clicks.first();
 
 		// if there is only one move with this piece, then do it!
 		if (islegal != NULL) {
 			legal = 0;
 			legalmovenumber = 0;
 			for (i = 1; i <= 32; i++) {
-				from = coorstonumber(x1, y1_, cbgame.gametype);
 				if (islegal(cbboard8, cbcolor, from, i, &localmove) != 0) {
 					legal++;
 					legalmovenumber = i;
@@ -1817,11 +1817,11 @@ int handle_lbuttondown(int x, int y)
 			// look for a single move possible to an empty square
 			if (legal == 0) {
 				for (i = 1; i <= 32; i++) {
-					if (islegal(cbboard8, cbcolor, i, coorstonumber(x1, y1_, cbgame.gametype), &localmove) != 0) {
+					if (islegal(cbboard8, cbcolor, i, clicks.first(), &localmove) != 0) {
 						legal++;
 						legalmovenumber = i;
 						from = i;
-						to = coorstonumber(x1, y1_, cbgame.gametype);
+						to = clicks.first();
 					}
 				}
 
@@ -1864,7 +1864,7 @@ int handle_lbuttondown(int x, int y)
 											  hwnd,
 											  0,
 											  &g_AniThreadId);
-					x1 = -1;
+					clicks.clear();
 
 					// if we are in enter game mode: tell engine to stop
 					if (CBstate == OBSERVEGAME)
@@ -1882,29 +1882,24 @@ int handle_lbuttondown(int x, int y)
 		// if the stone is the color of the side to move, allow it to be selected
 		if
 		(
-			(cbcolor == CB_BLACK && cbboard8[x1][y1_] & CB_BLACK) ||
-			(cbcolor == CB_WHITE && cbboard8[x1][y1_] & CB_WHITE)
+			(cbcolor == CB_BLACK && cbboard8[x][y] & CB_BLACK) ||
+			(cbcolor == CB_WHITE && cbboard8[x][y] & CB_WHITE)
 		) {
 
 			// re-print board to overwrite last selection if there was one
 			updateboardgraphics(hwnd);
 
 			// and then select stone
-			selectstone(x1, y1_, hwnd, cbboard8);
+			selectstone(x, y, hwnd, cbboard8);
 		}
 
 		// else, reset the click count to 0.
 		else
-			x1 = -1;
+			clicks.clear();
 	}
 	else {
 
-		//then its the second click
-		x2 = x;
-		y2 = y;
-		coorstocoors(&x2, &y2, cboptions.invert, cboptions.mirror);
-		if (!((x2 + y2 + 1) % 2))
-			return 0;
+		// then its not the first click
 
 		// now, perhaps the user selected another stone; i.e. the second
 		// click is ALSO on a stone of the user. then we assume he has changed
@@ -1915,19 +1910,20 @@ int handle_lbuttondown(int x, int y)
 		// however, with the new one-click-move input, this will work fine now!
 		if
 		(
-			(cbcolor == CB_BLACK && cbboard8[x2][y2] & CB_BLACK) ||
-			(cbcolor == CB_WHITE && cbboard8[x2][y2] & CB_WHITE)
+			(cbcolor == CB_BLACK && cbboard8[x][y] & CB_BLACK) ||
+			(cbcolor == CB_WHITE && cbboard8[x][y] & CB_WHITE)
 		) {
 
 			// re-print board to overwrite last selection if there was one
 			updateboardgraphics(hwnd);
 
 			// and then select stone
-			selectstone(x2, y2, hwnd, cbboard8);
+			selectstone(x, y, hwnd, cbboard8);
 
-			// set second click to first click
-			x1 = x2;
-			y1_ = y2;
+			// set this click to first click
+			from = clicks.last();
+			clicks.clear();
+			clicks.append(from);
 
 			// check whether this is an only move
 			legal = 0;
@@ -1935,7 +1931,7 @@ int handle_lbuttondown(int x, int y)
 			if (islegal != NULL) {
 				legalmovenumber = 0;
 				for (i = 1; i <= 32; i++) {
-					if (islegal(cbboard8, cbcolor, coorstonumber(x1, y1_, cbgame.gametype), i, &localmove) != 0) {
+					if (islegal(cbboard8, cbcolor, clicks.first(), i, &localmove) != 0) {
 						legal++;
 						legalmovenumber = i;
 					}
@@ -1946,14 +1942,7 @@ int handle_lbuttondown(int x, int y)
 			if (legal == 1) {
 
 				// only one legal move
-				if
-				(
-					islegal(cbboard8,
-							cbcolor,
-							coorstonumber(x1, y1_, cbgame.gametype),
-							legalmovenumber,
-							&localmove) != 0
-				) {
+				if (islegal(cbboard8, cbcolor, clicks.first(), legalmovenumber, &localmove) != 0) {
 
 					// a legal move!
 					// insert move in the linked list
@@ -1987,25 +1976,19 @@ int handle_lbuttondown(int x, int y)
 					// if we are in add moves to book mode, add this move to the book
 				}
 			}
-			else
+			else {
 				// and break so as not to execute the rest of this clause, because
 				// that is for actually making a move.
 				return 0;
+			}
 		}
 
 		// check move and if ok
 		if (islegal != NULL) {
-			if
-			(
-				islegal(cbboard8,
-						cbcolor,
-						coorstonumber(x1, y1_, cbgame.gametype),
-						coorstonumber(x2, y2, cbgame.gametype),
-						&localmove) != 0
-			) {
+			if (islegal(cbboard8, cbcolor, clicks.first(), clicks.last(), &localmove) != 0) {
 
 				// a legal move!
-				// insert move in the linked list
+				// insert move in the game
 				addmovetogame(localmove, nullptr);
 
 				// animate the move:
@@ -2037,7 +2020,7 @@ int handle_lbuttondown(int x, int y)
 			}
 		}
 
-		x1 = -1;
+		clicks.clear();
 	}
 
 	//updateboardgraphics(hwnd);
@@ -2989,12 +2972,12 @@ int start_user_ballot(int bnum)
 void game_to_colors_reversed_pdn(char *pdn)
 {
 	int gindex;
-	squarelist move;
+	Squarelist move;
 
 	pdn[0] = 0;
 	for (gindex = 0; gindex < cbgame.movesindex; ++gindex) {
 		PDNparseMove(cbgame.moves[gindex].PDN, move);
-		sprintf(pdn + strlen(pdn), "%d-%d ", 33 - move.squares[0], 33 - move.squares[move.size - 1]);
+		sprintf(pdn + strlen(pdn), "%d-%d ", 33 - move.first(), 33 - move.last());
 	}
 }
 
@@ -3527,7 +3510,7 @@ bool read_user_ballots_file(void)
 		/* Move to the last position in the game. */
 		for (int i = 0; i < (int)game.moves.size(); ++i) {
 			int status;
-			squarelist squares;
+			Squarelist squares;
 			CBmove move;
 
 			PDNparseMove(game.moves[i].PDN, squares);
@@ -4814,7 +4797,7 @@ bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::stri
 	memcpy(b8, startposition, sizeof(b8));
 	for (i = 0; i < (int)game.moves.size(); ++i) {
 		int status;
-		squarelist move;
+		Squarelist move;
 
 		PDNparseMove(game.moves[i].PDN, move);
 		status = islegal_check(b8, color, move, &legalmove, gametype());
@@ -4837,7 +4820,7 @@ bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::stri
 	return(false);
 }
 
-int builtinislegal(int board8[8][8], int color, squarelist &squares, CBmove *move)
+int builtinislegal(int board8[8][8], int color, Squarelist &squares, CBmove *move)
 {
 	// make all moves and try to find out if this move is legal
 	int i, n;
@@ -4849,17 +4832,17 @@ int builtinislegal(int board8[8][8], int color, squarelist &squares, CBmove *mov
 	for (i = 0; i < n; i++) {
 		Lfrom = coortonumber(movelist[i].from, cbgame.gametype);
 		Lto = coortonumber(movelist[i].to, cbgame.gametype);
-		if (Lfrom == squares.squares[0] && Lto == squares.squares[squares.size - 1]) {
+		if (Lfrom == squares.first() && Lto == squares.last()) {
 
 			/* If more than 2 squares, the intermediates have to match also. */
-			if (squares.size > 2) {
-				if (squares.size - 2 != movelist[i].jumps - 1)	/* jumps has the number of landed squares in path[]. */
+			if (squares.size() > 2) {
+				if (squares.size() - 2 != movelist[i].jumps - 1)	/* jumps has the number of landed squares in path[]. */
 					continue;
 
 				bool match = true;
-				for (int k = 1; k < squares.size - 1; ++k) {
+				for (int k = 1; k < squares.size() - 1; ++k) {
 					int intermediate = coortonumber(movelist[i].path[k], cbgame.gametype);
-					if (squares.squares[k] != intermediate) {
+					if (squares.read(k) != intermediate) {
 						match = false;
 						break;
 					}
@@ -4882,7 +4865,7 @@ int builtinislegal(int board8[8][8], int color, squarelist &squares, CBmove *mov
 		sprintf(statusbar_txt, "illegal move - you must jump! for multiple jumps, click only from and to square");
 	}
 	else
-		sprintf(statusbar_txt, "%d-%d not a legal move", squares.squares[0], squares.squares[squares.size - 1]);
+		sprintf(statusbar_txt, "%d-%d not a legal move", squares.first(), squares.last());
 	return 0;
 }
 
@@ -4892,11 +4875,10 @@ int builtinislegal(int board8[8][8], int color, squarelist &squares, CBmove *mov
  */
 int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
 {
-	squarelist squares;
+	Squarelist squares;
 
-	squares.squares[0] = from;
-	squares.squares[1] = to;
-	squares.size = 2;
+	squares.append(from);
+	squares.append(to);
 	return(builtinislegal(board8, color, squares, move));
 }
 
@@ -4905,12 +4887,12 @@ int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
  * it all squares that are needed to uniquely describe the move. Unfortunately, the interface to the 
  * engines does not allow sending intermediate squares, so we can't do this for the other game types.
  */
-int islegal_check(int board8[8][8], int color, squarelist &squares, CBmove *move, int gametype)
+int islegal_check(int board8[8][8], int color, Squarelist &squares, CBmove *move, int gametype)
 {
 	if (gametype == GT_ENGLISH)
 		return(builtinislegal(board8, color, squares, move));
 	else
-		return(islegal(board8, color, squares.squares[0], squares.squares[squares.size - 1], move));
+		return(islegal(board8, color, squares.first(), squares.last(), move));
 }
 
 /*

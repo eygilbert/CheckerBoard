@@ -199,7 +199,7 @@ int pdnopen(char filename[256], int gametype)
 	int maxpos;
 	int ply, gamenumber;
 	std::string game;
-	squarelist squares;
+	Squarelist squares;
 	char *start, *buffer, header[256], token[1024];
 	const char *startheader, *tag;
 	const char *starttoken;
