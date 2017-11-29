@@ -130,4 +130,7 @@ struct emstats_t {
 	int opening_index;	/* index into 3-move table, 1 less than the ACF ballot number. */
 };
 
-
+struct squarelist {
+	char size;
+	char squares[13];
+};

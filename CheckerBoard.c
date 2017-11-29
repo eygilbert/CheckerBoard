@@ -2989,12 +2989,12 @@ int start_user_ballot(int bnum)
 void game_to_colors_reversed_pdn(char *pdn)
 {
 	int gindex;
-	std::vector<int> move;
+	squarelist move;
 
 	pdn[0] = 0;
 	for (gindex = 0; gindex < cbgame.movesindex; ++gindex) {
 		PDNparseMove(cbgame.moves[gindex].PDN, move);
-		sprintf(pdn + strlen(pdn), "%d-%d ", 33 - move[0], 33 - move[move.size() - 1]);
+		sprintf(pdn + strlen(pdn), "%d-%d ", 33 - move.squares[0], 33 - move.squares[move.size - 1]);
 	}
 }
 
@@ -3527,7 +3527,7 @@ bool read_user_ballots_file(void)
 		/* Move to the last position in the game. */
 		for (int i = 0; i < (int)game.moves.size(); ++i) {
 			int status;
-			std::vector<int> squares;
+			squarelist squares;
 			CBmove move;
 
 			PDNparseMove(game.moves[i].PDN, squares);
@@ -4814,7 +4814,7 @@ bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::stri
 	memcpy(b8, startposition, sizeof(b8));
 	for (i = 0; i < (int)game.moves.size(); ++i) {
 		int status;
-		std::vector<int> move;
+		squarelist move;
 
 		PDNparseMove(game.moves[i].PDN, move);
 		status = islegal_check(b8, color, move, &legalmove, gametype());
@@ -4837,7 +4837,7 @@ bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::stri
 	return(false);
 }
 
-int builtinislegal(int board8[8][8], int color, std::vector<int> &squares, CBmove *move)
+int builtinislegal(int board8[8][8], int color, squarelist &squares, CBmove *move)
 {
 	// make all moves and try to find out if this move is legal
 	int i, n;
@@ -4849,17 +4849,17 @@ int builtinislegal(int board8[8][8], int color, std::vector<int> &squares, CBmov
 	for (i = 0; i < n; i++) {
 		Lfrom = coortonumber(movelist[i].from, cbgame.gametype);
 		Lto = coortonumber(movelist[i].to, cbgame.gametype);
-		if (Lfrom == squares[0] && Lto == squares[squares.size() - 1]) {
+		if (Lfrom == squares.squares[0] && Lto == squares.squares[squares.size - 1]) {
 
 			/* If more than 2 squares, the intermediates have to match also. */
-			if (squares.size() > 2) {
-				if (squares.size() - 2 != movelist[i].jumps - 1)	/* jumps has the number of landed squares in path[]. */
+			if (squares.size > 2) {
+				if (squares.size - 2 != movelist[i].jumps - 1)	/* jumps has the number of landed squares in path[]. */
 					continue;
 
 				bool match = true;
-				for (size_t k = 1; k < squares.size() - 1; ++k) {
+				for (int k = 1; k < squares.size - 1; ++k) {
 					int intermediate = coortonumber(movelist[i].path[k], cbgame.gametype);
-					if (squares[k] != intermediate) {
+					if (squares.squares[k] != intermediate) {
 						match = false;
 						break;
 					}
@@ -4882,7 +4882,7 @@ int builtinislegal(int board8[8][8], int color, std::vector<int> &squares, CBmov
 		sprintf(statusbar_txt, "illegal move - you must jump! for multiple jumps, click only from and to square");
 	}
 	else
-		sprintf(statusbar_txt, "%d-%d not a legal move", squares[0], squares[squares.size() - 1]);
+		sprintf(statusbar_txt, "%d-%d not a legal move", squares.squares[0], squares.squares[squares.size - 1]);
 	return 0;
 }
 
@@ -4892,10 +4892,11 @@ int builtinislegal(int board8[8][8], int color, std::vector<int> &squares, CBmov
  */
 int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
 {
-	std::vector<int> squares;
+	squarelist squares;
 
-	squares.push_back(from);
-	squares.push_back(to);
+	squares.squares[0] = from;
+	squares.squares[1] = to;
+	squares.size = 2;
 	return(builtinislegal(board8, color, squares, move));
 }
 
@@ -4904,12 +4905,12 @@ int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
  * it all squares that are needed to uniquely describe the move. Unfortunately, the interface to the 
  * engines does not allow sending intermediate squares, so we can't do this for the other game types.
  */
-int islegal_check(int board8[8][8], int color, std::vector<int> &squares, CBmove *move, int gametype)
+int islegal_check(int board8[8][8], int color, squarelist &squares, CBmove *move, int gametype)
 {
 	if (gametype == GT_ENGLISH)
 		return(builtinislegal(board8, color, squares, move));
 	else
-		return(islegal(board8, color, squares[0], squares[squares.size() - 1], move));
+		return(islegal(board8, color, squares.squares[0], squares.squares[squares.size - 1], move));
 }
 
 /*

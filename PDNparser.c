@@ -569,14 +569,14 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
  * Allow non-numeric junk that might be appended to the tail end of the 'to' square, e.g. 17-21,foo.
  * Allow non-numeric junk that might come before the move, as in hello2-6
  */
-int PDNparseMove(char *token, std::vector<int> &move)
+int PDNparseMove(char *token, squarelist &move)
 {
 	int i, square;
 	int len;
 	PDN_PARSE_STATE state;
 
 	len = (int)strlen(token);
-	move.clear();
+	move.size = 0;
 	for (i = 0, state = PDN_IDLE; i < len;) {
 		switch (state) {
 		case PDN_IDLE:
@@ -606,7 +606,8 @@ int PDNparseMove(char *token, std::vector<int> &move)
 			else if (token[i] == '/')
 				return(0);	/* dont allow slashes in moves, its probably a 1/2-1/2. */
 			else {
-				move.push_back(square);
+				move.squares[move.size] = square;
+				++move.size;
 				state = PDN_WAITING_SEP;
 			}
 			break;
@@ -635,7 +636,8 @@ int PDNparseMove(char *token, std::vector<int> &move)
 				++i;
 			}
 			else {
-				move.push_back(square);
+				move.squares[move.size] = square;
+				++move.size;
 				state = PDN_WAITING_OPTIONAL_SEP;
 			}
 			break;
@@ -653,7 +655,8 @@ int PDNparseMove(char *token, std::vector<int> &move)
 	if (state == PDN_WAITING_OPTIONAL_SEP)
 		return(1);
 	else if (state == PDN_READING_TO) {
-		move.push_back(square);
+		move.squares[move.size] = square;
+		++move.size;
 		return(1);
 	}
 	else

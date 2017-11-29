@@ -1,4 +1,5 @@
 #pragma once
+#include <Windows.h>
 #include <stdint.h>
 
 /* Definitions shared between CheckerBoard and an engine.
