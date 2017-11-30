@@ -131,9 +131,6 @@ struct emstats_t {
 };
 
 class Squarelist {
-	char m_size;
-	char squares[13];
-
 public:
 	Squarelist(void) {clear();}
 	void clear(void) {m_size = 0;}
@@ -142,7 +139,7 @@ public:
 	int size(void) {return(m_size);}
 	int read(int index) {return(squares[index]);}
 	void append(int square) {
-		if (m_size < sizeof(squares)) {
+		if (m_size < sizeof(squares) / sizeof(squares[0])) {
 			squares[m_size] = square;
 			++m_size;
 		}
@@ -154,4 +151,8 @@ public:
 				++count;
 		return(count);
 	}
+
+private:
+	char m_size;
+	char squares[15];
 };

@@ -174,8 +174,8 @@ int maxmovecount = 300;					// engine match limit; use 200 if early_game_adjudic
 
 // keep a small user book
 userbookentry userbook[MAXUSERBOOK];
-size_t userbooknum;
-size_t userbookcur;
+int userbooknum;
+int userbookcur;
 static CHOOSECOLOR ccs;
 
 // reindex tells whether we have to reindex a database when searching.
@@ -198,8 +198,7 @@ void forward_to_game_end(void);
 //	analyzegame: checkerboard moves through a game and comments on every move
 //	entergame: checkerboard does nothing while the user enters a game
 //	observegame: checkerboard calculates while the user enters a game
-enum state
-{
+enum state {
 	NORMAL,
 	AUTOPLAY,
 	ENGINEMATCH,
@@ -213,12 +212,28 @@ enum state
 	ANALYZEPDN
 } CBstate = NORMAL;
 
-void close_animation_thread_handle()
+
+void start_animation_thread(void)
 {
-	if (hAniThread != NULL) {
-		CloseHandle(hAniThread);
-		hAniThread = NULL;
-	}
+	static HANDLE animation_lock_handle;
+	static HANDLE animation_thread_handle;
+
+	/* Use a mutex to prevent multiple threads from simultaneously starting the thread. */
+	if (!animation_lock_handle)
+		animation_lock_handle = CreateMutex(NULL, FALSE, NULL);
+
+	WaitForSingleObject(animation_lock_handle, INFINITE);
+	if (animation_thread_handle != NULL)
+		CloseHandle(animation_thread_handle);
+
+	setanimationbusy(TRUE);
+	animation_thread_handle = CreateThread(NULL,
+								0,
+								(LPTHREAD_START_ROUTINE)AnimationThreadFunc,
+								hwnd,
+								0,
+								&g_AniThreadId);
+	ReleaseMutex(animation_lock_handle);
 }
 
 int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPSTR lpszArgs, int nWinMode)
@@ -683,11 +698,11 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				// load user book
 				fp = fopen(userbookname, "rb");
 				if (fp != NULL) {
-					userbooknum = fread(userbook, sizeof(userbookentry), MAXUSERBOOK, fp);
+					userbooknum = (int)fread(userbook, sizeof(userbookentry), MAXUSERBOOK, fp);
 					fclose(fp);
 				}
 
-				sprintf(statusbar_txt, "found %zi positions in user book", userbooknum);
+				sprintf(statusbar_txt, "found %d positions in user book", userbooknum);
 			}
 			break;
 
@@ -890,7 +905,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 					userbookcur--;
 				userbookcur %= userbooknum;
 				sprintf(statusbar_txt,
-						"position %zi of %zi: %i-%i",
+						"position %d of %d: %i-%i",
 						userbookcur + 1,
 						userbooknum,
 						coortonumber(userbook[userbookcur].move.from, cbgame.gametype),
@@ -956,7 +971,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 					userbookcur++;
 				userbookcur %= userbooknum;
 				sprintf(statusbar_txt,
-						"position %zi of %zi: %i-%i",
+						"position %d of %d: %i-%i",
 						userbookcur + 1,
 						userbooknum,
 						coortonumber(userbook[userbookcur].move.from, cbgame.gametype),
@@ -1263,7 +1278,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				// now display the first user book position
 				userbookcur = 0;
 				sprintf(statusbar_txt,
-						"position %zi of %zi: %i-%i",
+						"position %d of %d: %i-%i",
 						userbookcur + 1,
 						userbooknum,
 						coortonumber(userbook[userbookcur].move.from, cbgame.gametype),
@@ -1292,7 +1307,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			if (CBstate == BOOKVIEW && userbooknum != 0) {
 
 				// want to delete book move here:
-				for (size_t i = userbookcur; i < userbooknum - 1; i++)
+				for (int i = userbookcur; i < userbooknum - 1; i++)
 					userbook[i] = userbook[i + 1];
 				userbooknum--;
 
@@ -1302,7 +1317,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 				// display what position we have:
 				sprintf(statusbar_txt,
-						"position %zi of %zi: %i-%i",
+						"position %d of %d: %i-%i",
 						userbookcur + 1,
 						userbooknum,
 						coortonumber(userbook[userbookcur].move.from, cbgame.gametype),
@@ -1877,14 +1892,7 @@ int handle_lbuttondown(int x, int y)
 					addmovetouserbook(cbboard8, &localmove);
 
 				// call animation function which will also execute the move
-				close_animation_thread_handle();
-				setanimationbusy(TRUE);
-				hAniThread = CreateThread(NULL,
-											0,
-											(LPTHREAD_START_ROUTINE) AnimationThreadFunc,
-											hwnd,
-											0,
-											&g_AniThreadId);
+				start_animation_thread();
 				clicks.clear();
 
 				// if we are in enter game mode: tell engine to stop
@@ -1979,20 +1987,13 @@ int handle_lbuttondown(int x, int y)
 
 				// animate the move:
 				cbmove = localmove;
-				close_animation_thread_handle();
 
 				// if we are in userbook mode, we save the move
 				if (CBstate == BOOKADD)
 					addmovetouserbook(cbboard8, &localmove);
 
 				// call animation function which will also execute the move
-				setanimationbusy(TRUE);
-				hAniThread = CreateThread(NULL,
-											0,
-											(LPTHREAD_START_ROUTINE) AnimationThreadFunc,
-											(HWND) hwnd,
-											0,
-											&g_AniThreadId);
+				start_animation_thread();
 
 				// if we are in enter game mode: tell engine to stop
 				if (CBstate == OBSERVEGAME)
@@ -2044,20 +2045,13 @@ int handle_lbuttondown(int x, int y)
 
 				// animate the move:
 				cbmove = localmove;
-				close_animation_thread_handle();
 
 				// if we are in userbook mode, we save the move
 				if (CBstate == BOOKADD)
 					addmovetouserbook(cbboard8, &localmove);
 
 				// call animation function which will also execute the move
-				setanimationbusy(TRUE);
-				hAniThread = CreateThread(NULL,
-										  0,
-										  (LPTHREAD_START_ROUTINE) AnimationThreadFunc,
-										  (HWND) hwnd,
-										  0,
-										  &g_AniThreadId);
+				start_animation_thread();
 
 				// if we are in enter game mode: tell engine to stop
 				if (CBstate == OBSERVEGAME)
@@ -2165,7 +2159,7 @@ int handletimer(void)
 
 int addmovetouserbook(int b[8][8], CBmove *move)
 {
-	size_t i, n;
+	int i, n;
 	FILE *fp;
 	pos userbookpos;
 
@@ -2200,10 +2194,10 @@ int addmovetouserbook(int b[8][8], CBmove *move)
 	userbook[n].move = *move;
 	if (n == userbooknum) {
 		(userbooknum)++;
-		sprintf(statusbar_txt, "added move to userbook (%zi moves)", userbooknum);
+		sprintf(statusbar_txt, "added move to userbook (%d moves)", userbooknum);
 	}
 	else
-		sprintf(statusbar_txt, "replaced move in userbook (%zi moves)", userbooknum);
+		sprintf(statusbar_txt, "replaced move in userbook (%d moves)", userbooknum);
 
 	// save user book
 	fp = fopen(userbookname, "wb");
@@ -2939,7 +2933,7 @@ int createcheckerboard(HWND hwnd)
 	PathAppend(userbookname, "userbook.bin");
 	fp = fopen(userbookname, "rb");
 	if (fp != 0) {
-		userbooknum = fread(userbook, sizeof(userbookentry), MAXUSERBOOK, fp);
+		userbooknum = (int)fread(userbook, sizeof(userbookentry), MAXUSERBOOK, fp);
 		fclose(fp);
 	}
 
@@ -3201,7 +3195,7 @@ DWORD SearchThreadFunc(LPVOID param)
 // it also logs the return string of the checkers engine
 // to a file if CB is in either ANALYZEGAME or ENGINEMATCH mode
 {
-	size_t i, nmoves;
+	int i, nmoves;
 	int original8board[8][8], b8copy[8][8], originalcopy[8][8];
 	CBmove movelist[MAXMOVES];
 	CBmove localmove;
@@ -3248,7 +3242,6 @@ DWORD SearchThreadFunc(LPVOID param)
 
 		setenginebusy(FALSE);
 		setenginestarting(FALSE);
-		close_animation_thread_handle();
 		setanimationbusy(FALSE);
 		return 1;
 	}
@@ -3463,14 +3456,7 @@ DWORD SearchThreadFunc(LPVOID param)
 		if (cboptions.sound)
 			PlaySound("start.wav", NULL, SND_FILENAME | SND_ASYNC);
 
-		close_animation_thread_handle();
-		setanimationbusy(TRUE);			// this was missing in CB 1.65 which was the reason for the bug...
-		hAniThread = CreateThread(NULL,
-								  0,
-								  (LPTHREAD_START_ROUTINE) AnimationThreadFunc,
-								  (HWND) hwnd,
-								  0,
-								  &g_AniThreadId);
+		start_animation_thread();
 	}
 
 	// Update logfiles.
