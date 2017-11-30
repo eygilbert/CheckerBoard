@@ -213,6 +213,14 @@ enum state
 	ANALYZEPDN
 } CBstate = NORMAL;
 
+void close_animation_thread_handle()
+{
+	if (hAniThread != NULL) {
+		CloseHandle(hAniThread);
+		hAniThread = NULL;
+	}
+}
+
 int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPSTR lpszArgs, int nWinMode)
 {
 	// the main function which runs all the time, processing messages and sending them on
@@ -1763,7 +1771,7 @@ int handle_rbuttondown(int x, int y)
 int handle_lbuttondown(int x, int y)
 {
 	int i, legal, legalmovenumber;
-	int from, to;
+	int square, from, to;
 	CBmove localmove;
 
 	/* Convert screen coords to board8 coords. */
@@ -1796,7 +1804,14 @@ int handle_lbuttondown(int x, int y)
 	if ((getenginebusy() || getanimationbusy()) && (CBstate != OBSERVEGAME))
 		return 0;
 
-	clicks.append(coorstonumber(x, y, cbgame.gametype));
+	/* Don't allow a square to appear in clicks more than twice.
+	 * Allow 'from' and 'to' squares to be identical.
+	 */
+	square = coorstonumber(x, y, cbgame.gametype);
+	if (clicks.frequency(square) >= 2)
+		return(1);
+
+	clicks.append(square);
 	if (clicks.size() == 1) {
 
 		// then its the first click
@@ -1805,28 +1820,35 @@ int handle_lbuttondown(int x, int y)
 		// if there is only one move with this piece, then do it!
 		if (islegal != NULL) {
 			legal = 0;
-			legalmovenumber = 0;
-			for (i = 1; i <= 32; i++) {
-				if (islegal(cbboard8, cbcolor, from, i, &localmove) != 0) {
-					legal++;
-					legalmovenumber = i;
-					to = i;
-				}
-			}
+			if (cbgame.gametype == GT_ENGLISH) {
 
-			// look for a single move possible to an empty square
-			if (legal == 0) {
+				/* We can do a better job for English since we have a movelist generator. */
+				legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove);
+			}
+			else {
+				legalmovenumber = 0;
 				for (i = 1; i <= 32; i++) {
-					if (islegal(cbboard8, cbcolor, i, clicks.first(), &localmove) != 0) {
+					if (islegal(cbboard8, cbcolor, from, i, &localmove) != 0) {
 						legal++;
 						legalmovenumber = i;
-						from = i;
-						to = clicks.first();
+						to = i;
 					}
 				}
 
-				if (legal != 1)
-					legal = 0;
+				// look for a single move possible to an empty square
+				if (legal == 0) {
+					for (i = 1; i <= 32; i++) {
+						if (islegal(cbboard8, cbcolor, i, clicks.first(), &localmove) != 0) {
+							legal++;
+							legalmovenumber = i;
+							from = i;
+							to = clicks.first();
+						}
+					}
+
+					if (legal != 1)
+						legal = 0;
+				}
 			}
 
 			// remove the output that islegal generated, it's disturbing ("1-32 illegal move")
@@ -1836,46 +1858,43 @@ int handle_lbuttondown(int x, int y)
 				// is it the only legal move?
 				// if yes, do it!
 				// if we are in user book mode, add it to user book!
-				if (islegal(cbboard8, cbcolor, from, to, &localmove) != 0) {
 
-					// a legal move! Add move to the game list.
-					// For English checkers we can fully describe ambiguous captures.
-					if (gametype() == GT_ENGLISH) {
-						char pdn[40];
-						move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn);
-						addmovetogame(localmove, pdn);
-					}
-					else
-						addmovetogame(localmove, nullptr);
-
-					// animate the move:
-					cbmove = localmove;
-
-					// if we are in userbook mode, we save the move
-					if (CBstate == BOOKADD)
-						addmovetouserbook(cbboard8, &localmove);
-
-					// call animation function which will also execute the move
-					CloseHandle(hAniThread);
-					setanimationbusy(TRUE);
-					hAniThread = CreateThread(NULL,
-											  0,
-											  (LPTHREAD_START_ROUTINE) AnimationThreadFunc,
-											  hwnd,
-											  0,
-											  &g_AniThreadId);
-					clicks.clear();
-
-					// if we are in enter game mode: tell engine to stop
-					if (CBstate == OBSERVEGAME)
-						SendMessage(hwnd, WM_COMMAND, INTERRUPTENGINE, 0);
-					newposition = TRUE;
-					if (CBstate == NORMAL)
-						startengine = TRUE;
-
-					// startengine = TRUE tells the autothread to start the engine
-					// if we are in add moves to book mode, add this move to the book
+				// a legal move! Add move to the game list.
+				// For English checkers we can fully describe ambiguous captures.
+				if (gametype() == GT_ENGLISH) {
+					char pdn[40];
+					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn);
+					addmovetogame(localmove, pdn);
 				}
+				else
+					addmovetogame(localmove, nullptr);
+
+				// animate the move:
+				cbmove = localmove;
+
+				// if we are in userbook mode, we save the move
+				if (CBstate == BOOKADD)
+					addmovetouserbook(cbboard8, &localmove);
+
+				// call animation function which will also execute the move
+				close_animation_thread_handle();
+				setanimationbusy(TRUE);
+				hAniThread = CreateThread(NULL,
+											0,
+											(LPTHREAD_START_ROUTINE) AnimationThreadFunc,
+											hwnd,
+											0,
+											&g_AniThreadId);
+				clicks.clear();
+
+				// if we are in enter game mode: tell engine to stop
+				if (CBstate == OBSERVEGAME)
+					SendMessage(hwnd, WM_COMMAND, INTERRUPTENGINE, 0);
+				newposition = TRUE;
+				if (CBstate == NORMAL)
+					startengine = TRUE;
+
+				// startengine = TRUE tells the autothread to start the engine
 			}
 		}
 
@@ -1929,11 +1948,18 @@ int handle_lbuttondown(int x, int y)
 			legal = 0;
 			legalmovenumber = 0;
 			if (islegal != NULL) {
-				legalmovenumber = 0;
-				for (i = 1; i <= 32; i++) {
-					if (islegal(cbboard8, cbcolor, clicks.first(), i, &localmove) != 0) {
-						legal++;
-						legalmovenumber = i;
+				if (cbgame.gametype == GT_ENGLISH) {
+
+					/* We can do a better job for English since we have a movelist generator. */
+					legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove);
+				}
+				else {
+					legalmovenumber = 0;
+					for (i = 1; i <= 32; i++) {
+						if (islegal(cbboard8, cbcolor, clicks.first(), i, &localmove) != 0) {
+							legal++;
+							legalmovenumber = i;
+						}
 					}
 				}
 			}
@@ -1942,39 +1968,41 @@ int handle_lbuttondown(int x, int y)
 			if (legal == 1) {
 
 				// only one legal move
-				if (islegal(cbboard8, cbcolor, clicks.first(), legalmovenumber, &localmove) != 0) {
-
-					// a legal move!
-					// insert move in the linked list
+				// insert move in the linked list
+				if (gametype() == GT_ENGLISH) {
+					char pdn[40];
+					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn);
+					addmovetogame(localmove, pdn);
+				}
+				else
 					addmovetogame(localmove, nullptr);
 
-					// animate the move:
-					cbmove = localmove;
-					CloseHandle(hAniThread);
+				// animate the move:
+				cbmove = localmove;
+				close_animation_thread_handle();
 
-					// if we are in userbook mode, we save the move
-					if (CBstate == BOOKADD)
-						addmovetouserbook(cbboard8, &localmove);
+				// if we are in userbook mode, we save the move
+				if (CBstate == BOOKADD)
+					addmovetouserbook(cbboard8, &localmove);
 
-					// call animation function which will also execute the move
-					setanimationbusy(TRUE);
-					hAniThread = CreateThread(NULL,
-											  0,
-											  (LPTHREAD_START_ROUTINE) AnimationThreadFunc,
-											  (HWND) hwnd,
-											  0,
-											  &g_AniThreadId);
+				// call animation function which will also execute the move
+				setanimationbusy(TRUE);
+				hAniThread = CreateThread(NULL,
+											0,
+											(LPTHREAD_START_ROUTINE) AnimationThreadFunc,
+											(HWND) hwnd,
+											0,
+											&g_AniThreadId);
 
-					// if we are in enter game mode: tell engine to stop
-					if (CBstate == OBSERVEGAME)
-						SendMessage(hwnd, WM_COMMAND, INTERRUPTENGINE, 0);
-					newposition = TRUE;
-					if (CBstate == NORMAL)
-						startengine = TRUE;
+				// if we are in enter game mode: tell engine to stop
+				if (CBstate == OBSERVEGAME)
+					SendMessage(hwnd, WM_COMMAND, INTERRUPTENGINE, 0);
+				newposition = TRUE;
+				if (CBstate == NORMAL)
+					startengine = TRUE;
 
-					// startengine = TRUE tells the autothread to start the engine
-					// if we are in add moves to book mode, add this move to the book
-				}
+				// startengine = TRUE tells the autothread to start the engine
+				return(0);
 			}
 			else {
 				// and break so as not to execute the rest of this clause, because
@@ -1985,15 +2013,38 @@ int handle_lbuttondown(int x, int y)
 
 		// check move and if ok
 		if (islegal != NULL) {
-			if (islegal(cbboard8, cbcolor, clicks.first(), clicks.last(), &localmove) != 0) {
+			legal = 0;
+			if (cbgame.gametype == GT_ENGLISH) {
+
+				/* We can do a better job for English since we have a movelist generator. */
+				legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove);
+				if (legal > 1) {
+
+					/* Keep the clicks, he needs to add more squares to fully describe the move. */
+					selectstone(x, y, hwnd, cbboard8);
+					updateboardgraphics(hwnd);
+					return(1);
+				}
+			}
+			else {
+				if (islegal(cbboard8, cbcolor, clicks.first(), clicks.last(), &localmove) != 0)
+					legal = 1;
+			}
+			if (legal == 1) {
 
 				// a legal move!
 				// insert move in the game
-				addmovetogame(localmove, nullptr);
+				if (gametype() == GT_ENGLISH) {
+					char pdn[40];
+					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn);
+					addmovetogame(localmove, pdn);
+				}
+				else
+					addmovetogame(localmove, nullptr);
 
 				// animate the move:
 				cbmove = localmove;
-				CloseHandle(hAniThread);
+				close_animation_thread_handle();
 
 				// if we are in userbook mode, we save the move
 				if (CBstate == BOOKADD)
@@ -2016,14 +2067,12 @@ int handle_lbuttondown(int x, int y)
 					startengine = TRUE;
 
 				// startengine = TRUE tells the autothread to start the engine
-				// if we are in add moves to book mode, add this move to the book
 			}
 		}
 
 		clicks.clear();
 	}
 
-	//updateboardgraphics(hwnd);
 	return 1;
 }
 
@@ -3199,7 +3248,7 @@ DWORD SearchThreadFunc(LPVOID param)
 
 		setenginebusy(FALSE);
 		setenginestarting(FALSE);
-		CloseHandle(hAniThread);
+		close_animation_thread_handle();
 		setanimationbusy(FALSE);
 		return 1;
 	}
@@ -3414,7 +3463,7 @@ DWORD SearchThreadFunc(LPVOID param)
 		if (cboptions.sound)
 			PlaySound("start.wav", NULL, SND_FILENAME | SND_ASYNC);
 
-		CloseHandle(hAniThread);
+		close_animation_thread_handle();
 		setanimationbusy(TRUE);			// this was missing in CB 1.65 which was the reason for the bug...
 		hAniThread = CreateThread(NULL,
 								  0,
@@ -4830,8 +4879,8 @@ int builtinislegal(int board8[8][8], int color, Squarelist &squares, CBmove *mov
 
 	n = getmovelist(color, movelist, board8, &isjump);
 	for (i = 0; i < n; i++) {
-		Lfrom = coortonumber(movelist[i].from, cbgame.gametype);
-		Lto = coortonumber(movelist[i].to, cbgame.gametype);
+		Lfrom = coortonumber(movelist[i].from, GT_ENGLISH);
+		Lto = coortonumber(movelist[i].to, GT_ENGLISH);
 		if (Lfrom == squares.first() && Lto == squares.last()) {
 
 			/* If more than 2 squares, the intermediates have to match also. */
@@ -4841,7 +4890,7 @@ int builtinislegal(int board8[8][8], int color, Squarelist &squares, CBmove *mov
 
 				bool match = true;
 				for (int k = 1; k < squares.size() - 1; ++k) {
-					int intermediate = coortonumber(movelist[i].path[k], cbgame.gametype);
+					int intermediate = coortonumber(movelist[i].path[k], GT_ENGLISH);
 					if (squares.read(k) != intermediate) {
 						match = false;
 						break;
@@ -4896,6 +4945,98 @@ int islegal_check(int board8[8][8], int color, Squarelist &squares, CBmove *move
 }
 
 /*
+ * For gametype English only.
+ * Return true if square is a from, to, or intermediate landed square in move.
+ */
+bool square_in_move(int square, CBmove &move)
+{
+	if (square == coortonumber(move.from, GT_ENGLISH))
+		return(true);
+	if (square == coortonumber(move.to, GT_ENGLISH))
+		return(true);
+	for (int i = 1; i < move.jumps; ++i)
+		if (square == coortonumber(move.path[i], GT_ENGLISH))
+			return(true);
+
+	return(false);
+}
+
+/*
+ * For gametype English only.
+ * Return true if every square in squares is either a from, to, or intermediate landed square in move.
+ */
+bool all_squares_match(Squarelist &squares, CBmove &move)
+{
+	for (int i = 0; i < squares.size(); ++i)
+		if (!square_in_move(squares.read(i), move))
+			return(false);
+
+	return(true);
+}
+
+/*
+ * Return the sum of the from, to, and intermediate landed squares in move.
+ * Used as a check to see if two moves are identical.
+ */
+uint32_t get_sum_squares(CBmove &move)
+{
+	uint32_t sum;
+
+	sum = coortonumber(move.from, GT_ENGLISH);
+	sum += coortonumber(move.to, GT_ENGLISH);
+	for (int i = 1; i < move.jumps; ++i)
+		sum += coortonumber(move.path[i], GT_ENGLISH);
+
+	return(sum);
+}
+
+/*
+ * For gametype English only.
+ * Return the number of moves in movelist that match the squares in the Squarelist.
+ * The squares can be any of from, to, or any intermediate landing square during a capture.
+ * If a single matching move is found, it is returned in move.
+ */
+int num_matching_moves(CBmove movelist[], int nmoves, Squarelist &squares, CBmove &move)
+{
+	int nmatches, sum_squares;
+
+	nmatches = 0;
+	for (int i = 0; i < nmoves; ++i) {
+		if (all_squares_match(squares, movelist[i])) {
+			if (nmatches == 0) {
+				++nmatches;
+				move = movelist[i];
+				sum_squares = get_sum_squares(move);
+			}
+			else {
+				/* Use sum of squares to detect identical moves that are
+				 * captures by kings in a different order.
+				 */
+				if (sum_squares != get_sum_squares(movelist[i]))
+					++nmatches;
+			}
+		}
+	}
+	return(nmatches);
+}
+
+/*
+ * For gametype English only.
+ * Return the number of moves in the current position that match the squares in the Squarelist.
+ * The squares can be any of from, to, or any intermediate landing square during a capture.
+ * If a single matching move is found, it is returned in move.
+ */
+int num_matching_moves(int board8[8][8], int color, Squarelist &squares, CBmove &move)
+{
+	int nmoves, isjump;
+	CBmove movelist[MAXMOVES];
+
+	nmoves = getmovelist(color, movelist, board8, &isjump);
+	return(num_matching_moves(movelist, nmoves, squares, move));
+}
+
+/*
+ * For gametype English only.
  * Take a CBmove and write the move in PDN text format.
  * Write capture moves in long format if needed to unambiguously describe them.
  * This function is only for English checkers.
@@ -4905,15 +5046,14 @@ bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, ch
 {
 	int i, count;
 	char separator;
+	CBmove matching_move;
+	Squarelist squares;
 
 	/* Find the number of moves that match the from and to squares. */
 	pdn[0] = 0;
-	count = 0;
-	for (i = 0; i < nmoves; ++i) {
-		if (coortonumber(movelist[i].from, GT_ENGLISH) == coortonumber(move->from, GT_ENGLISH) &&
-					coortonumber(movelist[i].to, GT_ENGLISH) == coortonumber(move->to, GT_ENGLISH))
-			++count;
-	}
+	squares.append(coortonumber(move->from, GT_ENGLISH));
+	squares.append(coortonumber(move->to, GT_ENGLISH));
+	count = num_matching_moves(movelist, nmoves, squares, matching_move);
 	if (count == 0)
 		return(true);
 

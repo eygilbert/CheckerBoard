@@ -135,16 +135,23 @@ class Squarelist {
 	char squares[13];
 
 public:
-	Squarelist() {clear();}
-	void clear() {m_size = 0;}
-	int first() {return(squares[0]);}
-	int last() {return(squares[m_size - 1]);}
-	int size() {return(m_size);}
+	Squarelist(void) {clear();}
+	void clear(void) {m_size = 0;}
+	int first(void) {return(squares[0]);}
+	int last(void) {return(squares[m_size - 1]);}
+	int size(void) {return(m_size);}
 	int read(int index) {return(squares[index]);}
 	void append(int square) {
 		if (m_size < sizeof(squares)) {
 			squares[m_size] = square;
 			++m_size;
 		}
+	}
+	int frequency(int square) {
+		int count = 0;
+		for (int i = 0; i < m_size; ++i)
+			if (squares[i] == square)
+				++count;
+		return(count);
 	}
 };
