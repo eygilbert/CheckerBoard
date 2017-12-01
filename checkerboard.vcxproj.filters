@@ -39,9 +39,6 @@
     <ClCompile Include="graphics.c">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="min_movegen.c">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
     <ClCompile Include="PDNfind.c">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
@@ -92,9 +89,6 @@
     <ClInclude Include="graphics.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="min_movegen.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
     <ClInclude Include="pdnfind.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
@@ -123,6 +117,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="fen.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CB_movegen.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include "standardheader.h"
 #include "bmp.h"
-#include "min_movegen.h"
 #include "utility.h"
 
 // function prototypes

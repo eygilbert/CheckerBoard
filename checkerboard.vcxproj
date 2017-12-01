@@ -270,12 +270,6 @@
     <ClCompile Include="dialogs.c" />
     <ClCompile Include="fen.c" />
     <ClCompile Include="graphics.c" />
-    <ClCompile Include="min_movegen.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="PDNfind.c" />
     <ClCompile Include="PDNparser.c" />
     <ClCompile Include="registry.c" />
@@ -288,13 +282,13 @@
     <ClInclude Include="bmp.h" />
     <ClInclude Include="CBconsts.h" />
     <ClInclude Include="CBstructs.h" />
+    <ClInclude Include="CB_movegen.h" />
     <ClInclude Include="CheckerBoard.h" />
     <ClInclude Include="coordinates.h" />
     <ClInclude Include="crc.h" />
     <ClInclude Include="dialogs.h" />
     <ClInclude Include="fen.h" />
     <ClInclude Include="graphics.h" />
-    <ClInclude Include="min_movegen.h" />
     <ClInclude Include="pdnfind.h" />
     <ClInclude Include="PDNparser.h" />
     <ClInclude Include="registry.h" />

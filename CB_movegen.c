@@ -9,7 +9,7 @@
 #include <windows.h>
 #include "standardheader.h"
 #include "cb_interface.h"
-#include "min_movegen.h"
+#include "CB_movegen.h"
 
 /* exported functions */
 int getmovelist(int color, CBmove movelist[MAXMOVES], int b[8][8], int *isjump);

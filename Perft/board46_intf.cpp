@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "min_movegen.h"		/* needed for MAXMOVES */
+#include "bitboard.h"		/* needed for MAXMOVES */
 #include "cb_interface.h"
 #include "board46_intf.h"
 

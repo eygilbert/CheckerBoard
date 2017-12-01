@@ -2,7 +2,6 @@
 #include <Windows.h>
 #include <cstdarg>
 #include "CBstructs.h"
-#include "min_movegen.h"
 
 enum READ_TEXT_FILE_ERROR_TYPE {
 	RTF_NO_ERROR, RTF_FILE_ERROR, RTF_MALLOC_ERROR

@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cb_interface.h"
-#include "min_movegen.h"
+#include "bitboard.h"
 #include "board46_intf.h"
 #include "enginedefs.h"
 

@@ -6,7 +6,6 @@
 #include <vector>
 #include "standardheader.h"
 #include "cb_interface.h"
-#include "min_movegen.h"
 #include "cbconsts.h"
 #include "CBstructs.h"
 #include "checkerboard.h"
@@ -26,23 +25,6 @@ inline int bitnum_to_square(int bitnum, int gametype)
 		return(1 + bitnum);
 
 	return(1 + 4 * (bitnum / 4) + 3 - (bitnum & 3));
-}
-
-void get_fromto_squares(pos *pos, move *m, int color, int *fromsq, int *tosq)
-{
-	uint32_t frombb, tobb;
-
-	if (color == CB_BLACK) {
-		frombb = (m->bm | m->bk) & (pos->bm | pos->bk);
-		tobb = (m->bm | m->bk) &~(pos->bm | pos->bk);
-	}
-	else {
-		frombb = (m->wm | m->wk) & (pos->wm | pos->wk);
-		tobb = (m->wm | m->wk) &~(pos->wm | pos->wk);
-	}
-
-	*fromsq = bitnum_to_square(LSB(frombb), gametype());
-	*tosq = bitnum_to_square(LSB(tobb), gametype());
 }
 
 void print_fen(pos *p, int color, char *buf)
@@ -82,18 +64,6 @@ void print_fen(pos *p, int color, char *buf)
 	}
 
 	sprintf(buf + strlen(buf), ".\"]");
-}
-
-void log_moves(pos *p, int color, move *movelist, int nmoves)
-{
-	int i, fromsq, tosq;
-	char buf[50];
-
-	for (i = 0; i < nmoves; ++i) {
-		get_fromto_squares(p, movelist + i, color, &fromsq, &tosq);
-		sprintf(buf, "%d-%d", fromsq, tosq);
-		CBlog(buf);
-	}
 }
 
 int pdnfind(pos *p, int color, std::vector<int> &matching_games)

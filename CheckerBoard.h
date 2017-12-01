@@ -5,6 +5,7 @@
 
 #pragma once
 #include <vector>
+#include "CB_movegen.h"
 
 // version 
 #define VERSION "1.73e"

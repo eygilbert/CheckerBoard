@@ -13,7 +13,6 @@
 #include "resource.h"
 #include "standardheader.h"
 #include "cb_interface.h"
-#include "min_movegen.h"
 #include "CBstructs.h"
 #include "CBconsts.h"
 #include "dialogs.h"

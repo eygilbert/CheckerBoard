@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include "cb_interface.h"
-#include "min_movegen.h"
 #include <time.h>
+#include "bitboard.h"
 
 #define COMMENTLENGTH 1024
 #define MAXNAME 256
