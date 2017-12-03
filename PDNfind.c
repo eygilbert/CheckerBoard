@@ -176,8 +176,7 @@ int pdnopen(char filename[256], int gametype)
 	pos p;
 	int color = CB_BLACK;
 	char headername[MAXNAME], headervalue[MAXNAME];
-	int result;
-	int win = 0, loss = 0, draw = 0, unknown = 0;
+	PDN_RESULT result;
 	char FEN[255];
 	int board8[8][8];
 	READ_TEXT_FILE_ERROR_TYPE etype;
@@ -212,7 +211,7 @@ int pdnopen(char filename[256], int gametype)
 	start = buffer;
 	gamenumber = 0;
 	while (PDNparseGetnextgame(&start, game)) {
-		result = CB_UNKNOWN;
+		result = UNKNOWN_RES;
 		FEN[0] = 0;
 		startheader = game.c_str();
 		while (PDNparseGetnextheader(&startheader, header)) {
@@ -221,24 +220,8 @@ int pdnopen(char filename[256], int gametype)
 			PDNparseGetnexttag(&tag, headervalue);
 			_strlwr(headername);
 
-			if (strcmp(headername, "result") == 0) {
-				if (strcmp(headervalue, "1/2-1/2") == 0) {
-					result = CB_DRAW;
-					draw++;
-				}
-				else if (strcmp(headervalue, "1-0") == 0) {
-					result = CB_WIN;
-					win++;
-				}
-				else if (strcmp(headervalue, "0-1") == 0) {
-					result = CB_LOSS;
-					loss++;
-				}
-				else if (strcmp(headervalue, "*") == 0) {
-					result = CB_UNKNOWN;
-					unknown++;
-				}
-			}
+			if (strcmp(headername, "result") == 0)
+				result = string_to_pdn_result(headervalue, gametype);
 
 			if (strcmp(headername, "fen") == 0)
 				sprintf(FEN, "%s", headervalue);

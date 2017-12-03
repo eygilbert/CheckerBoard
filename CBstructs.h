@@ -7,6 +7,10 @@
 #define COMMENTLENGTH 1024
 #define MAXNAME 256
 
+enum PDN_RESULT {
+	UNKNOWN_RES, WHITE_WIN_RES, BLACK_WIN_RES, DRAW_RES
+};
+
 enum EM_START_POSITIONS {
 	START_POS_3MOVE, START_POS_FROM_FILE
 };
@@ -56,10 +60,11 @@ struct BALLOT_INFO {
 	std::string event;
 };
 
-struct RESULT {
-	int win;
-	int loss;
-	int draw;
+struct RESULT_COUNTS {
+	int black_wins;
+	int white_wins;
+	int draws;
+	int unknowns;
 };
 
 /* A game move with associated move text, comments, and analysis text. */
@@ -81,7 +86,7 @@ struct PDNgame {
 	char white[MAXNAME];
 	char resultstring[MAXNAME];
 	char FEN[MAXNAME];
-	int result;								/* internal conversion to integers */
+	PDN_RESULT result;
 	int gametype;
 	int movesindex;							/* Current index in moves[]. */
 	std::vector<gamebody_entry> moves;		/* Moves and comments in the game body. */

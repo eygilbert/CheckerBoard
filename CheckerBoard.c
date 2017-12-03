@@ -713,12 +713,20 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 		case GAMEINFO:
 			// display a box with information on the game
-			sprintf(str1024,
-					"Black: %s\nWhite: %s\nEvent: %s\nResult: %s",
-					cbgame.black,
-					cbgame.white,
-					cbgame.event,
-					cbgame.resultstring);
+			if (get_startcolor(cbgame.gametype) == CB_BLACK) 
+				sprintf(str1024,
+						"Event: %s\nBlack: %s\nWhite: %s\nResult: %s",
+						cbgame.event,
+						cbgame.black,
+						cbgame.white,
+						cbgame.resultstring);
+			else
+				sprintf(str1024,
+						"Event: %s\nWhite: %s\nBlack: %s\nResult: %s",
+						cbgame.event,
+						cbgame.white,
+						cbgame.black,
+						cbgame.resultstring);
 			MessageBox(hwnd, str1024, "Game information", MB_OK);
 			sprintf(statusbar_txt, "");
 			break;
@@ -1653,7 +1661,7 @@ void reset_game(PDNgame &game)
 	sprintf(game.FEN, "");
 	sprintf(game.round, "");
 	sprintf(game.site, "");
-	game.result = CB_UNKNOWN;
+	game.result = UNKNOWN_RES;
 	game.moves.clear();
 	game.movesindex = 0;
 	game.gametype = gametype();
@@ -1728,6 +1736,57 @@ int get_startcolor(int gametype)
 		color = CB_WHITE;
 
 	return(color);
+}
+
+char *pdn_result_to_string(PDN_RESULT result, int gametype)
+{
+	switch (result) {
+	case UNKNOWN_RES:
+		return("*");
+
+	case WHITE_WIN_RES:
+		if (get_startcolor(gametype) == CB_WHITE)
+			return("1-0");
+		else
+			return("0-1");
+		break;
+		
+	case BLACK_WIN_RES:
+		if (get_startcolor(gametype) == CB_BLACK)
+			return("1-0");
+		else
+			return("0-1");
+		break;
+		
+	case DRAW_RES:
+		return("1/2-1/2");
+		break;
+	}
+	return("*");
+}
+
+PDN_RESULT string_to_pdn_result(char *resultstr, int gametype)
+{
+	if (strcmp(resultstr, "1/2-1/2") == 0)
+		return(DRAW_RES);
+	else if (strcmp(resultstr, "1-1") == 0)
+		return(DRAW_RES);
+	else if (strcmp(resultstr, "*") == 0)
+		return(UNKNOWN_RES);
+	else if (strcmp(resultstr, "1-0") == 0) {
+		if (get_startcolor(gametype) == CB_BLACK)
+			return(BLACK_WIN_RES);
+		else
+			return(WHITE_WIN_RES);
+	}
+	else if (strcmp(resultstr, "0-1") == 0) {
+		if (get_startcolor(gametype) == CB_BLACK)
+			return(WHITE_WIN_RES);
+		else
+			return(BLACK_WIN_RES);
+	}
+	else
+		return(DRAW_RES);
 }
 
 int is_mirror_gametype(int gametype)
@@ -2430,16 +2489,18 @@ void assign_headers(gamepreview &preview, const char *pdn)
 	}
 }
 
-void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT &res)
+void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT_COUNTS &res)
 {
 	memset(&res, 0, sizeof(res));
 	for (int i = 0; i < (int)previews.size(); ++i) {
-		if (strcmp(game_previews[i].result, "1-0") == 0)
-			res.win++;
-		else if (strcmp(game_previews[i].result, "1/2-1/2") == 0)
-			res.draw++;
-		else if (strcmp(game_previews[i].result, "0-1") == 0)
-			res.loss++;
+		if (strcmp(game_previews[i].result, pdn_result_to_string(BLACK_WIN_RES, gametype())) == 0)
+			res.black_wins++;
+		else if (strcmp(game_previews[i].result, pdn_result_to_string(DRAW_RES, gametype())) == 0)
+			res.draws++;
+		else if (strcmp(game_previews[i].result, pdn_result_to_string(WHITE_WIN_RES, gametype())) == 0)
+			res.white_wins++;
+		else
+			res.unknowns++;
 	}
 }
 
@@ -3446,18 +3507,6 @@ DWORD SearchThreadFunc(LPVOID param)
 		// ************* finished determining what move was made....
 	}
 
-	// now we execute the move, but only if we are not in the mode
-	// ANALYZEGAME or OBSERVEGAME
-	if ((CBstate != OBSERVEGAME) && (CBstate != ANALYZEGAME) && (CBstate != ANALYZEPDN) && found && !abortcalculation) {
-		addmovetogame(cbmove, PDN);
-
-		// if sound is on we make a beep
-		if (cboptions.sound)
-			PlaySound("start.wav", NULL, SND_FILENAME | SND_ASYNC);
-
-		start_animation_thread();
-	}
-
 	// Update logfiles.
 	// if CBstate is ANALYZEGAME, we have to print the analysis to a logfile,
 	// make the move played in the game & also print it into the logfile
@@ -3493,6 +3542,18 @@ DWORD SearchThreadFunc(LPVOID param)
 			}
 		}
 		break;
+	}
+
+	// now we execute the move, but only if we are not in the mode
+	// ANALYZEGAME or OBSERVEGAME
+	if ((CBstate != OBSERVEGAME) && (CBstate != ANALYZEGAME) && (CBstate != ANALYZEPDN) && found && !abortcalculation) {
+		addmovetogame(cbmove, PDN);
+
+		// if sound is on we make a beep
+		if (cboptions.sound)
+			PlaySound("start.wav", NULL, SND_FILENAME | SND_ASYNC);
+
+		start_animation_thread();
 	}
 
 	reset_move_history = false;
@@ -4126,6 +4187,7 @@ DWORD AutoThreadFunc(LPVOID param)
 						}
 					}
 
+					/* If the first game of a new ballot, write the ballot number. */
 					if (gamenumber % 2) {
 						emprogress_filename(statsfilename);
 						if (cboptions.em_start_positions == START_POS_FROM_FILE)
@@ -4222,12 +4284,6 @@ DWORD AutoThreadFunc(LPVOID param)
 					break;
 				}
 
-				// set color of engine to start playing
-				if (gamenumber % 2)
-					setcurrentengine(1);
-				else
-					setcurrentengine(2);
-
 				// The main thread handles the 3-move ballot setup
 				if (CBstate != NORMAL) {
 					if (cboptions.em_start_positions == START_POS_3MOVE)
@@ -4241,15 +4297,17 @@ DWORD AutoThreadFunc(LPVOID param)
 
 			if (!gameover && CBstate == ENGINEMATCH) {
 
-				// make next move in game
-				movecount++;
-
-				// set which engine
+				/* Select the engine for each search.
+				 * Engine 1 plays black in odd numbered games.
+				 * gamenumber is option base 1 here.
+				 */
 				if ((gamenumber + cbcolor) % 2)
 					setcurrentengine(1);
 				else
 					setcurrentengine(2);
 
+				// make next move in game
+				movecount++;
 				if (movecount <= 2)
 					reset_move_history = true;
 
@@ -4264,6 +4322,17 @@ DWORD AutoThreadFunc(LPVOID param)
 	}			// end for(;;)
 }
 
+/*
+ * This function updates various engine match stats at the end of a match game.
+ * 1) It write the result to the match_progress.txt file. This file has a "+" or "-" from the 
+ *    point of reference of engine 1.
+ * 2) It updates the counts of wins, draw, losses, and unknowns, from the point of reference of engine 1,
+ *	  and the counts of blackwins and blacklosses.
+ * 3) It updates the resultstring field (e.g. "1/2-1/2", "1-0", etc.) of cbgame, which 
+ *	  contains details of the current game.
+ *
+ * The "gamenumber" param is a 1-based number here (first game is 1).
+ */
 int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
 {
 	// handles statistics during an engine match
@@ -4272,7 +4341,7 @@ int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
 	emprogress_filename(progress_filename);
 	if (movecount > maxmovecount) {
 		++stats->unknowns;
-		sprintf(cbgame.resultstring, "*");
+		sprintf(cbgame.resultstring, pdn_result_to_string(UNKNOWN_RES, gametype()));
 		writefile(progress_filename, "a", "?");
 	}
 	else {
@@ -4281,29 +4350,33 @@ int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
 			if (currentengine == 1) {
 				++stats->wins;
 				writefile(progress_filename, "a", "+");
-				if (gamenumber % 2) {
+				if (gamenumber % 2) {		/* Engine 1 plays BLACK in odd numbered games. */
 					++stats->blackwins;
-					sprintf(cbgame.resultstring, "1-0");
+					sprintf(cbgame.resultstring, pdn_result_to_string(BLACK_WIN_RES, gametype()));
 				}
-				else
-					sprintf(cbgame.resultstring, "0-1");
+				else {
+					++stats->blacklosses;
+					sprintf(cbgame.resultstring, pdn_result_to_string(WHITE_WIN_RES, gametype()));
+				}
 			}
 			else {
 				++stats->losses;
 				writefile(progress_filename, "a", "-");
 				if (gamenumber % 2) {
 					++stats->blacklosses;
-					sprintf(cbgame.resultstring, "0-1");
+					sprintf(cbgame.resultstring, pdn_result_to_string(WHITE_WIN_RES, gametype()));
 				}
-				else
-					sprintf(cbgame.resultstring, "1-0");
+				else {
+					++stats->blackwins;
+					sprintf(cbgame.resultstring, pdn_result_to_string(BLACK_WIN_RES, gametype()));
+				}
 			}
 			break;
 
 		case CB_DRAW:
 			writefile(progress_filename, "a", "=");
 			++stats->draws;
-			sprintf(cbgame.resultstring, "1/2-1/2");
+			sprintf(cbgame.resultstring, pdn_result_to_string(DRAW_RES, gametype()));
 			break;
 
 		case CB_LOSS:
@@ -4312,27 +4385,31 @@ int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
 				writefile(progress_filename, "a", "-");
 				if (gamenumber % 2) {
 					++stats->blacklosses;
-					sprintf(cbgame.resultstring, "0-1");
+					sprintf(cbgame.resultstring, pdn_result_to_string(WHITE_WIN_RES, gametype()));
 				}
-				else
-					sprintf(cbgame.resultstring, "1-0");
+				else {
+					++stats->blackwins;
+					sprintf(cbgame.resultstring, pdn_result_to_string(BLACK_WIN_RES, gametype()));
+				}
 			}
 			else {
 				++stats->wins;
 				writefile(progress_filename, "a", "+");
 				if (gamenumber % 2) {
 					++stats->blackwins;
-					sprintf(cbgame.resultstring, "1-0");
+					sprintf(cbgame.resultstring, pdn_result_to_string(BLACK_WIN_RES, gametype()));
 				}
-				else
-					sprintf(cbgame.resultstring, "0-1");
+				else {
+					++stats->blacklosses;
+					sprintf(cbgame.resultstring, pdn_result_to_string(WHITE_WIN_RES, gametype()));
+				}
 			}
 			break;
 
 		case CB_UNKNOWN:
 			++stats->unknowns;
 			writefile(progress_filename, "a", "?");
-			sprintf(cbgame.resultstring, "*");
+			sprintf(cbgame.resultstring, pdn_result_to_string(UNKNOWN_RES, gametype()));
 			break;
 		}
 	}
@@ -4638,14 +4715,26 @@ void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm)
 	sprintf(s, "[Date \"%s\"]", game.date);
 	pdnstring += s;
 	pdnstring += lineterm;
+	
+	/* List player colors in order: first-player first. */
+	if (get_startcolor(game.gametype) == CB_BLACK) {
+		sprintf(s, "[Black \"%s\"]", game.black);
+		pdnstring += s;
+		pdnstring += lineterm;
 
-	sprintf(s, "[Black \"%s\"]", game.black);
-	pdnstring += s;
-	pdnstring += lineterm;
+		sprintf(s, "[White \"%s\"]", game.white);
+		pdnstring += s;
+		pdnstring += lineterm;
+	}
+	else {
+		sprintf(s, "[White \"%s\"]", game.white);
+		pdnstring += s;
+		pdnstring += lineterm;
 
-	sprintf(s, "[White \"%s\"]", game.white);
-	pdnstring += s;
-	pdnstring += lineterm;
+		sprintf(s, "[Black \"%s\"]", game.black);
+		pdnstring += s;
+		pdnstring += lineterm;
+	}
 
 	sprintf(s, "[Result \"%s\"]", game.resultstring);
 	pdnstring += s;
@@ -5098,36 +5187,26 @@ bool doload(PDNgame *game, const char *gamestring, int *color, int board8[8][8],
 		PDNparseGetnexttoken(&start, headername);
 		PDNparseGetnexttag(&start, headervalue);
 
-		/* make header lowercase, so that 'event' and 'Event' will be recognized */
+		/* make header name lowercase, so that 'event' and 'Event' will be recognized */
 		_strlwr(headername);
 
 		if (strcmp(headername, "event") == 0)
 			sprintf(game->event, "%s", headervalue);
-		if (strcmp(headername, "site") == 0)
+		else if (strcmp(headername, "site") == 0)
 			sprintf(game->site, "%s", headervalue);
-		if (strcmp(headername, "date") == 0)
+		else if (strcmp(headername, "date") == 0)
 			sprintf(game->date, "%s", headervalue);
-		if (strcmp(headername, "round") == 0)
+		else if (strcmp(headername, "round") == 0)
 			sprintf(game->round, "%s", headervalue);
-		if (strcmp(headername, "white") == 0)
+		else if (strcmp(headername, "white") == 0)
 			sprintf(game->white, "%s", headervalue);
-		if (strcmp(headername, "black") == 0)
+		else if (strcmp(headername, "black") == 0)
 			sprintf(game->black, "%s", headervalue);
-		if (strcmp(headername, "result") == 0) {
+		else if (strcmp(headername, "result") == 0) {
 			sprintf(game->resultstring, "%s", headervalue);
-			if (strcmp(headervalue, "1-0") == 0)
-				game->result = CB_WIN;
-			else if (strcmp(headervalue, "0-1") == 0)
-				game->result = CB_LOSS;
-			else if (strcmp(headervalue, "1/2-1/2") == 0)
-				game->result = CB_DRAW;
-			else if (strcmp(headervalue, "*") == 0)
-				game->result = CB_UNKNOWN;
-			else
-				game->result = CB_UNKNOWN;
+			game->result = string_to_pdn_result(headervalue, gametype());
 		}
-
-		if (strcmp(headername, "fen") == 0) {
+		else if (strcmp(headername, "fen") == 0) {
 			sprintf(game->FEN, "%s", headervalue);
 			issetup = 1;
 		}

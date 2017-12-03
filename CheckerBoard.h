@@ -30,7 +30,6 @@
 
 #define MAXPIECESET 16
 
-
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 // window functions
@@ -65,8 +64,10 @@ void emstats_filename(char *filename);
 int enginecommand(char command[256], char reply[ENGINECOMMAND_REPLY_SIZE]);
 int enginename(char str[MAXNAME]);
 void get_game_clocks(double *black_clock, double *white_clock);
-void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT &res);
+void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT_COUNTS &res);
 int get_startcolor(int gametype);
+char *pdn_result_to_string(PDN_RESULT result, int gametype);
+PDN_RESULT string_to_pdn_result(char *resultstr, int gametype);
 int getfilename(char filename[255], int what);
 int getanimationbusy(void);
 int getenginebusy(void);

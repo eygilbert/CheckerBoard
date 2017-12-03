@@ -165,19 +165,19 @@ BOOL CALLBACK DialogFuncSavegame(HWND hdwnd, UINT message, WPARAM wParam, LPARAM
 
 		/* initialize the comboboxes */
 		switch (cbgame.result) {
-		case CB_WIN:
+		case BLACK_WIN_RES:
 			SendDlgItemMessage(hdwnd, IDC_BLACKWINS, BM_SETCHECK, BST_CHECKED, 0);
 			break;
 
-		case CB_DRAW:
+		case DRAW_RES:
 			SendDlgItemMessage(hdwnd, IDC_DRAW, BM_SETCHECK, BST_CHECKED, 0);
 			break;
 
-		case CB_LOSS:
+		case WHITE_WIN_RES:
 			SendDlgItemMessage(hdwnd, IDC_WHITEWINS, BM_SETCHECK, BST_CHECKED, 0);
 			break;
 
-		case CB_UNKNOWN:
+		case UNKNOWN_RES:
 			SendDlgItemMessage(hdwnd, IDC_UNKNOWN, BM_SETCHECK, BST_CHECKED, 0);
 			break;
 		}
@@ -195,13 +195,13 @@ BOOL CALLBACK DialogFuncSavegame(HWND hdwnd, UINT message, WPARAM wParam, LPARAM
 		case IDC_OK:
 			// save the results
 			if (SendDlgItemMessage(hdwnd, IDC_UNKNOWN, BM_GETCHECK, 0, 0))
-				sprintf(cbgame.resultstring, "*");
+				sprintf(cbgame.resultstring, pdn_result_to_string(UNKNOWN_RES, gametype()));
 			if (SendDlgItemMessage(hdwnd, IDC_DRAW, BM_GETCHECK, 0, 0))
-				sprintf(cbgame.resultstring, "1/2-1/2");
+				sprintf(cbgame.resultstring, pdn_result_to_string(DRAW_RES, gametype()));
 			if (SendDlgItemMessage(hdwnd, IDC_BLACKWINS, BM_GETCHECK, 0, 0))
-				sprintf(cbgame.resultstring, "1-0");
+				sprintf(cbgame.resultstring, pdn_result_to_string(BLACK_WIN_RES, gametype()));
 			if (SendDlgItemMessage(hdwnd, IDC_WHITEWINS, BM_GETCHECK, 0, 0))
-				sprintf(cbgame.resultstring, "0-1");
+				sprintf(cbgame.resultstring, pdn_result_to_string(WHITE_WIN_RES, gametype()));
 			GetDlgItemText(hdwnd, IDC_BLACKNAME, Lstr, 255);
 			sprintf(cbgame.black, "%s", Lstr);
 			GetDlgItemText(hdwnd, IDC_WHITENAME, Lstr, 255);
@@ -236,7 +236,7 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 	extern std::vector<gamepreview> game_previews;
 	HD_NOTIFY *hdnptr;
 	HD_ITEM *hdiptr;
-	RESULT res;
+	RESULT_COUNTS res;
 	double percent;
 	char c = '%';
 
@@ -292,15 +292,15 @@ BOOL CALLBACK DialogFuncSelectgame(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 		}
 
 		get_pdnsearch_stats(game_previews, res);
-		if (res.draw + res.loss + res.win > 0) {
+		if (res.draws + res.black_wins + res.white_wins > 0) {
 
 			// display stats in dialog title
-			percent = 100.0 * ((double)res.win + 0.5 * res.draw) / (double)(res.win + res.draw + res.loss);
+			percent = 100.0 * ((double)res.black_wins + 0.5 * res.draws) / (double)(res.black_wins + res.draws + res.white_wins);
 			sprintf(Lstr,
 					"Search statistics: %i red wins, %i white wins, %i draws (%.1f%c)",
-					res.win,
-					res.loss,
-					res.draw,
+					res.black_wins,
+					res.white_wins,
+					res.draws,
 					percent,
 					c);
 			SetWindowText(hdwnd, Lstr);
