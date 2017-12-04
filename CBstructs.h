@@ -133,6 +133,26 @@ struct emstats_t {
 	int blacklosses;
 	int games;
 	int opening_index;	/* index into 3-move table, 1 less than the ACF ballot number. */
+
+	inline bool is_odd(int n) {return((n & 1) == 1);}
+
+	/*
+	 * Given an engine match game number (1..N), return true if engine 1 plays black for that game.
+	 * Engine 1 plays black in odd numbered games.
+	 */
+	inline bool engine1_plays_black(int gamenum) {return(is_odd(gamenum));}
+
+	/*
+	 * Given an engine match game number (1..N), and a side-to-move color (CB_BLACK or CB_WHITE), 
+	 * return the engine number (1 or 2) that should select the next move.
+	 * Engine 1 plays black in odd numbered games.
+	 */
+	inline int get_enginenum(int gamenum, int color) {
+		if (is_odd(gamenum + color))
+			return(1);
+		else
+			return(2);
+	}
 };
 
 class Squarelist {

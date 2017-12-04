@@ -3099,33 +3099,25 @@ void forward_to_game_end(void)
 int start3move(int opening_index)
 {
 	// start a new 3-move game:
-	// this function executes the 3 first moves of 3moveopening #(op), op
-	// is a global which is set by random if the user chooses
-	// 3-move, or it can be set controlled by engine match
-	int iscapture;
+	// this function executes the 3 first moves of 3-move opening #(opening_index).
+	// opening_index is set by random if the user chooses
+	// 3-move, or it can be set by engine match
+	int iscapture, ml_index;
 	CBmove movelist[MAXMOVES];
+	extern Three_move_entry three_move_table[174];			// describes 3-move openings
 
-	extern int three[174][4];			// describes 3-move-openings
 	InitCheckerBoard(cbboard8);
 	InvalidateRect(hwnd, NULL, 0);
 	cbcolor = CB_BLACK;
 	cbgame.moves.clear();
 
-	getmovelist(cbcolor, movelist, cbboard8, &iscapture);
-	domove(movelist[three[opening_index][0]], cbboard8);
-	addmovetogame(movelist[three[opening_index][0]], nullptr);
-
-	cbcolor = CB_CHANGECOLOR(cbcolor);
-	getmovelist(cbcolor, movelist, cbboard8, &iscapture);
-	domove(movelist[three[opening_index][1]], cbboard8);
-	addmovetogame(movelist[three[opening_index][1]], nullptr);
-
-	cbcolor = CB_CHANGECOLOR(cbcolor);
-	getmovelist(cbcolor, movelist, cbboard8, &iscapture);
-	domove(movelist[three[opening_index][2]], cbboard8);
-	addmovetogame(movelist[three[opening_index][2]], nullptr);
-
-	cbcolor = CB_CHANGECOLOR(cbcolor);
+	for (int i = 0; i < 3; ++i) {
+		getmovelist(cbcolor, movelist, cbboard8, &iscapture);
+		ml_index = three_move_table[opening_index].movelist_indexes[i];
+		domove(movelist[ml_index], cbboard8);
+		addmovetogame(movelist[ml_index], nullptr);
+		cbcolor = CB_CHANGECOLOR(cbcolor);
+	}
 
 	if (is_mirror_gametype(gametype())) {
 		char pdn[80];
@@ -4196,7 +4188,7 @@ DWORD AutoThreadFunc(LPVOID param)
 							writefile(statsfilename, "a", "%3i:", emstats.opening_index + 1);
 					}
 
-					dostats(game_result, movecount, gamenumber, &emstats);
+					update_match_stats(game_result, movecount, gamenumber, &emstats);
 
 					// finally, display stats in window title
 					sprintf(windowtitle, "%s - %s", engine1, engine2);
@@ -4262,7 +4254,7 @@ DWORD AutoThreadFunc(LPVOID param)
 					if (cboptions.em_start_positions == START_POS_FROM_FILE)
 						start_user_ballot(game0_to_ballot0(gamenumber));
 					else {
-						emstats.opening_index = getthreeopening(gamenumber % (2 * num_ballots()), &cboptions);
+						emstats.opening_index = get_3move_index(game0_to_ballot0(gamenumber), &cboptions);
 						assert(emstats.opening_index >= 0);
 					}
 				}
@@ -4301,15 +4293,12 @@ DWORD AutoThreadFunc(LPVOID param)
 				 * Engine 1 plays black in odd numbered games.
 				 * gamenumber is option base 1 here.
 				 */
-				if ((gamenumber + cbcolor) % 2)
-					setcurrentengine(1);
-				else
-					setcurrentengine(2);
+				setcurrentengine(emstats.get_enginenum(gamenumber, cbcolor));
 
 				// make next move in game
 				movecount++;
 				if (movecount <= 2)
-					reset_move_history = true;
+					reset_move_history = true;		/* First search of a new game for each side. */
 
 				setenginestarting(TRUE);
 				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
@@ -4324,8 +4313,8 @@ DWORD AutoThreadFunc(LPVOID param)
 
 /*
  * This function updates various engine match stats at the end of a match game.
- * 1) It write the result to the match_progress.txt file. This file has a "+" or "-" from the 
- *    point of reference of engine 1.
+ * 1) It writes the result to the match_progress.txt file. This file has a "+" or "-" for each game 
+ *    from the point of reference of engine 1.
  * 2) It updates the counts of wins, draw, losses, and unknowns, from the point of reference of engine 1,
  *	  and the counts of blackwins and blacklosses.
  * 3) It updates the resultstring field (e.g. "1/2-1/2", "1-0", etc.) of cbgame, which 
@@ -4333,7 +4322,7 @@ DWORD AutoThreadFunc(LPVOID param)
  *
  * The "gamenumber" param is a 1-based number here (first game is 1).
  */
-int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
+int update_match_stats(int result, int movecount, int gamenumber, emstats_t *stats)
 {
 	// handles statistics during an engine match
 	char progress_filename[MAX_PATH];
@@ -4350,7 +4339,7 @@ int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
 			if (currentengine == 1) {
 				++stats->wins;
 				writefile(progress_filename, "a", "+");
-				if (gamenumber % 2) {		/* Engine 1 plays BLACK in odd numbered games. */
+				if (stats->engine1_plays_black(gamenumber)) {
 					++stats->blackwins;
 					sprintf(cbgame.resultstring, pdn_result_to_string(BLACK_WIN_RES, gametype()));
 				}
@@ -4362,7 +4351,7 @@ int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
 			else {
 				++stats->losses;
 				writefile(progress_filename, "a", "-");
-				if (gamenumber % 2) {
+				if (stats->engine1_plays_black(gamenumber)) {
 					++stats->blacklosses;
 					sprintf(cbgame.resultstring, pdn_result_to_string(WHITE_WIN_RES, gametype()));
 				}
@@ -4383,7 +4372,7 @@ int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
 			if (currentengine == 1) {
 				++stats->losses;
 				writefile(progress_filename, "a", "-");
-				if (gamenumber % 2) {
+				if (stats->engine1_plays_black(gamenumber)) {
 					++stats->blacklosses;
 					sprintf(cbgame.resultstring, pdn_result_to_string(WHITE_WIN_RES, gametype()));
 				}
@@ -4395,7 +4384,7 @@ int dostats(int result, int movecount, int gamenumber, emstats_t *stats)
 			else {
 				++stats->wins;
 				writefile(progress_filename, "a", "+");
-				if (gamenumber % 2) {
+				if (stats->engine1_plays_black(gamenumber)) {
 					++stats->blackwins;
 					sprintf(cbgame.resultstring, pdn_result_to_string(BLACK_WIN_RES, gametype()));
 				}

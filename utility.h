@@ -7,6 +7,12 @@ enum READ_TEXT_FILE_ERROR_TYPE {
 	RTF_NO_ERROR, RTF_FILE_ERROR, RTF_MALLOC_ERROR
 };
 
+/* An entry in the ACF 3-move deck. */
+struct Three_move_entry {
+	uint8_t movelist_indexes[3];	/* the three move numbers which have to be executed after generating the movelist. */
+	uint8_t ballot_type;			/* 0, 1, 2, 3 for normal, mailplay, lost, and CTD */
+};
+
 int builtingametype(void);
 void CBlog(char *text);
 void cblog(const char *fmt, ...);
@@ -15,7 +21,7 @@ int extract_path(char *name, char *path);
 int FENtoclipboard(HWND hwnd, int board8[8][8], int color, int gametype);
 int fileispresent(char *filename);
 int getopening(CBoptions *CBoptions);
-int getthreeopening(int n, CBoptions *CBoptions);
+int get_3move_index(int ballotnum, CBoptions *CBoptions);
 int initcolorstruct(HWND hwnd, CHOOSECOLOR *ccs, int index);
 int logtofile(char *filename, char *str, char *mode);
 int num_3move_ballots(CBoptions *options);

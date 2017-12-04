@@ -56,7 +56,7 @@ HWND CreateAToolBar(HWND hwndParent);
 int createcheckerboard(HWND hwnd);
 bool doload(PDNgame *PDNgame, const char *gamestring, int *color, int board8[8][8], std::string &errormsg);
 int domove(CBmove m, int b[8][8]);
-int dostats(int result, int movecount, int gamenumber, emstats_t *stats);
+int update_match_stats(int result, int movecount, int gamenumber, emstats_t *stats);
 void emlog_filename(char *filename);
 void empdn_filename(char *filename);
 void emprogress_filename(char *filename);

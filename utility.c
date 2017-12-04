@@ -16,13 +16,12 @@
 #include "utility.h"
 #include "fen.h"
 
-// the following array describes the ACF three-move-deck. three[n][0-1-2] are
-// the three move numbers which have to be executed after generating the movelist
-// in all three positions. n+1 is the number used in the ACF-deck.
-// three[n][4] is the qualifier of the opening, 0,1,2,3 for normal, mailplay and probably lost, 3
-// is also normal, but in CTD
-int three[174][4] =
-{
+
+
+/* The ACF list of 3-move ballots.
+ * The ACF opening number is one greater than the index into the table.
+ */
+Three_move_entry three_move_table[174] = {
 	{ 0, 6, 0, 0 },
 	{ 0, 6, 1, 0 },
 	{ 0, 6, 2, 2 },
@@ -548,17 +547,17 @@ int getopening(CBoptions *CBoptions)
 
 	while (!ok) {
 		op = random(174);
-		if (three[op][3] == OP_BOARD) {
+		if (three_move_table[op].ballot_type == OP_BOARD) {
 			if (CBoptions->op_crossboard)
 				ok = 1;
 		}
 
-		if (three[op][3] == OP_MAILPLAY) {
+		if (three_move_table[op].ballot_type == OP_MAILPLAY) {
 			if (CBoptions->op_mailplay)
 				ok = 1;
 		}
 
-		if (three[op][3] == OP_BARRED) {
+		if (three_move_table[op].ballot_type == OP_BARRED) {
 			if (CBoptions->op_barred)
 				ok = 1;
 		}
@@ -575,16 +574,16 @@ int num_3move_ballots(CBoptions *options)
 {
 	int i, count;
 
-	for (i = 0, count = 0; i < ARRAY_SIZE(three); ++i) {
-		if (three[i][3] == OP_BOARD || three[i][3] == OP_CTD) {
+	for (i = 0, count = 0; i < ARRAY_SIZE(three_move_table); ++i) {
+		if (three_move_table[i].ballot_type == OP_BOARD || three_move_table[i].ballot_type == OP_CTD) {
 			if (options->op_crossboard)
 				++count;
 		}
-		else if (three[i][3] == OP_MAILPLAY) {
+		else if (three_move_table[i].ballot_type == OP_MAILPLAY) {
 			if (options->op_mailplay)
 				++count;
 		}
-		else if (three[i][3] == OP_BARRED) {
+		else if (three_move_table[i].ballot_type == OP_BARRED) {
 			if (options->op_barred)
 				++count;
 		}
@@ -592,40 +591,32 @@ int num_3move_ballots(CBoptions *options)
 	return(count);
 }
 
-int getthreeopening(int n, CBoptions *CBoptions)
+/*
+ * Given a 0-based ballot number between 0 .. num_3move_ballots() - 1, return an
+ * index into three_move_table[].
+ * num_3move_ballots() returns the number of ballots that will be played depending
+ * on which subset of the 3-move deck is active.
+ */
+int get_3move_index(int ballotnum, CBoptions *CBoptions)
 {
-	/* n is the number of the game in the engine match, 0 through numopenings - 1. 
-		getthreeopening returns the number of the opening that should
-		be played in game number n depending on which subset of
-		the 3-move-deck is active */
-	int i;
-	int m;
+	int i, count;
 
-	/* play every opening twice */
-	n = n / 2;
+	count = 0;
+	for (i = 0; i < ARRAY_SIZE(three_move_table); i++) {
+		if ((three_move_table[i].ballot_type == OP_CTD || three_move_table[i].ballot_type == OP_BOARD) && CBoptions->op_crossboard)
+			++count;
+		else if ((three_move_table[i].ballot_type == OP_MAILPLAY) && CBoptions->op_mailplay)
+			++count;
+		else if ((three_move_table[i].ballot_type == OP_BARRED) && CBoptions->op_barred)
+			++count;
 
-	/* makes gamenumber: 1 2 3 4 5 6 7 8
-				         n: 0 0 1 1 2 2 3 3 */
-	m = -1;
-	for (i = 0; i < 174; i++) {
-
-		/* if the opening is part of the current set, increment m */
-
-		// normal if((three[i][3]==op_crossboard) && op_crossboard) m++;
-		if ((three[i][3] == OP_CTD || three[i][3] == OP_BOARD) && CBoptions->op_crossboard)
-			m++;
-		if ((three[i][3] == OP_BARRED) && CBoptions->op_barred)
-			m++;
-		if ((three[i][3] == OP_MAILPLAY) && CBoptions->op_mailplay)
-			m++;
-
-		/* after having found N eligible openings, our counter m is set to N-1, so
-			that it runs from 0...173 at most */
-		if (m == n)
+		if ((count - 1) == ballotnum)
 			return i;
 	}
 
-	return -1;
+	/* Should never get here. */
+	assert(false);
+	return(0);
 }
 
 void toggle(int *x)
