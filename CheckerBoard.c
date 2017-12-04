@@ -3252,13 +3252,13 @@ DWORD SearchThreadFunc(LPVOID param)
 	CBmove movelist[MAXMOVES];
 	CBmove localmove;
 	char PDN[40];
-	int found = 0;
+	bool found_move;
 	int iscapture;
 	pos userbookpos;
-	int founduserbookmove = 0;
 	double elapsed, maxtime;
 
 	PDN[0] = 0;
+	found_move = false;
 	if (cboptions.use_incremental_time && CBstate != ENGINEMATCH && CBstate != AUTOPLAY && CBstate != ENGINEGAME) {
 
 		/* Player must have just made a move.
@@ -3306,14 +3306,13 @@ DWORD SearchThreadFunc(LPVOID param)
 
 				// we have this position in the userbook!
 				cbmove = userbook[i].move;
-				founduserbookmove = 1;
-				found = 1;
+				found_move = true;
 				sprintf(statusbar_txt, "found move in user book");
 			}
 		}
 	}
 
-	if (!founduserbookmove) {
+	if (!found_move) {
 
 		// we did not find a move in our user book, so continue
 		//board8 is a global [8][8] int which holds the board
@@ -3427,37 +3426,11 @@ DWORD SearchThreadFunc(LPVOID param)
 		// reset playnow immediately
 		playnow = 0;
 
-		// save engine string as comment if it's an engine match
-		// actually, always save if add comment is on
-		if (addcomment) {
-			if (cbgame.movesindex > 0) {
-				gamebody_entry *pgame = &cbgame.moves[cbgame.movesindex - 1];
-				if (strlen(statusbar_txt) < COMMENTLENGTH)
-					sprintf(pgame->comment, "%s", statusbar_txt);
-				else
-					strncpy(pgame->comment, statusbar_txt, COMMENTLENGTH - 2);
-			}
-		}
-
 		// now, we execute the move on the board, but only if we are not in observe or analyze mode
 		// in observemode, the user will provide all moves, in analyse mode the autothread drives the
 		// game forward
 		if (CBstate != OBSERVEGAME && CBstate != ANALYZEGAME && CBstate != ANALYZEPDN && !abortcalculation)
 			memcpy(cbboard8, originalcopy, sizeof(cbboard8));
-
-		// if we are in engine match mode and one of the engines claims a win
-		// or a loss or a draw we stop
-		if (CBstate == ENGINEMATCH) {
-			if (game_result == CB_DRAW)
-				gameover = TRUE;
-			else {
-				if (cboptions.early_game_adjudication && game_result != CB_UNKNOWN) {
-					if (cbgame.movesindex > 0)
-						sprintf(cbgame.moves[cbgame.movesindex - 1].comment, "%s : gameover claimed", statusbar_txt);
-					gameover = TRUE;
-				}
-			}
-		}
 
 		if (CBstate == ENGINEGAME && game_result != CB_UNKNOWN)
 			gameover = TRUE;
@@ -3477,13 +3450,13 @@ DWORD SearchThreadFunc(LPVOID param)
 					domove(movelist[i], b8copy);
 					if (memcmp(cbboard8, b8copy, sizeof(cbboard8)) == 0) {
 						cbmove = movelist[i];
-						found = 1;
+						found_move = true;
 						move_to_pdn_english(nmoves, movelist, &cbmove, PDN);
 						break;
 					}
 				}
 
-				if (found == 0)
+				if (!found_move)
 					memcpy(cbboard8, original8board, sizeof(cbboard8));
 			}
 			else {
@@ -3492,7 +3465,7 @@ DWORD SearchThreadFunc(LPVOID param)
 				cbmove = localmove;
 				move4tonotation(localmove, PDN);
 				memcpy(cbboard8, original8board, sizeof(cbboard8));
-				found = 1;
+				found_move = true;
 			}
 		}
 
@@ -3536,10 +3509,42 @@ DWORD SearchThreadFunc(LPVOID param)
 		break;
 	}
 
-	// now we execute the move, but only if we are not in the mode
-	// ANALYZEGAME or OBSERVEGAME
-	if ((CBstate != OBSERVEGAME) && (CBstate != ANALYZEGAME) && (CBstate != ANALYZEPDN) && found && !abortcalculation) {
-		addmovetogame(cbmove, PDN);
+	// Add the move to the UI's current game.
+	// Save the game search string as a comment if addcomment is true or
+	// if ENGINEMATCH and the engine claimed a result.
+	// Play a sound if that option is on.
+	// Start the animation thread to animate the move and play it on the UI's board.
+	if ((CBstate != OBSERVEGAME) && (CBstate != ANALYZEGAME) && (CBstate != ANALYZEPDN) && found_move && !abortcalculation) {
+		bool add_gameover_comment = false;
+
+		addmovetogame(cbmove, PDN);		/* Add the move to the current game. */
+
+		// If we are in ENGINEMATCH state and the engine claims a result then we stop.
+		if (CBstate == ENGINEMATCH) {
+			if (game_result == CB_DRAW) {
+				gameover = TRUE;
+				add_gameover_comment = true;
+			}
+			else {
+				if (cboptions.early_game_adjudication && game_result != CB_UNKNOWN) {
+					gameover = TRUE;
+					add_gameover_comment = true;
+				}
+			}
+		}
+
+		// save engine string as comment if it's an engine match
+		// actually, always save if add comment is on
+		if ((addcomment || add_gameover_comment) && cbgame.movesindex > 0) {
+			gamebody_entry *pgame = &cbgame.moves[cbgame.movesindex - 1];
+			strncpy(pgame->comment, statusbar_txt, COMMENTLENGTH - 1);
+			pgame->comment[COMMENTLENGTH - 1] = 0;
+
+			if (add_gameover_comment) {
+				strncat(pgame->comment, " : gameover claimed", COMMENTLENGTH - 1);
+				pgame->comment[COMMENTLENGTH - 1] = 0;
+			}
+		}
 
 		// if sound is on we make a beep
 		if (cboptions.sound)
