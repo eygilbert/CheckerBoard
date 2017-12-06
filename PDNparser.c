@@ -732,7 +732,7 @@ int PDNparseGetnexttoken(const char **start, char *token)
 	}
 
 	// if no end of token is found
-	if (*p == 0)
+	if (i == 0)
 		return 0;
 
 	// if we terminated with a full stop (.) ,add it
