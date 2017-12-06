@@ -55,7 +55,7 @@ int get_more_engine_options_from_dialog(HWND hwnd, MORE_ENGINE_OPTIONS *options)
 #define IDC_ALLSCORES 1001
 
 /*3-move dialog */
-#define IDC_BOARD 1000
+#define IDC_CROSSBOARD 1000
 #define IDC_MAILPLAY 1001
 #define IDC_BARRED 1002
 

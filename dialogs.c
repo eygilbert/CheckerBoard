@@ -117,7 +117,7 @@ BOOL CALLBACK AboutDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lP
 BOOL CALLBACK ThreeMoveDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	// this dialog sets the global variables
-	// op_board,op_mailplay & op_barred, which indicate
+	// op_crossboard,op_mailplay & op_barred, which indicate
 	// whether the respective openings are used in the 3movedeck
 	switch (message) {
 	case WM_INITDIALOG:
@@ -125,7 +125,7 @@ BOOL CALLBACK ThreeMoveDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARA
 		CenterDialog(hdwnd);
 
 		// initialize checkboxes:
-		SendDlgItemMessage(hdwnd, IDC_BOARD, BM_SETCHECK, cboptions.op_crossboard, 0);
+		SendDlgItemMessage(hdwnd, IDC_CROSSBOARD, BM_SETCHECK, cboptions.op_crossboard, 0);
 		SendDlgItemMessage(hdwnd, IDC_MAILPLAY, BM_SETCHECK, cboptions.op_mailplay, 0);
 		SendDlgItemMessage(hdwnd, IDC_BARRED, BM_SETCHECK, cboptions.op_barred, 0);
 
@@ -142,7 +142,7 @@ BOOL CALLBACK ThreeMoveDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARA
 			return 1;
 
 		case IDC_OK:
-			cboptions.op_crossboard = (int)SendDlgItemMessage(hdwnd, IDC_BOARD, BM_GETCHECK, 0, 0);
+			cboptions.op_crossboard = (int)SendDlgItemMessage(hdwnd, IDC_CROSSBOARD, BM_GETCHECK, 0, 0);
 			cboptions.op_mailplay = (int)SendDlgItemMessage(hdwnd, IDC_MAILPLAY, BM_GETCHECK, 0, 0);
 			cboptions.op_barred = (int)SendDlgItemMessage(hdwnd, IDC_BARRED, BM_GETCHECK, 0, 0);
 			EndDialog(hdwnd, 0);

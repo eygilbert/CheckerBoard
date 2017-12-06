@@ -11,10 +11,10 @@
 #define VERSION "1.73e"
 #define PLACE "October 31, 2017"
 
-#define OP_BOARD 0			// different opening decks
-#define OP_MAILPLAY 1
-#define OP_BARRED 2
-#define OP_CTD 3
+#define OP_CROSSBOARD 1			// different opening decks
+#define OP_MAILPLAY 2
+#define OP_BARRED 4
+#define OP_CTD 8			/* "Computer tough deck", selected by Mac Banks for the 2002 Las Vegas computer checkers tournament. */
 
 #define NUMBUTTONS 23		//number of buttons in toolbar
 #define MAXUSERBOOK 10000
@@ -82,6 +82,7 @@ int handle_rbuttondown(int x, int y);
 void InitCheckerBoard(int b[8][8]);
 void initengines(void);
 int is_mirror_gametype(int gametype);
+int is_row_reversed_gametype(int gametype);
 void loadengines(char *pri_fname, char *sec_fname);
 HWND InitHeader(HWND hwnd);
 void InitStatus(HWND hwnd);

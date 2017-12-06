@@ -176,6 +176,17 @@ public:
 				++count;
 		return(count);
 	}
+	void reverse_color(void) {
+		for (int i = 0; i < m_size; ++i)
+			squares[i] = 33 - squares[i];
+	}
+	void reverse_rows(void) {
+		for (int i = 0; i < m_size; ++i) {
+			int sq0 = squares[i] - 1;
+			int row = sq0 / 4;
+			squares[i] = 1 + (4 * row) + (3 - (sq0 & 3));
+		}
+	}
 
 private:
 	char m_size;

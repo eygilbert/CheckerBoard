@@ -17,185 +17,184 @@
 #include "fen.h"
 
 
-
 /* The ACF list of 3-move ballots.
  * The ACF opening number is one greater than the index into the table.
  */
-Three_move_entry three_move_table[174] = {
-	{ 0, 6, 0, 0 },
-	{ 0, 6, 1, 0 },
-	{ 0, 6, 2, 2 },
-	{ 0, 4, 0, 0 },
-	{ 0, 5, 2, 3 },
-	{ 0, 5, 3, 1 },
-	{ 0, 5, 4, 3 },
-	{ 0, 5, 5, 3 },
-	{ 0, 5, 6, 1 },
-	{ 0, 5, 7, 3 },
-	{ 0, 2, 1, 0 },
-	{ 0, 2, 2, 3 },
-	{ 0, 2, 3, 2 },
-	{ 0, 2, 4, 0 },
-	{ 0, 2, 5, 3 },
-	{ 0, 2, 6, 1 },
-	{ 0, 2, 7, 0 },
-	{ 0, 3, 1, 0 },
-	{ 0, 3, 2, 0 },
-	{ 0, 3, 3, 0 },
-	{ 0, 3, 4, 1 },
-	{ 0, 3, 6, 0 },
-	{ 0, 0, 1, 0 },
-	{ 0, 0, 2, 0 },
-	{ 0, 0, 3, 3 },
-	{ 0, 0, 4, 2 },
-	{ 0, 0, 5, 0 },
-	{ 0, 0, 6, 0 },
-	{ 0, 1, 1, 0 },
-	{ 0, 1, 2, 0 },
-	{ 0, 1, 3, 0 },
-	{ 0, 1, 4, 0 },
-	{ 0, 1, 5, 0 },
-	{ 0, 1, 6, 1 },
-	{ 0, 1, 7, 2 },
-	{ 1, 4, 1, 0 },
-	{ 1, 4, 2, 3 },
-	{ 1, 4, 4, 0 },
-	{ 1, 4, 5, 0 },
-	{ 1, 5, 1, 0 },
-	{ 1, 5, 3, 0 },
-	{ 1, 5, 4, 0 },
-	{ 1, 5, 5, 0 },
-	{ 1, 5, 6, 2 },
-	{ 1, 5, 0, 2 },
-	{ 1, 2, 0, 3 },
-	{ 1, 3, 2, 0 },
-	{ 1, 3, 4, 2 },
-	{ 1, 3, 6, 0 },
-	{ 1, 3, 1, 3 },
-	{ 1, 0, 2, 0 },
-	{ 1, 0, 4, 2 },
-	{ 1, 0, 5, 0 },
-	{ 1, 0, 6, 0 },
-	{ 1, 1, 2, 0 },
-	{ 1, 1, 4, 0 },
-	{ 1, 1, 5, 0 },
-	{ 1, 1, 6, 3 },
-	{ 2, 4, 2, 3 },
-	{ 2, 4, 3, 1 },
-	{ 2, 4, 4, 1 },
-	{ 2, 4, 5, 1 },
-	{ 2, 4, 0, 3 },
-	{ 2, 5, 1, 3 },
-	{ 2, 5, 2, 3 },
-	{ 2, 5, 4, 0 },
-	{ 2, 5, 5, 0 },
-	{ 2, 5, 6, 3 },
-	{ 2, 2, 0, 0 },
-	{ 2, 3, 2, 3 },
-	{ 2, 3, 3, 3 },
-	{ 2, 3, 5, 3 },
-	{ 2, 3, 6, 0 },
-	{ 2, 3, 1, 3 },
-	{ 2, 0, 2, 3 },
-	{ 2, 0, 3, 0 },
-	{ 2, 0, 5, 2 },
-	{ 2, 0, 6, 0 },
-	{ 2, 0, 1, 3 },
-	{ 2, 1, 2, 0 },
-	{ 2, 1, 3, 0 },
-	{ 2, 1, 5, 0 },
-	{ 2, 1, 6, 0 },
-	{ 2, 1, 1, 3 },
-	{ 3, 6, 2, 3 },
-	{ 3, 6, 3, 3 },
-	{ 3, 6, 4, 3 },
-	{ 3, 6, 5, 2 },
-	{ 3, 6, 6, 3 },
-	{ 3, 6, 0, 0 },
-	{ 3, 4, 2, 3 },
-	{ 3, 4, 3, 0 },
-	{ 3, 4, 4, 3 },
-	{ 3, 4, 5, 2 },
-	{ 3, 4, 6, 0 },
-	{ 3, 4, 1, 3 },
-	{ 3, 5, 0, 0 },
-	{ 3, 2, 1, 3 },
-	{ 3, 2, 2, 0 },
-	{ 3, 2, 4, 0 },
-	{ 3, 2, 5, 0 },
-	{ 3, 2, 6, 3 },
-	{ 3, 3, 1, 0 },
-	{ 3, 3, 2, 0 },
-	{ 3, 3, 5, 1 },
-	{ 3, 0, 0, 0 },
-	{ 3, 1, 2, 0 },
-	{ 3, 1, 3, 0 },
-	{ 3, 1, 6, 2 },
-	{ 3, 1, 1, 3 },
-	{ 4, 6, 3, 0 },
-	{ 4, 6, 4, 0 },
-	{ 4, 6, 5, 0 },
-	{ 4, 6, 6, 2 },
-	{ 4, 6, 1, 3 },
-	{ 4, 4, 3, 0 },
-	{ 4, 4, 4, 0 },
-	{ 4, 4, 0, 0 },
-	{ 4, 4, 1, 0 },
-	{ 4, 5, 0, 0 },
-	{ 4, 2, 2, 0 },
-	{ 4, 2, 4, 0 },
-	{ 4, 2, 5, 0 },
-	{ 4, 2, 6, 3 },
-	{ 4, 2, 0, 3 },
-	{ 4, 3, 2, 0 },
-	{ 4, 3, 3, 0 },
-	{ 4, 3, 4, 0 },
-	{ 4, 0, 0, 0 },
-	{ 4, 1, 3, 0 },
-	{ 4, 1, 7, 3 },
-	{ 4, 1, 0, 0 },
-	{ 5, 6, 2, 3 },
-	{ 5, 6, 3, 0 },
-	{ 5, 6, 4, 3 },
-	{ 5, 6, 5, 0 },
-	{ 5, 6, 6, 2 },
-	{ 5, 6, 1, 0 },
-	{ 5, 4, 2, 0 },
-	{ 5, 4, 3, 0 },
-	{ 5, 4, 4, 1 },
-	{ 5, 4, 1, 0 },
-	{ 5, 5, 2, 3 },
-	{ 5, 5, 3, 0 },
-	{ 5, 5, 7, 2 },
-	{ 5, 5, 0, 0 },
-	{ 5, 5, 1, 0 },
-	{ 5, 2, 2, 3 },
-	{ 5, 2, 3, 0 },
-	{ 5, 2, 5, 0 },
-	{ 5, 2, 6, 0 },
-	{ 5, 2, 1, 0 },
-	{ 5, 3, 0, 1 },
-	{ 5, 0, 1, 3 },
-	{ 5, 0, 2, 0 },
-	{ 5, 0, 6, 2 },
-	{ 5, 0, 0, 0 },
-	{ 5, 1, 1, 3 },
-	{ 5, 1, 0, 0 },
-	{ 6, 6, 3, 3 },
-	{ 6, 6, 4, 3 },
-	{ 6, 6, 0, 3 },
-	{ 6, 6, 1, 0 },
-	{ 6, 4, 0, 0 },
-	{ 6, 4, 1, 0 },
-	{ 6, 5, 0, 3 },
-	{ 6, 5, 1, 3 },
-	{ 6, 2, 4, 2 },
-	{ 6, 2, 0, 3 },
-	{ 6, 2, 1, 0 },
-	{ 6, 3, 0, 2 },
-	{ 6, 0, 0, 0 },
-	{ 6, 1, 1, 0 },
-	{ 6, 1, 5, 1 }
+Three_move three_move_table[174] = {
+	{"9-13 21-17 5-9", OP_CROSSBOARD, nullptr},						/* ACF #1 */
+	{"9-13 21-17 6-9", OP_CROSSBOARD, nullptr},						/* ACF #2 */
+	{"9-13 21-17 10-14", OP_BARRED, nullptr},						/* ACF #3 */
+	{"9-13 22-17 13x22", OP_CROSSBOARD, nullptr},					/* ACF #4 */
+	{"9-13 22-18 6-9", OP_CROSSBOARD | OP_CTD, "Dreaded Edinburgh"},	/* ACF #5 */
+	{"9-13 22-18 10-14", OP_MAILPLAY, "Inferno"},					/* ACF #6 */
+	{"9-13 22-18 10-15", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #7 */
+	{"9-13 22-18 11-15", OP_CROSSBOARD | OP_CTD, "Edinburgh Single"},	/* ACF #8 */
+	{"9-13 22-18 11-16", OP_MAILPLAY, "Wilderness I"},				/* ACF #9 */
+	{"9-13 22-18 12-16", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #10 */
+	{"9-13 23-18 5-9", OP_CROSSBOARD, nullptr},						/* ACF #11 */
+	{"9-13 23-18 6-9", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #12 */
+	{"9-13 23-18 10-14", OP_BARRED, nullptr},						/* ACF #13 */
+	{"9-13 23-18 10-15", OP_CROSSBOARD, nullptr},					/* ACF #14 */
+	{"9-13 23-18 11-15", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #15 */
+	{"9-13 23-18 11-16", OP_MAILPLAY, "Wilderness II"},				/* ACF #16 */
+	{"9-13 23-18 12-16", OP_CROSSBOARD, nullptr},					/* ACF #17 */
+	{"9-13 23-19 5-9", OP_CROSSBOARD, nullptr},						/* ACF #18 */
+	{"9-13 23-19 6-9", OP_CROSSBOARD, nullptr},						/* ACF #19 */
+	{"9-13 23-19 10-14", OP_CROSSBOARD, nullptr},					/* ACF #20 */
+	{"9-13 23-19 10-15", OP_MAILPLAY, nullptr},						/* ACF #21 */
+	{"9-13 23-19 11-16", OP_CROSSBOARD, nullptr},					/* ACF #22 */
+	{"9-13 24-19 5-9", OP_CROSSBOARD, nullptr},						/* ACF #23 */
+	{"9-13 24-19 6-9", OP_CROSSBOARD, nullptr},						/* ACF #24 */
+	{"9-13 24-19 10-14", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #25 */
+	{"9-13 24-19 10-15", OP_BARRED, nullptr},						/* ACF #26 */
+	{"9-13 24-19 11-15", OP_CROSSBOARD, nullptr},					/* ACF #27 */
+	{"9-13 24-19 11-16", OP_CROSSBOARD, nullptr},					/* ACF #28 */
+	{"9-13 24-20 5-9", OP_CROSSBOARD, nullptr},						/* ACF #29 */
+	{"9-13 24-20 6-9", OP_CROSSBOARD, nullptr},						/* ACF #30 */
+	{"9-13 24-20 10-14", OP_CROSSBOARD, nullptr},					/* ACF #31 */
+	{"9-13 24-20 10-15", OP_CROSSBOARD, nullptr},					/* ACF #32 */
+	{"9-13 24-20 11-15", OP_CROSSBOARD, nullptr},					/* ACF #33 */
+	{"9-13 24-20 11-16", OP_MAILPLAY, "Twilight Zone"},				/* ACF #34 */
+	{"9-13 24-20 12-16", OP_BARRED, "Dundee Barred"},				/* ACF #35 */
+	{"9-14 22-17 5-9", OP_CROSSBOARD, nullptr},						/* ACF #36 */
+	{"9-14 22-17 6-9", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #37 */
+	{"9-14 22-17 11-15", OP_CROSSBOARD, nullptr},					/* ACF #38 */
+	{"9-14 22-17 11-16", OP_CROSSBOARD, nullptr},					/* ACF #39 */
+	{"9-14 22-18 5-9", OP_CROSSBOARD, nullptr},						/* ACF #40 */
+	{"9-14 22-18 10-15", OP_CROSSBOARD, nullptr},					/* ACF #41 */
+	{"9-14 22-18 11-15", OP_CROSSBOARD, nullptr},					/* ACF #42 */
+	{"9-14 22-18 11-16", OP_CROSSBOARD, nullptr},					/* ACF #43 */
+	{"9-14 22-18 12-16", OP_BARRED, nullptr},						/* ACF #44 */
+	{"9-14 22-18 14-17", OP_BARRED, nullptr},						/* ACF #45 */
+	{"9-14 23-18 14x23", OP_CROSSBOARD | OP_CTD, "Double Cross"},	/* ACF #46 */
+	{"9-14 23-19 5-9", OP_CROSSBOARD, nullptr},						/* ACF #47 */
+	{"9-14 23-19 10-15", OP_BARRED, "Rattlesnake"},					/* ACF #48 */
+	{"9-14 23-19 11-16", OP_CROSSBOARD, nullptr},					/* ACF #49 */
+	{"9-14 23-19 14-18", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #50 */
+	{"9-14 24-19 5-9", OP_CROSSBOARD, nullptr},						/* ACF #51 */
+	{"9-14 24-19 10-15", OP_BARRED, nullptr},						/* ACF #52 */
+	{"9-14 24-19 11-15", OP_CROSSBOARD, nullptr},					/* ACF #53 */
+	{"9-14 24-19 11-16", OP_CROSSBOARD, nullptr},					/* ACF #54 */
+	{"9-14 24-20 5-9", OP_CROSSBOARD, nullptr},						/* ACF #55 */
+	{"9-14 24-20 10-15", OP_CROSSBOARD, nullptr},					/* ACF #56 */
+	{"9-14 24-20 11-15", OP_CROSSBOARD, nullptr},					/* ACF #57 */
+	{"9-14 24-20 11-16", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #58 */
+	{"10-14 22-17 7-10", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #59 */
+	{"10-14 22-17 9-13", OP_MAILPLAY | OP_CTD, "Black Hole"},		/* ACF #60 */
+	{"10-14 22-17 11-15", OP_MAILPLAY, nullptr},					/* ACF #61 */
+	{"10-14 22-17 11-16", OP_MAILPLAY, "Gemini I"},					/* ACF #62 */
+	{"10-14 22-17 14-18", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #63 */
+	{"10-14 22-18 6-10", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #64 */
+	{"10-14 22-18 7-10", OP_CROSSBOARD | OP_CTD, "Fraser's Inferno"},	/* ACF #65 */
+	{"10-14 22-18 11-15", OP_CROSSBOARD, nullptr},					/* ACF #66 */
+	{"10-14 22-18 11-16", OP_CROSSBOARD, nullptr},					/* ACF #67 */
+	{"10-14 22-18 12-16", OP_CROSSBOARD | OP_CTD, "White Doctor"},	/* ACF #68 */
+	{"10-14 23-18 14x23", OP_CROSSBOARD, nullptr},					/* ACF #69 */
+	{"10-14 23-19 6-10", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #70 */
+	{"10-14 23-19 7-10", OP_CROSSBOARD | OP_CTD, "Diabolical Denny"},	/* ACF #71 */
+	{"10-14 23-19 11-15", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #72 */
+	{"10-14 23-19 11-16", OP_CROSSBOARD, nullptr},					/* ACF #73 */
+	{"10-14 23-19 14-18", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #74 */
+	{"10-14 24-19 6-10", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #75 */
+	{"10-14 24-19 7-10", OP_CROSSBOARD, nullptr},					/* ACF #76 */
+	{"10-14 24-19 11-15", OP_BARRED, nullptr},						/* ACF #77 */
+	{"10-14 24-19 11-16", OP_CROSSBOARD, nullptr},					/* ACF #78 */
+	{"10-14 24-19 14-18", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #79 */
+	{"10-14 24-20 6-10", OP_CROSSBOARD, nullptr},					/* ACF #80 */
+	{"10-14 24-20 7-10", OP_CROSSBOARD, nullptr},					/* ACF #81 */
+	{"10-14 24-20 11-15", OP_CROSSBOARD, nullptr},					/* ACF #82 */
+	{"10-14 24-20 11-16", OP_CROSSBOARD, nullptr},					/* ACF #83 */
+	{"10-14 24-20 14-18", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #84 */
+	{"10-15 21-17 6-10", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #85 */
+	{"10-15 21-17 7-10", OP_CROSSBOARD | OP_CTD, "Octopus"},		/* ACF #86 */
+	{"10-15 21-17 9-13", OP_CROSSBOARD | OP_CTD, "Tyne"},			/* ACF #87 */
+	{"10-15 21-17 9-14", OP_BARRED, nullptr},						/* ACF #88 */
+	{"10-15 21-17 11-16", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #89 */
+	{"10-15 21-17 15-18", OP_CROSSBOARD, nullptr},					/* ACF #90 */
+	{"10-15 22-17 6-10", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #91 */
+	{"10-15 22-17 7-10", OP_CROSSBOARD, nullptr},					/* ACF #92 */
+	{"10-15 22-17 9-13", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #93 */
+	{"10-15 22-17 9-14", OP_BARRED, "Nutcracker"},					/* ACF #94 */
+	{"10-15 22-17 11-16", OP_CROSSBOARD, nullptr},					/* ACF #95 */
+	{"10-15 22-17 15-19", OP_CROSSBOARD | OP_CTD, "Skull-Cracker"},	/* ACF #96 */
+	{"10-15 22-18 15x22", OP_CROSSBOARD, nullptr},					/* ACF #97 */
+	{"10-15 23-18 6-10", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #98 */
+	{"10-15 23-18 7-10", OP_CROSSBOARD, nullptr},					/* ACF #99 */
+	{"10-15 23-18 9-14", OP_CROSSBOARD, nullptr},					/* ACF #100 */
+	{"10-15 23-18 11-16", OP_CROSSBOARD, nullptr},					/* ACF #101 */
+	{"10-15 23-18 12-16", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #102 */
+	{"10-15 23-19 6-10", OP_CROSSBOARD, nullptr},					/* ACF #103 */
+	{"10-15 23-19 7-10", OP_CROSSBOARD, nullptr},					/* ACF #104 */
+	{"10-15 23-19 11-16", OP_MAILPLAY, "Gemini II"},				/* ACF #105 */
+	{"10-15 24-19 15x24", OP_CROSSBOARD, nullptr},					/* ACF #106 */
+	{"10-15 24-20 6-10", OP_CROSSBOARD, nullptr},					/* ACF #107 */
+	{"10-15 24-20 7-10", OP_CROSSBOARD, nullptr},					/* ACF #108 */
+	{"10-15 24-20 11-16", OP_BARRED, nullptr},						/* ACF #109 */
+	{"10-15 24-20 15-19", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #110 */
+	{"11-15 21-17 8-11", OP_CROSSBOARD, nullptr},					/* ACF #111 */
+	{"11-15 21-17 9-13", OP_CROSSBOARD, nullptr},					/* ACF #112 */
+	{"11-15 21-17 9-14", OP_CROSSBOARD, nullptr},					/* ACF #113 */
+	{"11-15 21-17 10-14", OP_BARRED, nullptr},						/* ACF #114 */
+	{"11-15 21-17 15-19", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #115 */
+	{"11-15 22-17 8-11", OP_CROSSBOARD, nullptr},					/* ACF #116 */
+	{"11-15 22-17 9-13", OP_CROSSBOARD, nullptr},					/* ACF #117 */
+	{"11-15 22-17 15-18", OP_CROSSBOARD, nullptr},					/* ACF #118 */
+	{"11-15 22-17 15-19", OP_CROSSBOARD, nullptr},					/* ACF #119 */
+	{"11-15 22-18 15x22", OP_CROSSBOARD, nullptr},					/* ACF #120 */
+	{"11-15 23-18 8-11", OP_CROSSBOARD, nullptr},					/* ACF #121 */
+	{"11-15 23-18 9-14", OP_CROSSBOARD, nullptr},					/* ACF #122 */
+	{"11-15 23-18 10-14", OP_CROSSBOARD, nullptr},					/* ACF #123 */
+	{"11-15 23-18 12-16", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #124 */
+	{"11-15 23-18 15-19", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #125 */
+	{"11-15 23-19 8-11", OP_CROSSBOARD, nullptr},					/* ACF #126 */
+	{"11-15 23-19 9-13", OP_CROSSBOARD, nullptr},					/* ACF #127 */
+	{"11-15 23-19 9-14", OP_CROSSBOARD, nullptr},					/* ACF #128 */
+	{"11-15 24-19 15x24", OP_CROSSBOARD, nullptr},					/* ACF #129 */
+	{"11-15 24-20 8-11", OP_CROSSBOARD, nullptr},					/* ACF #130 */
+	{"11-15 24-20 12-16", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #131 */
+	{"11-15 24-20 15-18", OP_CROSSBOARD, nullptr},					/* ACF #132 */
+	{"11-16 21-17 7-11", OP_CROSSBOARD | OP_CTD, "Octopus"},		/* ACF #133 */
+	{"11-16 21-17 8-11", OP_CROSSBOARD, nullptr},					/* ACF #134 */
+	{"11-16 21-17 9-13", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #135 */
+	{"11-16 21-17 9-14", OP_CROSSBOARD, nullptr},					/* ACF #136 */
+	{"11-16 21-17 10-14", OP_BARRED, "Shark"},						/* ACF #137 */
+	{"11-16 21-17 16-20", OP_CROSSBOARD, nullptr},					/* ACF #138 */
+	{"11-16 22-17 7-11", OP_CROSSBOARD, nullptr},					/* ACF #139 */
+	{"11-16 22-17 8-11", OP_CROSSBOARD, nullptr},					/* ACF #140 */
+	{"11-16 22-17 9-13", OP_MAILPLAY, nullptr},						/* ACF #141 */
+	{"11-16 22-17 16-20", OP_CROSSBOARD, nullptr},					/* ACF #142 */
+	{"11-16 22-18 7-11", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #143 */
+	{"11-16 22-18 8-11", OP_CROSSBOARD, nullptr},					/* ACF #144 */
+	{"11-16 22-18 10-15", OP_BARRED, "Cheetah"},					/* ACF #145 */
+	{"11-16 22-18 16-19", OP_CROSSBOARD, nullptr},					/* ACF #146 */
+	{"11-16 22-18 16-20", OP_CROSSBOARD, nullptr},					/* ACF #147 */
+	{"11-16 23-18 7-11", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #148 */
+	{"11-16 23-18 8-11", OP_CROSSBOARD, nullptr},					/* ACF #149 */
+	{"11-16 23-18 9-14", OP_CROSSBOARD, nullptr},					/* ACF #150 */
+	{"11-16 23-18 10-14", OP_CROSSBOARD, nullptr},					/* ACF #151 */
+	{"11-16 23-18 16-20", OP_CROSSBOARD, nullptr},					/* ACF #152 */
+	{"11-16 23-19 16x23", OP_MAILPLAY, "Black Widow"},				/* ACF #153 */
+	{"11-16 24-19 7-11", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #154 */
+	{"11-16 24-19 8-11", OP_CROSSBOARD, nullptr},					/* ACF #155 */
+	{"11-16 24-19 10-15", OP_BARRED, nullptr},						/* ACF #156 */
+	{"11-16 24-19 16-20", OP_CROSSBOARD, nullptr},					/* ACF #157 */
+	{"11-16 24-20 7-11", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #158 */
+	{"11-16 24-20 16-19", OP_CROSSBOARD, nullptr},					/* ACF #159 */
+	{"12-16 21-17 9-13", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #160 */
+	{"12-16 21-17 9-14", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #161 */
+	{"12-16 21-17 16-19", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #162 */
+	{"12-16 21-17 16-20", OP_CROSSBOARD, nullptr},					/* ACF #163 */
+	{"12-16 22-17 16-19", OP_CROSSBOARD, nullptr},					/* ACF #164 */
+	{"12-16 22-17 16-20", OP_CROSSBOARD, nullptr},					/* ACF #165 */
+	{"12-16 22-18 16-19", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #166 */
+	{"12-16 22-18 16-20", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #167 */
+	{"12-16 23-18 9-14", OP_BARRED, nullptr},						/* ACF #168 */
+	{"12-16 23-18 16-19", OP_CROSSBOARD | OP_CTD, nullptr},			/* ACF #169 */
+	{"12-16 23-18 16-20", OP_CROSSBOARD, nullptr},					/* ACF #170 */
+	{"12-16 23-19 16x23", OP_BARRED, nullptr},						/* ACF #171 */
+	{"12-16 24-19 16-20", OP_CROSSBOARD, nullptr},					/* ACF #172 */
+	{"12-16 24-20 8-12", OP_CROSSBOARD, nullptr},					/* ACF #173 */
+	{"12-16 24-20 10-15", OP_MAILPLAY, "Skunk"},					/* ACF #174 */
 };
 
 timemap time_table[] =
@@ -547,17 +546,17 @@ int getopening(CBoptions *CBoptions)
 
 	while (!ok) {
 		op = random(174);
-		if (three_move_table[op].ballot_type == OP_BOARD) {
+		if (three_move_table[op].attributes & OP_CROSSBOARD) {
 			if (CBoptions->op_crossboard)
 				ok = 1;
 		}
 
-		if (three_move_table[op].ballot_type == OP_MAILPLAY) {
+		if (three_move_table[op].attributes & OP_MAILPLAY) {
 			if (CBoptions->op_mailplay)
 				ok = 1;
 		}
 
-		if (three_move_table[op].ballot_type == OP_BARRED) {
+		if (three_move_table[op].attributes & OP_BARRED) {
 			if (CBoptions->op_barred)
 				ok = 1;
 		}
@@ -575,15 +574,15 @@ int num_3move_ballots(CBoptions *options)
 	int i, count;
 
 	for (i = 0, count = 0; i < ARRAY_SIZE(three_move_table); ++i) {
-		if (three_move_table[i].ballot_type == OP_BOARD || three_move_table[i].ballot_type == OP_CTD) {
+		if (three_move_table[i].attributes & OP_CROSSBOARD) {
 			if (options->op_crossboard)
 				++count;
 		}
-		else if (three_move_table[i].ballot_type == OP_MAILPLAY) {
+		else if (three_move_table[i].attributes & OP_MAILPLAY) {
 			if (options->op_mailplay)
 				++count;
 		}
-		else if (three_move_table[i].ballot_type == OP_BARRED) {
+		else if (three_move_table[i].attributes & OP_BARRED) {
 			if (options->op_barred)
 				++count;
 		}
@@ -603,11 +602,11 @@ int get_3move_index(int ballotnum, CBoptions *CBoptions)
 
 	count = 0;
 	for (i = 0; i < ARRAY_SIZE(three_move_table); i++) {
-		if ((three_move_table[i].ballot_type == OP_CTD || three_move_table[i].ballot_type == OP_BOARD) && CBoptions->op_crossboard)
+		if ((three_move_table[i].attributes & OP_CROSSBOARD) && CBoptions->op_crossboard)
 			++count;
-		else if ((three_move_table[i].ballot_type == OP_MAILPLAY) && CBoptions->op_mailplay)
+		else if ((three_move_table[i].attributes & OP_MAILPLAY) && CBoptions->op_mailplay)
 			++count;
-		else if ((three_move_table[i].ballot_type == OP_BARRED) && CBoptions->op_barred)
+		else if ((three_move_table[i].attributes & OP_BARRED) && CBoptions->op_barred)
 			++count;
 
 		if ((count - 1) == ballotnum)

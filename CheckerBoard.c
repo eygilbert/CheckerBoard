@@ -613,20 +613,12 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 		case GAME3MOVE:
 			PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
-			if (gametype() == GT_ENGLISH) {
-				if (cboptions.op_crossboard || cboptions.op_barred || cboptions.op_mailplay) {
-					int opening_index = getopening(&cboptions);
-					PostMessage(hwnd, WM_COMMAND, START3MOVE, opening_index);
-				}
-				else
-					MessageBox(hwnd, "nothing selected in the 3-move deck!", "Error", MB_OK);
+			if (cboptions.op_crossboard || cboptions.op_barred || cboptions.op_mailplay) {
+				int opening_index = getopening(&cboptions);
+				PostMessage(hwnd, WM_COMMAND, START3MOVE, opening_index);
 			}
-			else {
-				MessageBox(hwnd,
-						   "This option is only for engines\nwhich play the english/american\nversion of checkers.",
-						   "Error",
-						   MB_OK);
-			}
+			else
+				MessageBox(hwnd, "nothing selected in the 3-move deck!", "Error", MB_OK);
 			break;
 
 		case START3MOVE:
@@ -1375,6 +1367,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case CM_ENGINEMATCH:
 			if (CBstate == BOOKVIEW || CBstate == BOOKADD)
 				break;
+			if (!enginecommand1 || !enginecommand2)
+				break;
 			if (DialogBox(g_hInst, MAKEINTRESOURCE(IDD_START_ENGINE_MATCH), hwnd, (DLGPROC)DialogStartEngineMatchFunc)) {
 				startmatch = TRUE;
 				changeCBstate(ENGINEMATCH);
@@ -1797,6 +1791,11 @@ int is_mirror_gametype(int gametype)
 		return(1);
 
 	return(0);
+}
+
+int is_row_reversed_gametype(int gametype)
+{
+	return(gametype == GT_ITALIAN);
 }
 
 int handlesetupcc(int *color)
@@ -3096,45 +3095,76 @@ void forward_to_game_end(void)
 	}
 }
 
+/*
+ * Start a new 3-move game.
+ * Set the start position for a 3-move opening.
+ * opening_index is the index into the three_move_table[].
+ * opening_index is set by random if the user chooses 3-move, 
+ * or it can be set by engine match.
+ */
 int start3move(int opening_index)
 {
-	// start a new 3-move game:
-	// this function executes the 3 first moves of 3-move opening #(opening_index).
-	// opening_index is set by random if the user chooses
-	// 3-move, or it can be set by engine match
-	int iscapture, ml_index;
-	CBmove movelist[MAXMOVES];
-	extern Three_move_entry three_move_table[174];			// describes 3-move openings
+	int nmatching, color, length, nmoves, gtype;
+	const char *p;
+	Three_move *ballotp;
+	char movestring[20], translated_movestring[60];
+	PDNgame game;
+	Squarelist squares;
+	CBmove matching_move;
+	int board[8][8];
+	extern Three_move three_move_table[174];
 
-	InitCheckerBoard(cbboard8);
+	assert(opening_index >= 0 && opening_index < 174);
+	InitCheckerBoard(board);
+	gtype = gametype();
+	color = get_startcolor(gtype);
+	ballotp = three_move_table + opening_index;
+	p = ballotp->moves;
+	translated_movestring[0] = 0;
+
+	/* Parse moves and make them to get to the ballot start position. */
+	for (nmoves = 0; PDNparseGetnexttoken(&p, movestring); ++nmoves) {
+		PDNparseMove(movestring, squares);
+		if (is_row_reversed_gametype(gtype) || get_startcolor(gtype) == CB_WHITE) {
+			int status;
+
+			if (get_startcolor(gtype) == CB_WHITE)
+				squares.reverse_color();
+			if (is_row_reversed_gametype(gtype))
+				squares.reverse_rows();
+			status = islegal(board, color, squares.first(), squares.last(), &matching_move);
+			assert(status);
+			move4tonotation(matching_move, movestring);
+			sprintf(translated_movestring + strlen(translated_movestring), "%s%s", 
+					nmoves == 0 ? "" : " ",
+					movestring);
+		}
+		else {
+			nmatching = num_matching_moves(board, color, squares, matching_move);
+			assert(nmatching == 1);
+		}
+		domove(matching_move, board);
+		color = CB_CHANGECOLOR(color);
+	}
+
+	if (!is_row_reversed_gametype(gtype) && (get_startcolor(gtype) != CB_WHITE))
+		strcpy(translated_movestring, ballotp->moves);
+	cbcolor = color;
+	memcpy(cbboard8, board, sizeof(board));
+	reset_game(cbgame);
+	board8toFEN(board, cbgame.FEN, cbcolor, gtype);
+	length = sprintf(cbgame.event, "ACF #%d", opening_index + 1);
+	if (ballotp->name != nullptr)
+		length += sprintf(cbgame.event + length, " (%s)", ballotp->name);
+	length += sprintf(cbgame.event + length, ": %s", translated_movestring);
+
+	sprintf(statusbar_txt, cbgame.event);
 	InvalidateRect(hwnd, NULL, 0);
-	cbcolor = CB_BLACK;
-	cbgame.moves.clear();
-
-	for (int i = 0; i < 3; ++i) {
-		getmovelist(cbcolor, movelist, cbboard8, &iscapture);
-		ml_index = three_move_table[opening_index].movelist_indexes[i];
-		domove(movelist[ml_index], cbboard8);
-		addmovetogame(movelist[ml_index], nullptr);
-		cbcolor = CB_CHANGECOLOR(cbcolor);
-	}
-
-	if (is_mirror_gametype(gametype())) {
-		char pdn[80];
-		std::string errormsg;
-
-		game_to_colors_reversed_pdn(pdn);
-		doload(&cbgame, pdn, &cbcolor, cbboard8, errormsg);
-		forward_to_game_end();
-	}
-
 	updateboardgraphics(hwnd);
-	sprintf(statusbar_txt, "ACF opening number %i", opening_index + 1);
-	newposition = TRUE;
 
-	// new march 2005, jon kreuzer told me this was missing.
 	reset_move_history = true;
 	reset_game_clocks();
+	newposition = TRUE;
 
 	return 1;
 }
@@ -3170,7 +3200,6 @@ void format_time_args(double increment, double remaining, uint32_t *info, uint32
 
 	assert(0);
 }
-
 
 /*
  * Return a reasonable setting for the maxtime argument to getmove() in incremental time mode.
@@ -4230,11 +4259,9 @@ DWORD AutoThreadFunc(LPVOID param)
 						sprintf(matchstr, "match %d, ", 1 + game0_to_match0(gamenumber - 1));
 					if (cboptions.em_start_positions == START_POS_FROM_FILE)
 						sprintf(cbgame.event, "%sballot %d, %s", 
-							matchstr,
-							1 + game0_to_ballot0(gamenumber - 1),
-							user_ballots[game0_to_ballot0(gamenumber - 1)].event.c_str());
-					else
-						sprintf(cbgame.event, "%sACF #%i", matchstr, emstats.opening_index + 1);
+								matchstr,
+								1 + game0_to_ballot0(gamenumber - 1),
+								user_ballots[game0_to_ballot0(gamenumber - 1)].event.c_str());
 
 					/* Save the Event text to the matchlog file. */
 					emlog_filename(statsfilename);
@@ -5300,7 +5327,7 @@ void InitStatus(HWND hwnd)
 void InitCheckerBoard(int b[8][8])
 {
 	// initialize board to starting position
-	memset(b, 0, sizeof(cbboard8));
+	memset(b, 0, 64 * sizeof(int));
 	b[0][0] = CB_BLACK | CB_MAN;
 	b[2][0] = CB_BLACK | CB_MAN;
 	b[4][0] = CB_BLACK | CB_MAN;

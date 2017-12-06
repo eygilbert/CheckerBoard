@@ -8,9 +8,10 @@ enum READ_TEXT_FILE_ERROR_TYPE {
 };
 
 /* An entry in the ACF 3-move deck. */
-struct Three_move_entry {
-	uint8_t movelist_indexes[3];	/* the three move numbers which have to be executed after generating the movelist. */
-	uint8_t ballot_type;			/* 0, 1, 2, 3 for normal, mailplay, lost, and CTD */
+struct Three_move {
+	char *moves;
+	int attributes;
+	char *name;
 };
 
 int builtingametype(void);
