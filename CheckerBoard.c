@@ -3069,21 +3069,6 @@ int start_user_ballot(int bnum)
 }
 
 /*
- * Translate the current game into pdn of its colors-reversed mirror.
- */
-void game_to_colors_reversed_pdn(char *pdn)
-{
-	int gindex;
-	Squarelist move;
-
-	pdn[0] = 0;
-	for (gindex = 0; gindex < cbgame.movesindex; ++gindex) {
-		PDNparseMove(cbgame.moves[gindex].PDN, move);
-		sprintf(pdn + strlen(pdn), "%d-%d ", 33 - move.first(), 33 - move.last());
-	}
-}
-
-/*
  * Move to the end of the current game.
  */
 void forward_to_game_end(void)
