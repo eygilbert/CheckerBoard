@@ -132,7 +132,7 @@ int PDNparseGetnextgame(char **start, std::string &game)
 			break;
 
 		// try to detect whether we are through with the headers
-		if (isdigit((uint8_t) * p))
+		if (isdigit((uint8_t) *p))
 			headersdone = 1;
 
 		/* check for game terminators*/
@@ -145,7 +145,7 @@ int PDNparseGetnextgame(char **start, std::string &game)
 
 		if (p[0] == '1' && p[1] == '-' && p[2] == '0') {
 			p += 3;
-			string_append(game, *start, (p -*start));
+			string_append(game, *start, (p - *start));
 			*start = p;
 			return (int)(p - p_org);
 		}
@@ -183,7 +183,7 @@ int PDNparseGetnextgame(char **start, std::string &game)
 	return 0;
 }
 
-int PDNparseGetnextheader(const char **start, char *header)
+int PDNparseGetnextheader(const char **start, char *header, int maxlen)
 {
 	/* getnextheader */
 
@@ -212,17 +212,16 @@ int PDNparseGetnextheader(const char **start, char *header)
 	i = 0;
 	quotecount = 0;
 	while ((quotecount < 2 || *q != ']') && *q != 0) {
-		header[i] = *q;
+		if (i < maxlen)
+			header[i] = *q;
 		if (*q == '"')
 			++quotecount;
 		q++;
 		i++;
-		if (i >= MAXNAME)
-			return(0);
 	}
 
 	// terminate header with a 0
-	header[i] = 0;
+	header[min(i, maxlen - 1)] = 0;
 
 	/* if no closing brace is found */
 	if (*q == 0)
@@ -234,7 +233,7 @@ int PDNparseGetnextheader(const char **start, char *header)
 	return 1;
 }
 
-int PDNparseGetnexttag(const char **start, char *tag)
+int PDNparseGetnexttag(const char **start, char *tag, int maxlen)
 {
 	/* getnexttag */
 
@@ -262,12 +261,13 @@ int PDNparseGetnexttag(const char **start, char *tag)
 	q = p + 1;
 	i = 0;
 	while (!is_pdnquote(*q) && *q != 0) {
-		tag[i] = *q;
+		if (i < maxlen - 1)
+			tag[i] = *q;
 		q++;
 		i++;
 	}
 
-	tag[i] = 0;
+	tag[min(i, maxlen - 1)] = 0;
 
 	/* if no closing " is found */
 	if (*q == 0)
@@ -314,7 +314,7 @@ inline void trim_trailing_whitespace(char *buf, int len)
  * The function return value is true if a token is successfully parsed.
  * If we reach the end of the pdn buffer and found nothing but whitespace, the return value is false.
  */
-int PDNparseGetnextPDNtoken(const char **start, char *token)
+int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 {
 	int len = 0;
 	PDN_PARSE_STATE state;
@@ -356,7 +356,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 			tokentype = PDN_FLUFF;
 			if (isdigit((uint8_t)*p) || *p == '{' || *p == '(' || is_pdnquote(*p)) {
 				state = PDN_DONE;
-				len = (int)(p - tok_start);
+				len = min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -370,7 +370,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 			if (*p == '}') {
 				state = PDN_DONE;
 				++p;
-				len = (int)(p - tok_start);
+				len = min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -387,7 +387,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 			if (*p == ')') {
 				state = PDN_DONE;
 				++p;
-				len = (int)(p - tok_start);
+				len = min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -468,7 +468,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 
 				/* Finished reading a valid move. */
 				state = PDN_DONE;
-				len = (int)(p - tok_start);
+				len = min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -486,7 +486,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 
 				/* No move separator, roll back to the end of move. */
 				state = PDN_DONE;
-				len = (int)(possible_end - tok_start);
+				len = min((int)(possible_end - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
@@ -510,7 +510,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 
 				/* We did not get another 'to' square.  Return the valid move that we already passed. */
 				state = PDN_DONE;
-				len = (int)(possible_end - tok_start);
+				len = min((int)(possible_end - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
@@ -531,13 +531,13 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 			state == PDN_WAITING_OPTIONAL_TO
 		) {
 			if (possible_end) {
-				len = (int)(possible_end - tok_start);
+				len = min((int)(possible_end - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
 			}
 			else {
-				len = (int)(p - tok_start);
+				len = min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -548,7 +548,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token)
 			return(tokentype);
 		}
 
-		len = (int)(p - tok_start);
+		len = min((int)(p - tok_start), maxlen - 1);
 		memcpy(token, tok_start, len);
 		token[len] = 0;
 		*start = p;
@@ -660,7 +660,7 @@ int PDNparseMove(char *token, Squarelist &move)
 		return(0);			/* not a move. */
 }
 
-int PDNparseGetnexttoken(const char **start, char *token)
+int PDNparseGetnexttoken(const char **start, char *token, int maxlen)
 {
 	/*getnexttoken 
 	gets the next token in buffer, starting at start. a token
@@ -693,12 +693,14 @@ int PDNparseGetnexttoken(const char **start, char *token)
 
 		// comment
 		while (*p != '}' && *p != 0) {
-			token[i] = *p;
+			if (i < maxlen - 1)
+				token[i] = *p;
 			p++;
 			i++;
 		}
 
 		*start = p + 1;
+		i = min(i, maxlen - 2);
 		token[i] = '}';
 		token[i + 1] = 0;
 		return 1;
@@ -710,12 +712,14 @@ int PDNparseGetnexttoken(const char **start, char *token)
 
 	// comment
 		while (*p != ')' && *p != 0) {
-			token[i] = *p;
+			if (i < maxlen - 1)
+				token[i] = *p;
 			p++;
 			i++;
 		}
 
 		*start = p + 1;
+		i = min(i, maxlen - 2);
 		token[i] = ')';
 		token[i + 1] = 0;
 		return 1;
@@ -724,8 +728,9 @@ int PDNparseGetnexttoken(const char **start, char *token)
 	else {
 
 		// normal token
-		while (!is_pdnspace((uint8_t) * p) && *p != 0 && *p != '.') {
-			token[i] = *p;
+		while (!is_pdnspace((uint8_t) *p) && *p != 0 && *p != '.') {
+			if (i < maxlen - 1)
+				token[i] = *p;
 			p++;
 			i++;
 		}
@@ -737,15 +742,16 @@ int PDNparseGetnexttoken(const char **start, char *token)
 
 	// if we terminated with a full stop (.) ,add it
 	if (*p == '.') {
+		i = min(i, maxlen - 2);
 		token[i] = *p;
 		p++;
 		i++;
 	}
 
-	token[i] = 0;
+	token[min(i, maxlen - 1)] = 0;
 
 	// we have found a token, it is written to *token, now
 	//	we set the start pointer
-	(*start) = p + 1;
+	(*start) = p ;
 	return 1;
 }

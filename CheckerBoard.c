@@ -2456,20 +2456,20 @@ void assign_headers(gamepreview &preview, const char *pdn)
 	preview.date[0] = 0;
 
 	// parse headers
-	while (PDNparseGetnextheader(&pdn, header)) {
+	while (PDNparseGetnextheader(&pdn, header, sizeof(header))) {
 		tag = header;
-		PDNparseGetnexttoken(&tag, headername);
-		PDNparseGetnexttag(&tag, headervalue);
+		PDNparseGetnexttoken(&tag, headername, sizeof(headername));
+		PDNparseGetnexttag(&tag, headervalue, sizeof(headervalue));
 		if (strcmp(headername, "Event") == 0)
-			sprintf(preview.event, "%s", headervalue);
+			strncpy_terminated(preview.event, headervalue, sizeof(preview.event));
 		else if (strcmp(headername, "White") == 0)
-			sprintf(preview.white, "%s", headervalue);
+			strncpy_terminated(preview.white, headervalue, sizeof(preview.white));
 		else if (strcmp(headername, "Black") == 0)
-			sprintf(preview.black, "%s", headervalue);
+			strncpy_terminated(preview.black, headervalue, sizeof(preview.black));
 		else if (strcmp(headername, "Result") == 0)
-			sprintf(preview.result, "%s", headervalue);
+			strncpy_terminated(preview.result, headervalue, sizeof(preview.result));
 		else if (strcmp(headername, "Date") == 0)
-			sprintf(preview.date, "%s", headervalue);
+			strncpy_terminated(preview.date, headervalue, sizeof(preview.date));
 	}
 
 	// headers parsed
@@ -2477,7 +2477,7 @@ void assign_headers(gamepreview &preview, const char *pdn)
 	// when the user selects a game.
 	sprintf(preview.PDN, "");
 	for (int i = 0; i < 48; ++i) {
-		if (!PDNparseGetnextPDNtoken(&pdn, token))
+		if (!PDNparseGetnextPDNtoken(&pdn, token, sizeof(token)))
 			break;
 		if (strlen(preview.PDN) + strlen(token) < sizeof(preview.PDN) - 1) {
 			strcat(preview.PDN, token);
@@ -3123,7 +3123,7 @@ int start3move(int opening_index)
 	translated_movestring[0] = 0;
 
 	/* Parse moves and make them to get to the ballot start position. */
-	for (nmoves = 0; PDNparseGetnexttoken(&p, movestring); ++nmoves) {
+	for (nmoves = 0; PDNparseGetnexttoken(&p, movestring, sizeof(movestring)); ++nmoves) {
 		PDNparseMove(movestring, squares);
 		if (is_row_reversed_gametype(gtype) || get_startcolor(gtype) == CB_WHITE) {
 			int status;
@@ -4718,69 +4718,62 @@ void move4tonotation(CBmove m, char s[80])
 	strcat(s, Lstr);
 }
 
+std::string make_header(char *name, char *value)
+{
+	std::string header;
+
+	header += "[";
+	header += name;
+	header += " \"";
+	header += value;
+	header += "\"]";
+	return(header);
+}
+
 void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm)
 {
 	// prints a formatted PDN in *pdnstring
 	// uses lineterm as the line terminator; for the clipboard this should be \r\n, normally just \n
 	// i have no idea why this is so!
-	char s[256];
+	std::string movenumber;
 	size_t counter;
 	int i;
 
-	// I: print headers
+	// print headers
 	pdnstring.clear();
-	sprintf(s, "[Event \"%s\"]", game.event);
-	pdnstring += s;
-	pdnstring += lineterm;
-
-	sprintf(s, "[Date \"%s\"]", game.date);
-	pdnstring += s;
-	pdnstring += lineterm;
+	pdnstring += make_header("Event", game.event) + lineterm;
+	pdnstring += make_header("Date", game.date) + lineterm;
 	
 	/* List player colors in order: first-player first. */
 	if (get_startcolor(game.gametype) == CB_BLACK) {
-		sprintf(s, "[Black \"%s\"]", game.black);
-		pdnstring += s;
-		pdnstring += lineterm;
-
-		sprintf(s, "[White \"%s\"]", game.white);
-		pdnstring += s;
-		pdnstring += lineterm;
+		pdnstring += make_header("Black", game.black) + lineterm;
+		pdnstring += make_header("White", game.white) + lineterm;
 	}
 	else {
-		sprintf(s, "[White \"%s\"]", game.white);
-		pdnstring += s;
-		pdnstring += lineterm;
-
-		sprintf(s, "[Black \"%s\"]", game.black);
-		pdnstring += s;
-		pdnstring += lineterm;
+		pdnstring += make_header("White", game.white) + lineterm;
+		pdnstring += make_header("Black", game.black) + lineterm;
 	}
 
-	sprintf(s, "[Result \"%s\"]", game.resultstring);
-	pdnstring += s;
-	pdnstring += lineterm;
+	pdnstring += make_header("Result", game.resultstring) + lineterm;
 
 	// if this was after a setup, add FEN and setup header
-	if (strcmp(game.FEN, "") != 0) {
-		sprintf(s, "[FEN \"%s\"]", game.FEN);
-		pdnstring += s;
-		pdnstring += lineterm;
-	}
+	if (strcmp(game.FEN, "") != 0)
+		pdnstring += make_header("FEN", game.FEN) + lineterm;
 
 	// print PDN
 	counter = 0;
 	for (i = 0; i < (int)game.moves.size(); ++i) {
+
 		// print the move number
 		if (!is_second_player(game, i)) {
-			sprintf(s, "%i. ", moveindex2movenum(game, i));
-			counter += strlen(s);
+			movenumber = std::to_string(moveindex2movenum(game, i)) + ". ";
+			counter += movenumber.size();
 			if (counter > 79) {
 				pdnstring += lineterm;
-				counter = strlen(s);
+				counter = movenumber.size();
 			}
 
-			pdnstring += s;
+			pdnstring += movenumber;
 		}
 
 		// print the move
@@ -4790,8 +4783,8 @@ void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm)
 			counter = strlen(game.moves[i].PDN);
 		}
 
-		sprintf(s, "%s ", game.moves[i].PDN);
-		pdnstring += s;
+		pdnstring += game.moves[i].PDN;
+		pdnstring += " ";
 
 		// if the move has a comment, print it too
 		if (strcmp(game.moves[i].comment, "") != 0) {
@@ -4808,12 +4801,11 @@ void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm)
 	}
 
 	// add the game terminator
-	sprintf(s, "*");	/* Game terminator is '*' as per PDN 3.0. See http://pdn.fmjd.org/ */
-	counter += strlen(s);
+	++counter;		/* Game terminator is '*' as per PDN 3.0. See http://pdn.fmjd.org/ */
 	if (counter > 79)
 		pdnstring += lineterm;
 
-	pdnstring += s;
+	pdnstring += "*";
 	pdnstring += lineterm;
 }
 
@@ -5201,34 +5193,34 @@ bool doload(PDNgame *game, const char *gamestring, int *color, int board8[8][8],
 
 	reset_game(*game);
 	p = gamestring;
-	while (PDNparseGetnextheader(&p, header)) {
+	while (PDNparseGetnextheader(&p, header, sizeof(header))) {
 
 		/* parse headers */
 		start = header;
-		PDNparseGetnexttoken(&start, headername);
-		PDNparseGetnexttag(&start, headervalue);
+		PDNparseGetnexttoken(&start, headername, sizeof(headername));
+		PDNparseGetnexttag(&start, headervalue, sizeof(headervalue));
 
 		/* make header name lowercase, so that 'event' and 'Event' will be recognized */
 		_strlwr(headername);
 
 		if (strcmp(headername, "event") == 0)
-			sprintf(game->event, "%s", headervalue);
+			strncpy_terminated(game->event, headervalue, sizeof(game->event));
 		else if (strcmp(headername, "site") == 0)
-			sprintf(game->site, "%s", headervalue);
+			strncpy_terminated(game->site, headervalue, sizeof(game->site));
 		else if (strcmp(headername, "date") == 0)
-			sprintf(game->date, "%s", headervalue);
+			strncpy_terminated(game->date, headervalue, sizeof(game->date));
 		else if (strcmp(headername, "round") == 0)
-			sprintf(game->round, "%s", headervalue);
+			strncpy_terminated(game->round, headervalue, sizeof(game->round));
 		else if (strcmp(headername, "white") == 0)
-			sprintf(game->white, "%s", headervalue);
+			strncpy_terminated(game->white, headervalue, sizeof(game->white));
 		else if (strcmp(headername, "black") == 0)
-			sprintf(game->black, "%s", headervalue);
+			strncpy_terminated(game->black, headervalue, sizeof(game->black));
 		else if (strcmp(headername, "result") == 0) {
-			sprintf(game->resultstring, "%s", headervalue);
+			strncpy_terminated(game->resultstring, headervalue, sizeof(game->resultstring));
 			game->result = string_to_pdn_result(headervalue, gametype());
 		}
 		else if (strcmp(headername, "fen") == 0) {
-			sprintf(game->FEN, "%s", headervalue);
+			strncpy_terminated(game->FEN, headervalue, sizeof(game->FEN));
 			issetup = 1;
 		}
 	}
@@ -5244,7 +5236,7 @@ bool doload(PDNgame *game, const char *gamestring, int *color, int board8[8][8],
 		FENtoboard8(board8, game->FEN, color, game->gametype);
 
 	/* ok, headers read, now parse PDN input:*/
-	while ((state = (PDN_PARSE_STATE) PDNparseGetnextPDNtoken(&p, token))) {
+	while ((state = (PDN_PARSE_STATE) PDNparseGetnextPDNtoken(&p, token, sizeof(token)))) {
 
 		/* check for special tokens*/
 

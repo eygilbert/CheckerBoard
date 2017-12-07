@@ -214,10 +214,10 @@ int pdnopen(char filename[256], int gametype)
 		result = UNKNOWN_RES;
 		FEN[0] = 0;
 		startheader = game.c_str();
-		while (PDNparseGetnextheader(&startheader, header)) {
+		while (PDNparseGetnextheader(&startheader, header, sizeof(header))) {
 			tag = header;
-			PDNparseGetnexttoken(&tag, headername);
-			PDNparseGetnexttag(&tag, headervalue);
+			PDNparseGetnexttoken(&tag, headername, sizeof(headername));
+			PDNparseGetnexttag(&tag, headervalue, sizeof(headervalue));
 			_strlwr(headername);
 
 			if (strcmp(headername, "result") == 0)
@@ -266,10 +266,9 @@ int pdnopen(char filename[256], int gametype)
 			int status;
 			const char *lastp;
 			CBmove move;
-			extern CB_ISLEGAL islegal;
 
 			lastp = starttoken;
-			if (!PDNparseGetnexttoken(&starttoken, token))
+			if (!PDNparseGetnexttoken(&starttoken, token, sizeof(token)))
 				break;
 
 			// if it's a move number, continue

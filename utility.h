@@ -37,3 +37,4 @@ double timetoken_to_time(int token);
 void toggle(int *x);
 int writefile(char *filename, char *mode, char *fmt, ...);
 char *read_text_file(char *filename, READ_TEXT_FILE_ERROR_TYPE &etype);
+inline void strncpy_terminated(char *dest, char *src, size_t maxlen) {strncpy(dest, src, maxlen); dest[maxlen - 1] = 0;}
