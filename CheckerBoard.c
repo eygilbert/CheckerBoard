@@ -4183,7 +4183,7 @@ DWORD AutoThreadFunc(LPVOID param)
 					}
 
 					sprintf(cbgame.resultstring, "?");
-					round_gamenumber = gamenumber % (2 * num_ballots());
+					round_gamenumber = 1 + ((gamenumber - 1) % (2 * num_ballots()));
 					if (!((round_gamenumber - 1) % 20)) {
 						if (cboptions.match_repeat_count > 1 && round_gamenumber == 1) {
 							emprogress_filename(statsfilename);
@@ -4202,7 +4202,7 @@ DWORD AutoThreadFunc(LPVOID param)
 					if (gamenumber % 2) {
 						emprogress_filename(statsfilename);
 						if (cboptions.em_start_positions == START_POS_FROM_FILE)
-							writefile(statsfilename, "a", "%4i:", round_gamenumber / 2 + 1);
+							writefile(statsfilename, "a", "%4i:", 1 + (round_gamenumber - 1) / 2);
 						else
 							writefile(statsfilename, "a", "%3i:", emstats.opening_index + 1);
 					}
@@ -4238,19 +4238,20 @@ DWORD AutoThreadFunc(LPVOID param)
 
 					// save the game
 					// gamenumber is base 1 here.
-					char matchstr[20];
-					matchstr[0] = 0;
+					std::string event;
 					if (cboptions.match_repeat_count > 1)
-						sprintf(matchstr, "match %d, ", 1 + game0_to_match0(gamenumber - 1));
-					if (cboptions.em_start_positions == START_POS_FROM_FILE)
-						sprintf(cbgame.event, "%sballot %d, %s", 
-								matchstr,
-								1 + game0_to_ballot0(gamenumber - 1),
-								user_ballots[game0_to_ballot0(gamenumber - 1)].event.c_str());
+						event = "match " + std::to_string(1 + game0_to_match0(gamenumber - 1)) + ", ";
+
+					event += "game " + std::to_string(round_gamenumber) + ": ";
+					if (cboptions.em_start_positions == START_POS_3MOVE)
+						event += cbgame.event;
+					else
+						event += user_ballots[game0_to_ballot0(gamenumber - 1)].event;
+					sprintf(cbgame.event, event.c_str());
 
 					/* Save the Event text to the matchlog file. */
 					emlog_filename(statsfilename);
-					writefile(statsfilename, "a", "---------- end of %s\n", cbgame.event);
+					writefile(statsfilename, "a", "---------- end of %s\n\n", cbgame.event);
 
 					// dosave expects a fully initialized cbgame structure
 					empdn_filename(savegame_filename);
