@@ -1388,6 +1388,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				PostMessage(hwnd, WM_COMMAND, LEVELINFINITE, 0);
 
 			changeCBstate(OBSERVEGAME);
+			newposition = TRUE;
 			break;
 
 		case CM_2PLAYER:
