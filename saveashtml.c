@@ -336,7 +336,7 @@ int PDNgametostartposition(PDNgame *game, int b[64])
 	// needs to check whether it's a setup or not.
 	int i, j;
 	int returncolor;
-	int b8[8][8];
+	Board8x8 b8;
 
 	for (i = 0; i < 64; i++)
 		b[i] = 0;

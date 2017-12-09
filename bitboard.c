@@ -10,7 +10,7 @@
 // searches, it uses a bitboard representation + move generator to speed things up. of course,
 
 // the 8x8 board representation could/should be dropped at some point but that means many changes!
-void bitboardtoboard8(pos *p, int b[8][8])
+void bitboardtoboard8(pos *p, Board8x8 b)
 {
 	// converts from a bitboard structure to an 8x8 board
 	int i, board[32];
@@ -61,7 +61,7 @@ void bitboardtoboard8(pos *p, int b[8][8])
 	b[7][7] = board[31];
 }
 
-void boardtocrbitboard(int b[8][8], pos *position)
+void boardtocrbitboard(Board8x8 b, pos *position)
 {
 	// get reversed position to *position
 	// this is used for database search with reversed colors.
@@ -139,7 +139,7 @@ void boardtocrbitboard(int b[8][8], pos *position)
 	}
 }
 
-void boardtobitboard(int b[8][8], pos *position)
+void boardtobitboard(Board8x8 b, pos *position)
 {
 	// converts an 8x8 board to a bitboard representation
 	// initialize bitboard

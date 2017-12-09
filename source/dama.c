@@ -102,7 +102,7 @@
 /* required functions */
 int WINAPI getmove
 		(
-			int b[8][8],
+			Board8x8 board,
 			int color,
 			double maxtime,
 			char str[255],
@@ -112,7 +112,7 @@ int WINAPI getmove
 			CBmove *move
 		);
 int WINAPI enginecommand(char command[256], char reply[256]);
-int WINAPI islegal(int b[8][8], int color, int from, int to, CBmove *move);
+int WINAPI islegal(Board8x8 board, int color, int from, int to, CBmove *move);
 
 void movetonotation(move2 move, char str[80]);
 
@@ -280,7 +280,7 @@ int WINAPI enginecommand(char str[256], char reply[256])
 	return 0;
 }
 
-int WINAPI islegal(int b[8][8], int color, int from, int to, CBmove *move)
+int WINAPI islegal(Board8x8 b, int color, int from, int to, CBmove *move)
 {
 	/* islegal tells CheckerBoard if a move the user wants to make is legal or not */
 
@@ -368,7 +368,7 @@ int WINAPI islegal(int b[8][8], int color, int from, int to, CBmove *move)
 
 int WINAPI getmove
 		(
-			int b[8][8],
+			Board8x8 b,
 			int color,
 			double maxtime,
 			char str[255],
@@ -379,7 +379,7 @@ int WINAPI getmove
 		)
 {
 	/* getmove is what checkerboard calls. you get the parameters:
-   b[8][8] 	is the current position. the values in the array are determined by
+   b	 	is the current position. the values in the array are determined by
    			the #defined values of BLACK, WHITE, KING, MAN. a black king for
             instance is represented by BLACK|KING.
    color		is the side to make a move. BLACK or WHITE.

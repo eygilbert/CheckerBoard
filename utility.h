@@ -19,7 +19,7 @@ void CBlog(char *text);
 void cblog(const char *fmt, ...);
 void checklevelmenu(CBoptions *options, HMENU hmenu, int resource);
 int extract_path(char *name, char *path);
-int FENtoclipboard(HWND hwnd, int board8[8][8], int color, int gametype);
+int FENtoclipboard(HWND hwnd, Board8x8 board, int color, int gametype);
 int fileispresent(char *filename);
 int getopening(CBoptions *CBoptions);
 int get_3move_index(int ballotnum, CBoptions *CBoptions);

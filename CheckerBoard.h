@@ -8,8 +8,8 @@
 #include "CB_movegen.h"
 
 // version 
-#define VERSION "1.73e"
-#define PLACE "October 31, 2017"
+#define VERSION "1.74"
+#define PLACE "December 8, 2017"
 
 #define OP_CROSSBOARD 1			// different opening decks
 #define OP_MAILPLAY 2
@@ -44,18 +44,18 @@ DWORD SearchThreadFunc(LPVOID param);
 
 // my functions in alphabetical list
 void abortengine();
-int addmovetouserbook(int b[8][8], CBmove *move);
+int addmovetouserbook(Board8x8 board, CBmove *move);
 void add_piecesets_to_menu(HMENU hmenu);
 void addmovetogame(CBmove &move, char *pdn);
-int islegal_check(int board8[8][8], int color, Squarelist &squares, CBmove *move, int gametype);
-int num_matching_moves(int board8[8][8], int color, Squarelist &squares, CBmove &move);
+int islegal_check(Board8x8 board, int color, Squarelist &squares, CBmove *move, int gametype);
+int num_matching_moves(Board8x8 board, int color, Squarelist &squares, CBmove &move);
 bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, char *pdn);
-bool move_to_pdn_english(int board8[8][8], int color, CBmove *move, char *pdn);
+bool move_to_pdn_english(Board8x8 board, int color, CBmove *move, char *pdn);
 int changeCBstate(int newstate);
 HWND CreateAToolBar(HWND hwndParent);
 int createcheckerboard(HWND hwnd);
-bool doload(PDNgame *PDNgame, const char *gamestring, int *color, int board8[8][8], std::string &errormsg);
-int domove(CBmove m, int b[8][8]);
+bool doload(PDNgame *PDNgame, const char *gamestring, int *color, Board8x8 board, std::string &errormsg);
+int domove(CBmove m, Board8x8 board);
 int update_match_stats(int result, int movecount, int gamenumber, emstats_t *stats);
 void emlog_filename(char *filename);
 void empdn_filename(char *filename);
@@ -72,14 +72,14 @@ int getfilename(char filename[255], int what);
 int getanimationbusy(void);
 int getenginebusy(void);
 int getenginestarting(void);
-int getmovelist(int color, CBmove movelist[MAXMOVES], int b[8][8], int *isjump);
+int getmovelist(int color, CBmove movelist[MAXMOVES], Board8x8 board, int *isjump);
 int gametype(void);
 int handlegamereplace(int replaceindex, char *databasename);
 int handlesetupcc(int *color);
 int handletimer(void);
 int handle_lbuttondown(int x, int y);
 int handle_rbuttondown(int x, int y);
-void InitCheckerBoard(int b[8][8]);
+void InitCheckerBoard(Board8x8 board);
 void initengines(void);
 int is_mirror_gametype(int gametype);
 int is_row_reversed_gametype(int gametype);
@@ -96,7 +96,7 @@ void move4tonotation(CBmove, char str[80]);
 void newgame(void);
 int num_ballots(void);
 void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm);
-bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::string &errormsg);
+bool pdntogame(PDNgame &game, Board8x8 startposition, int startcolor, std::string &errormsg);
 int read_match_stats(void);
 void reset_match_stats(void);
 void setcurrentengine(int engine);
@@ -107,7 +107,7 @@ int setenginebusy(int value);
 int setenginestarting(int value);
 int showfile(char *filename);
 int start3move(int opening_index);
-int undomove(CBmove m, int b[8][8]);
+int undomove(CBmove m, Board8x8 board);
 
 extern char CBdirectory[MAX_PATH];	// holds the directory from where CB is started:
 extern char CBdocuments[MAX_PATH];

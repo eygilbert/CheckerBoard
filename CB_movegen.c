@@ -1,6 +1,6 @@
 // cb_movegen.c: generates a list of legal moves
 // 	getmovelist()
-//	is the only function which cb_movegen.c exports. it takes b[8][8] as
+//	is the only function which cb_movegen.c exports. it takes a Board8x8 as
 //  board with the following representation, color to move, and returns a
 //  list of CBmoves.
 
@@ -12,11 +12,11 @@
 #include "CB_movegen.h"
 
 /* exported functions */
-int getmovelist(int color, CBmove movelist[MAXMOVES], int b[8][8], int *isjump);
+int getmovelist(int color, CBmove movelist[MAXMOVES], Board8x8 board, int *isjump);
 
 /* internal functions */
 static int makemovelist(int color, CBmove movelist[MAXMOVES], int b[12][12], int *isjump);
-static void board8toboard12(int board8[8][8], int board12[12][12]);
+static void board8toboard12(Board8x8 board, int board12[12][12]);
 static void whitecapture(int board[12][12], CBmove movelist[MAXMOVES], CBmove m, int x, int y, int d);
 static void blackcapture(int board[12][12], CBmove movelist[MAXMOVES], CBmove m, int x, int y, int d);
 static void whitekingcapture(int board[12][12], CBmove movelist[MAXMOVES], CBmove m, int x, int y, int d);
@@ -32,7 +32,7 @@ static inline int cbcolor_to_getmovelistcolor(int cbcolor)
 		return(-1);
 }
 
-int getmovelist(int color, CBmove m[MAXMOVES], int b[8][8], int *isjump)
+int getmovelist(int color, CBmove m[MAXMOVES], Board8x8 b, int *isjump)
 {
 	int i, j;
 	int n;
@@ -118,7 +118,7 @@ int getmovelist(int color, CBmove m[MAXMOVES], int b[8][8], int *isjump)
 	return n;
 }
 
-void board8toboard12(int board8[8][8], int board12[12][12])
+void board8toboard12(Board8x8 board8, int board12[12][12])
 {
 	// checkerboard uses a 8x8 board representation, the move generator a 12x12
 	// this routine converts a 8x8 to a 12x12 board

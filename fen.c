@@ -33,7 +33,7 @@ int is_fen(char *buf)
  *		- Don't expect a "." at the end of the FEN string.
  *		- Accept square number ranges. ex: B:B1-12:W21-32
  */
-int FENtoboard8(int board[8][8], char *buf, int *poscolor, int gametype)
+int FENtoboard8(Board8x8 board, char *buf, int *poscolor, int gametype)
 {
 	int square, square2, s;
 	int color, piece;
@@ -110,7 +110,7 @@ int FENtoboard8(int board[8][8], char *buf, int *poscolor, int gametype)
 	return(1);
 }
 
-void board8toFEN(int board[8][8], char *p, int color, int gametype)
+void board8toFEN(Board8x8 board, char *p, int color, int gametype)
 {
 	int i, j, number;
 	char s[256];

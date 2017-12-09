@@ -101,7 +101,7 @@
 /* required functions */
 int WINAPI getmove
 		(
-			int b[8][8],
+			Board8x8 board,
 			int color,
 			double maxtime,
 			char str[255],
@@ -277,7 +277,7 @@ int WINAPI enginecommand(char str[256], char reply[256])
 
 int WINAPI getmove
 		(
-			int b[8][8],
+			Board8x8 b,
 			int color,
 			double maxtime,
 			char str[255],
@@ -288,7 +288,7 @@ int WINAPI getmove
 		)
 {
 	/* getmove is what checkerboard calls. you get 6 parameters:
-   b[8][8] 	is the current position. the values in the array are determined by
+   b	 	is the current position. the values in the array are determined by
    			the #defined values of CB_BLACK, CB_WHITE, CB_KING, CB_MAN. a black king for
             instance is represented by CB_BLACK|CB_KING.
    color		is the side to make a move. CB_BLACK or CB_WHITE.

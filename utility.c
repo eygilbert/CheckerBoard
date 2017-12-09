@@ -237,7 +237,7 @@ int initcolorstruct(HWND hwnd, CHOOSECOLOR *ccs, int index)
 	return 1;
 }
 
-int FENtoclipboard(HWND hwnd, int board8[8][8], int color, int gametype)
+int FENtoclipboard(HWND hwnd, Board8x8 board8, int color, int gametype)
 {
 	char FENstring[1000];
 

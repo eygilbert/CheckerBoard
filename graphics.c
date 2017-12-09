@@ -25,7 +25,7 @@
 // lots of external variables from checkerboard.c - very ugly
 extern CBmove cbmove;
 extern CBoptions cboptions;
-extern int cbboard8[8][8];
+extern Board8x8 cbboard8;
 extern int cbcolor;
 extern PDNgame cbgame;
 
@@ -713,9 +713,9 @@ void refresh_clock(HWND hwnd)
 	ReleaseMutex(memdc_lock);
 }
 
-int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, int b[8][8])
+int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, Board8x8 b)
 {
-	// printboard prints the board given in b[8][8] into hdc
+	// printboard prints the board given in b into hdc
 	// a word about this: we get ourselves the size of the client rectangle of
 	// our window. but: in this rectangle, there is a toolbar at the top (toolbarheight), and
 	// a status window at the bottom (statusbarheight). therefore, the true y extent of the
@@ -1033,7 +1033,7 @@ int printsampleboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc)
 	return 1;
 }
 
-void selectstone(int x, int y, HWND hwnd, int board[8][8])
+void selectstone(int x, int y, HWND hwnd, Board8x8 board)
 {
 	// new: when the user clicks on a stone, mark the square.
 	RECT WinDim, r;

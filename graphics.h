@@ -6,9 +6,9 @@
 
 DWORD AnimationThreadFunc(HWND hwnd);
 int getxymetrics(double *xmetric, double *ymetric, HWND hwnd);
-int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, int b[8][8]);
+int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, Board8x8 board);
 int printsampleboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc);
-void selectstone(int x, int y, HWND hwnd, int board[8][8]);
+void selectstone(int x, int y, HWND hwnd, Board8x8 board);
 void updatestretchDC(HWND hwnd, HDC bmpdc, HDC stretchdc, int size);
 int updategraphics(HWND hwnd);
 int resizegraphics(HWND hwnd);

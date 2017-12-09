@@ -76,7 +76,7 @@ int pdnfind(pos *p, int color, std::vector<int> &matching_games)
 	int nfound; // number of games found
 	uint32_t black, white, kings;
 	char FEN[256];
-	int b[8][8];
+	Board8x8 b;
 
 	if (pdn_positions.size() == 0)
 		return 0;
@@ -178,7 +178,7 @@ int pdnopen(char filename[256], int gametype)
 	char headername[MAXNAME], headervalue[MAXNAME];
 	PDN_RESULT result;
 	char FEN[255];
-	int board8[8][8];
+	Board8x8 board8;
 	READ_TEXT_FILE_ERROR_TYPE etype;
 	PDN_position position;
 

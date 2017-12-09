@@ -56,7 +56,7 @@ struct CBoptions {
 
 struct BALLOT_INFO {
 	int color;
-	int board8[8][8];
+	Board8x8 board;
 	std::string event;
 };
 

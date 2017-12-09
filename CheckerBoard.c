@@ -13,7 +13,7 @@
 // 	if you want your checkers engine to use checkerboard as a front-end, 	
 // 	you must compile your engine as a dll, and provide the following 2
 // 	functions:		
-//  int WINAPI getmove(int board[8][8], int color, double maxtime, char str[1024], int *playnow, int info, int moreinfo, CBmove *move);
+//  int WINAPI getmove(Board8x8 board, int color, double maxtime, char str[1024], int *playnow, int info, int moreinfo, CBmove *move);
 //  int WINAPI enginecommand(char command[256], char reply[1024]);
 // TODO: bug report: if you hit takeback while CB is animating a move, you get an undefined state
 
@@ -109,7 +109,7 @@ int titlebarheight = 12;
 int offset = 40;
 int upperoffset = 20;
 char szWinName[] = "CheckerBoard";	/* name of window class */
-int cbboard8[8][8];					/* the board being displayed in the GUI*/
+Board8x8 cbboard8;					/* the board being displayed in the GUI*/
 int cbcolor = CB_BLACK;				/* the side to move next in the GUI */
 bool setup_mode;
 static int addcomment;
@@ -2214,7 +2214,7 @@ int handletimer(void)
 	return 1;
 }
 
-int addmovetouserbook(int b[8][8], CBmove *move)
+int addmovetouserbook(Board8x8 b, CBmove *move)
 {
 	int i, n;
 	FILE *fp;
@@ -3056,9 +3056,9 @@ int start_user_ballot(int bnum)
 	char fen[260];
 
 	cbgame.moves.clear();
-	memcpy(cbboard8, user_ballots[bnum].board8, sizeof(cbboard8));
+	memcpy(cbboard8, user_ballots[bnum].board, sizeof(cbboard8));
 	cbcolor = user_ballots[bnum].color;
-	board8toFEN(user_ballots[bnum].board8, fen, user_ballots[bnum].color, gametype());
+	board8toFEN(user_ballots[bnum].board, fen, user_ballots[bnum].color, gametype());
 	sprintf(cbgame.FEN, "%s", fen);
 	sprintf(cbgame.event, "ballot %d", bnum + 1);
 	updateboardgraphics(hwnd);
@@ -3096,7 +3096,7 @@ int start3move(int opening_index)
 	PDNgame game;
 	Squarelist squares;
 	CBmove matching_move;
-	int board[8][8];
+	Board8x8 board;
 	extern Three_move three_move_table[174];
 
 	assert(opening_index >= 0 && opening_index < 174);
@@ -3262,7 +3262,7 @@ DWORD SearchThreadFunc(LPVOID param)
 // to a file if CB is in either ANALYZEGAME or ENGINEMATCH mode
 {
 	int i, nmoves;
-	int original8board[8][8], b8copy[8][8], originalcopy[8][8];
+	Board8x8 original8board, b8copy, originalcopy;
 	CBmove movelist[MAXMOVES];
 	CBmove localmove;
 	char PDN[40];
@@ -3329,8 +3329,8 @@ DWORD SearchThreadFunc(LPVOID param)
 	if (!found_move) {
 
 		// we did not find a move in our user book, so continue
-		//board8 is a global [8][8] int which holds the board
-		//get 3 copies of the global board8
+		// board8 is a global [8][8] int which holds the board
+		// get 3 copies of the global board8
 		memcpy(b8copy, cbboard8, sizeof(cbboard8));
 		memcpy(original8board, cbboard8, sizeof(cbboard8));
 		memcpy(originalcopy, cbboard8, sizeof(cbboard8));
@@ -3602,7 +3602,7 @@ bool read_user_ballots_file(void)
 			break;
 
 		/* The game is in gamestring. Parse it into a PDNgame. */
-		if (doload(&game, gamestring.c_str(), &ballot.color, ballot.board8, errormsg)) {
+		if (doload(&game, gamestring.c_str(), &ballot.color, ballot.board, errormsg)) {
 			errormsg = "Start position #" + std::to_string(1 + user_ballots.size()) + "\n" + errormsg;
 			errormsg += "\n\nEngine match will be aborted.";
 			MessageBox(hwnd, errormsg.c_str(), "Error", MB_OK);
@@ -3620,11 +3620,11 @@ bool read_user_ballots_file(void)
 			CBmove move;
 
 			PDNparseMove(game.moves[i].PDN, squares);
-			status = islegal_check(ballot.board8, ballot.color, squares, &move, gametype());
+			status = islegal_check(ballot.board, ballot.color, squares, &move, gametype());
 			if (status) {
 				game.moves[i].move = move;
 				ballot.color = CB_CHANGECOLOR(ballot.color);
-				domove(move, ballot.board8);
+				domove(move, ballot.board);
 			}
 		}
 
@@ -4635,7 +4635,7 @@ int enginename(char Lstr[MAXNAME])
 	return 0;
 }
 
-int domove(CBmove m, int b[8][8])
+int domove(CBmove m, Board8x8 b)
 {
 	// do move m on board b
 	int i, x, y;
@@ -4656,7 +4656,7 @@ int domove(CBmove m, int b[8][8])
 	return 1;
 }
 
-int undomove(CBmove m, int b[8][8])
+int undomove(CBmove m, Board8x8 b)
 {
 	// take back move m on board b
 	int i, x, y;
@@ -4904,14 +4904,14 @@ int getfilename(char filename[255], int what)
 	return 0;
 }
 
-bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::string &errormsg)
+bool pdntogame(PDNgame &game, Board8x8 startposition, int startcolor, std::string &errormsg)
 {
 	/* pdntogame takes a starting position, a side to move next as parameters. 
 	it uses cbgame, which has to be initialized with pdn-text to generate the CBmoves. */
 
 	/* called by loadgame and gamepaste */
 	int i, color;
-	int b8[8][8];
+	Board8x8 b8;
 	CBmove legalmove;
 
 	/* set the starting values */
@@ -4942,7 +4942,7 @@ bool pdntogame(PDNgame &game, int startposition[8][8], int startcolor, std::stri
 	return(false);
 }
 
-int builtinislegal(int board8[8][8], int color, Squarelist &squares, CBmove *move)
+int builtinislegal(Board8x8 board8, int color, Squarelist &squares, CBmove *move)
 {
 	// make all moves and try to find out if this move is legal
 	int i, n;
@@ -4995,7 +4995,7 @@ int builtinislegal(int board8[8][8], int color, Squarelist &squares, CBmove *mov
  * Although we assign the islegal function pointer to this function for English checkers, it
  * does not get used. All islegal decisions are made through islegal_check().
  */
-int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
+int builtinislegal(Board8x8 board8, int color, int from, int to, CBmove *move)
 {
 	Squarelist squares;
 
@@ -5009,7 +5009,7 @@ int builtinislegal(int board8[8][8], int color, int from, int to, CBmove *move)
  * it all squares that are needed to uniquely describe the move. Unfortunately, the interface to the 
  * engines does not allow sending intermediate squares, so we can't do this for the other game types.
  */
-int islegal_check(int board8[8][8], int color, Squarelist &squares, CBmove *move, int gametype)
+int islegal_check(Board8x8 board8, int color, Squarelist &squares, CBmove *move, int gametype)
 {
 	if (gametype == GT_ENGLISH)
 		return(builtinislegal(board8, color, squares, move));
@@ -5099,7 +5099,7 @@ int num_matching_moves(CBmove movelist[], int nmoves, Squarelist &squares, CBmov
  * The squares can be any of from, to, or any intermediate landing square during a capture.
  * If a single matching move is found, it is returned in move.
  */
-int num_matching_moves(int board8[8][8], int color, Squarelist &squares, CBmove &move)
+int num_matching_moves(Board8x8 board8, int color, Squarelist &squares, CBmove &move)
 {
 	int nmoves, isjump;
 	CBmove movelist[MAXMOVES];
@@ -5142,7 +5142,7 @@ bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, ch
 	return(false);
 }
 
-bool move_to_pdn_english(int board8[8][8], int color, CBmove *move, char *pdn)
+bool move_to_pdn_english(Board8x8 board8, int color, CBmove *move, char *pdn)
 {
 	int isjump, nmoves;
 	CBmove movelist[MAXMOVES];
@@ -5163,7 +5163,7 @@ void newgame(void)
 	reset_game_clocks();
 }
 
-bool doload(PDNgame *game, const char *gamestring, int *color, int board8[8][8], std::string &errormsg)
+bool doload(PDNgame *game, const char *gamestring, int *color, Board8x8 board8, std::string &errormsg)
 {
 	// game is in gamestring. use pdnparser routines to convert
 	// it into a game
@@ -5302,7 +5302,7 @@ void InitStatus(HWND hwnd)
 	hStatusWnd = CreateWindow(STATUSCLASSNAME, "", WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hwnd, NULL, g_hInst, NULL);
 }
 
-void InitCheckerBoard(int b[8][8])
+void InitCheckerBoard(Board8x8 b)
 {
 	// initialize board to starting position
 	memset(b, 0, 64 * sizeof(int));
