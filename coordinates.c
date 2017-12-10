@@ -75,7 +75,7 @@ void numbertocoors(int number, int *x, int *y, int gametype)
 	case GT_SPANISH:
 		number--;
 		*y = number / 4;
-		*y = 7 -*y;
+		*y = 7 - *y;
 		*x = 2 * (3 - (number % 4));	// *x e {0,2,4,6}
 		if (((*y) % 2))					// adjust x on odd rows
 			(*x)++;
@@ -104,11 +104,11 @@ void coorstocoors(int *x, int *y, int invert, int mirror)
 	// given coordinates x and y on the screen, this function converts them to internal
 	// representation of the board based on whether the board is inverted or mirrored
 	if (invert) {
-		*x = 7 -*x;
-		*y = 7 -*y;
+		*x = 7 - *x;
+		*y = 7 - *y;
 	}
 
 	if (mirror)
-		*x = 7 -*x;
+		*x = 7 - *x;
 }
 

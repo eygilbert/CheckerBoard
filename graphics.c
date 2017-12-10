@@ -300,6 +300,16 @@ int samplediagramtoclipboard(HWND hwnd)
 	return 1;
 }
 
+/* Draw a thin border around square x,y to highlight it. */
+void draw_highlight(int x, int y, int xoffset, int yoffset, int size)
+{
+	MoveToEx(memdc, size * x + xoffset, size * (7 - y) + upperoffset + yoffset, NULL);
+	LineTo(memdc, size * (x + 1) - 1 + xoffset, size * (7 - y) + upperoffset + yoffset);
+	LineTo(memdc, size * (x + 1) - 1 + xoffset, size * (8 - y) + upperoffset - 1 + yoffset);
+	LineTo(memdc, size * x + xoffset, size * (8 - y) + upperoffset - 1 + yoffset);
+	LineTo(memdc, size * x + xoffset, size * (7 - y) + upperoffset + yoffset);
+}
+
 DWORD AnimationThreadFunc(HWND hwnd)
 {
 	/* this thread drives the animation of the checker */
@@ -548,18 +558,8 @@ DWORD AnimationThreadFunc(HWND hwnd)
 		coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
 		coorstocoors(&x2, &y2, cboptions.invert, cboptions.mirror);
 		hOldPen = (HPEN) SelectObject(memdc, hPen);
-
-		MoveToEx(memdc, (int)(size * x + xoffset), (int)(size * (7 - y) + upperoffset + yoffset), NULL);
-		LineTo(memdc, (int)(size * (x + 1) - 1 + xoffset), (int)(size * (7 - y) + upperoffset + yoffset));
-		LineTo(memdc, (int)(size * (x + 1) - 1 + xoffset), (int)(size * (8 - y) + upperoffset - 1 + yoffset));
-		LineTo(memdc, (int)(size * x + xoffset), (int)(size * (8 - y) + upperoffset - 1 + yoffset));
-		LineTo(memdc, (int)(size * x + xoffset), (int)(size * (7 - y) + upperoffset + yoffset));
-		MoveToEx(memdc, (int)(size * x2 + xoffset), (int)(size * (7 - y2) + upperoffset + yoffset), NULL);
-		LineTo(memdc, (int)(size * (x2 + 1) - 1 + xoffset), (int)(size * (7 - y2) + upperoffset + yoffset));
-		LineTo(memdc, (int)(size * (x2 + 1) - 1 + xoffset), (int)(size * (8 - y2) + upperoffset - 1 + yoffset));
-		LineTo(memdc, (int)(size * x2 + xoffset), (int)(size * (8 - y2) + upperoffset - 1 + yoffset));
-		LineTo(memdc, (int)(size * x2 + xoffset), (int)(size * (7 - y2) + upperoffset + yoffset));
-
+		draw_highlight(x, y, xoffset, yoffset, size);
+		draw_highlight(x2, y2, xoffset, yoffset, size);
 		SelectObject(memdc, hOldPen);
 		DeleteObject(hPen);
 	}	// end movehighlighting
@@ -1033,7 +1033,7 @@ int printsampleboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc)
 	return 1;
 }
 
-void selectstone(int x, int y, HWND hwnd, Board8x8 board)
+void selectstone(int x, int y, HWND hwnd)
 {
 	// new: when the user clicks on a stone, mark the square.
 	RECT WinDim, r;
@@ -1041,29 +1041,34 @@ void selectstone(int x, int y, HWND hwnd, Board8x8 board)
 	double xmetric, ymetric;
 
 	hPen = CreatePen(PS_SOLID, 1, cboptions.colors[0]);
-	if (board[x][y] != 0) {
-		coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
-		getxymetrics(&xmetric, &ymetric, hwnd);
+	coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
+	getxymetrics(&xmetric, &ymetric, hwnd);
+	hOldPen = (HPEN) SelectObject(memdc, hPen);
+	draw_highlight(x, y, 0, 0, xmetric);
+	SelectObject(memdc, hOldPen);
+	DeleteObject(hPen);
 
-		hOldPen = (HPEN) SelectObject(memdc, hPen);
+	// get redrawing region
+	GetClientRect(hwnd, &WinDim);
+	r.left = 0;
+	r.right = WinDim.right;
+	r.bottom = WinDim.bottom - (offset - upperoffset);	// ( - ) = statusbarheight;
+	r.top = upperoffset;
 
-		MoveToEx(memdc, (int)(xmetric * x), (int)(ymetric * (7 - y) + upperoffset), NULL);
-		LineTo(memdc, (int)(xmetric * (x + 1) - 1), (int)(ymetric * (7 - y) + upperoffset));
-		LineTo(memdc, (int)(xmetric * (x + 1) - 1), (int)(ymetric * (8 - y) + upperoffset) - 1);
-		LineTo(memdc, (int)(xmetric * x), (int)(ymetric * (8 - y) + upperoffset) - 1);
-		LineTo(memdc, (int)(xmetric * x), (int)(ymetric * (7 - y) + upperoffset));
+	InvalidateRect(hwnd, &r, 0);
+}
 
-		SelectObject(memdc, hOldPen);
-		DeleteObject(hPen);
+/*
+ * Highlight all the squares in the list.
+ * Used when multiple squares have to be selected for ambiguous moves.
+ */
+void selectstones(Squarelist &squares, HWND hwnd)
+{
+	int x, y;
 
-		// get redrawing region
-		GetClientRect(hwnd, &WinDim);
-		r.left = 0;
-		r.right = WinDim.right;
-		r.bottom = WinDim.bottom - (offset - upperoffset);	// ( - ) = statusbarheight;
-		r.top = upperoffset;
-
-		InvalidateRect(hwnd, &r, 0);
+	for (int i = 0; i < squares.size(); ++i) {
+		numbertocoors(squares.read(i), &x, &y, cbgame.gametype);
+		selectstone(x, y, hwnd);
 	}
 }
 

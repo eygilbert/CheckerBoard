@@ -1975,12 +1975,14 @@ int handle_lbuttondown(int x, int y)
 			updateboardgraphics(hwnd);
 
 			// and then select stone
-			selectstone(x, y, hwnd, cbboard8);
+			selectstone(x, y, hwnd);
 		}
 
 		// else, reset the click count to 0.
-		else
+		else {
+			updateboardgraphics(hwnd);
 			clicks.clear();
+		}
 	}
 	else {
 
@@ -1993,17 +1995,13 @@ int handle_lbuttondown(int x, int y)
 		// !! there is one exception to this: a round-trip move such as
 		// here [FEN "W:WK14:B19,18,11,10."]
 		// however, with the new one-click-move input, this will work fine now!
-		if
-		(
-			(cbcolor == CB_BLACK && cbboard8[x][y] & CB_BLACK) ||
-			(cbcolor == CB_WHITE && cbboard8[x][y] & CB_WHITE)
-		) {
+		if ((cbboard8[x][y] & cbcolor) && clicks.frequency(square) == 1) {
 
 			// re-print board to overwrite last selection if there was one
 			updateboardgraphics(hwnd);
 
 			// and then select stone
-			selectstone(x, y, hwnd, cbboard8);
+			selectstone(x, y, hwnd);
 
 			// set this click to first click
 			from = clicks.last();
@@ -2080,8 +2078,8 @@ int handle_lbuttondown(int x, int y)
 				if (legal > 1) {
 
 					/* Keep the clicks, he needs to add more squares to fully describe the move. */
-					selectstone(x, y, hwnd, cbboard8);
 					updateboardgraphics(hwnd);
+					selectstones(clicks, hwnd);
 					return(1);
 				}
 			}
@@ -2122,6 +2120,7 @@ int handle_lbuttondown(int x, int y)
 			}
 		}
 
+		updateboardgraphics(hwnd);
 		clicks.clear();
 	}
 
@@ -5041,6 +5040,12 @@ bool square_in_move(int square, CBmove &move)
  */
 bool all_squares_match(Squarelist &squares, CBmove &move)
 {
+	/* Special case for 2 squares that both match the from square. They must also match
+	 * the to square to return true.
+	 */
+	if (squares.size() == 2 && squares.first() == squares.last())
+		return(squares.first() == coortonumber(move.from, GT_ENGLISH) && squares.last() == coortonumber(move.to, GT_ENGLISH));
+
 	for (int i = 0; i < squares.size(); ++i)
 		if (!square_in_move(squares.read(i), move))
 			return(false);

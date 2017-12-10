@@ -60,8 +60,7 @@ about its move and should respond pretty quickly. Your turn again. In English ch
 you <em>must</em> capture if you can. If there is a possible capture move for you, CheckerBoard 
 will not let you play another move, and tell you in the status bar that you must capture. 
 To play a capture move, follow the same procedure as for a normal move: click on the 
-piece you want to move, and then on its destination square. Do not click any intermediate 
-squares!
+piece you want to move, and then on its destination square.
 <br>
 That's already all you need to know to play a game - good luck!
 
@@ -459,7 +458,7 @@ on checkers both for beginners and experts.
         computer memory be shared equitably between them. When using
         CheckerBoard with only one engine, that engine is often given most of
         the computer's memory for egdb cache and hashtable to get best search
-        performance. With 2 engines running in an engine match, adjust memory
+        performance. With two engines running in an engine match, adjust memory
         usage of both engines so the sum does not exceed the memory in the
         computer, and leave 1 or 2 GB remaining for Windows to use. You can use
         Windows Task Manager to see how much memory CheckerBoard is using during
@@ -470,10 +469,10 @@ on checkers both for beginners and experts.
         incremental time Levels.</li>
       <li>An engine match can be stopped by hitting the Escape key. An
         unfinished, stopped match can be resumed with the Resume button.&nbsp;</li>
-      <li>Details of an engine match are logged in the files stats.txt,
-        match.pdn, match_progress.txt, and matchlog.txt. You can find these
-        files under your user Documents directory in ..\Martin
-        Fierz\CheckerBoard\games\matches.</li>
+      <li>Details of an engine match are logged in the files <b>stats.txt</b>, <b>match.pdn</b>,
+        <b>match_progress.txt</b>, and <b>matchlog.txt</b>. You can find these
+        files under your user Documents directory in <b> ..\Martin
+        Fierz\CheckerBoard\games\matches</b>.</li>
     </ul>
   </li>
 </ul>
@@ -541,7 +540,21 @@ called 'gif' on your webpage, just copy the 6 gif images in the 'gif' filder int
 folder on your web server. Now you can upload the HTML file(s), like 'game1.htm'. Once the images
 are on your web server, you can upload any number of HTML files which use them. If the page 
 does not display properly, i.e. if the board is not displayed, then you have most likely made
-a mistake with the 'gif' directory. 
+a mistake with the 'gif' directory.
+<h4>Ambiguous capture moves (English checkers only)</h4>
+<p>Although they are not very common, every once in a while you may have to
+enter a capture move that cannot be unambiguously described by only the <i>from</i>
+and <i>to</i> squares. For example, in this position:</p>
+<blockquote>
+  <p>[FEN &quot;B:W6,7,14,15:B2&quot;]</p>
+</blockquote>
+<p>black has two ways to capture 2x18. In cases like this you need to indicate
+to CheckerBoard which path to 18 you wish to take. For example, to capture via
+square 11, you can click on 2, then 18 then 11. Or you can click on 2, then 11,
+since that also uniquely describes the move. As a further simplification, you
+can simply click on square 11 to make the move. Anytime either a source square
+or a destination square uniquely describes a move by itself, you can make the
+move by clicking only that square.</p>
 
 <H3><a name="rules"></a>Rules of the game</H3>
 The rules of checkers are simple, but there are many different variations of these rules.
