@@ -8,7 +8,6 @@
 // bitboard.c contains routines to convert from 8x8-array-representation to bitboard and back
 // this is used because CB has an internal 8x8 board representation, but for PDN database
 // searches, it uses a bitboard representation + move generator to speed things up. of course,
-
 // the 8x8 board representation could/should be dropped at some point but that means many changes!
 void bitboardtoboard8(pos *p, Board8x8 b)
 {

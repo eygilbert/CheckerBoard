@@ -1878,10 +1878,12 @@ int handle_lbuttondown(int x, int y)
 		return 0;
 
 	/* Don't allow a square to appear in clicks more than twice.
-	 * Allow 'from' and 'to' squares to be identical.
+	 * Only allow 'from' and 'to' squares to be identical.
 	 */
 	square = coorstonumber(x, y, cbgame.gametype);
 	if (clicks.frequency(square) >= 2)
+		return(1);
+	if (clicks.frequency(square) == 1 && (cbboard8[x][y] & cbcolor) == 0)
 		return(1);
 
 	clicks.append(square);
@@ -5054,6 +5056,7 @@ bool all_squares_match(Squarelist &squares, CBmove &move)
 }
 
 /*
+ * For gametype English only.
  * Return the sum of the from, to, and intermediate landed squares in move.
  * Used as a check to see if two moves are identical.
  */
@@ -5071,6 +5074,31 @@ uint32_t get_sum_squares(CBmove &move)
 
 /*
  * For gametype English only.
+ * We've already determined that every square in squares matches a square in move (but there may be
+ * more than one move that meets that constraint).
+ * If we find that every square in move is matched by a square in squares, then we have found the move.
+ * This covers pathalogical cases like B:W6,7,8,14,15,16,22,23,24:BK2. There are three ways to capture 2x4.
+ * 1) To capture 2x11x4, click 2, 11, and 4.
+ * 2) To capture 2x9x18x11x4, click 2, 4, 9, 18, and 11. We cannot click 4 last because after 2, 9, 18, and 11,
+ *		the move 2x9x18x11x2 is matched.
+ * 3) To capture 2x9x18x27x20x11x4, click 2, 9, 20, and 4.
+ */
+bool all_move_squares_matched(Squarelist &squares, CBmove &move)
+{
+	if (squares.first() != coortonumber(move.from, GT_ENGLISH))
+		return(false);
+	if (!squares.frequency(coortonumber(move.to, GT_ENGLISH)))
+		return(false);
+
+	for (int i = 1; i < move.jumps; ++i)
+		if (!squares.frequency(coortonumber(move.path[i], GT_ENGLISH)))
+			return(false);
+
+	return(true);
+}
+
+/*
+ * For gametype English only.
  * Return the number of moves in movelist that match the squares in the Squarelist.
  * The squares can be any of from, to, or any intermediate landing square during a capture.
  * If a single matching move is found, it is returned in move.
@@ -5082,6 +5110,16 @@ int num_matching_moves(CBmove movelist[], int nmoves, Squarelist &squares, CBmov
 	nmatches = 0;
 	for (int i = 0; i < nmoves; ++i) {
 		if (all_squares_match(squares, movelist[i])) {
+
+			/* Now we know every square in squares has a match in this move.
+			 * If from, to, and every intermediate landed square in move has a match in squares,
+			 * then declare this move a singular match.
+			 */
+			if (all_move_squares_matched(squares, movelist[i])) {
+				nmatches = 1;
+				move = movelist[i];
+				break;
+			}
 			if (nmatches == 0) {
 				++nmatches;
 				move = movelist[i];
@@ -5096,6 +5134,7 @@ int num_matching_moves(CBmove movelist[], int nmoves, Squarelist &squares, CBmov
 			}
 		}
 	}
+
 	return(nmatches);
 }
 
