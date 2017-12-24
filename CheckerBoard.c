@@ -488,6 +488,10 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		PostMessage(hwnd, WM_COMMAND, LOADENGINES, 0);
 		break;
 
+	case WM_ACTIVATE:
+		InvalidateRect(hwnd, NULL, true);
+		break;
+
 	case WM_NOTIFY:
 		// respond to tooltip request //
 		// lParam contains (LPTOOLTIPTEXT) - send it on to handletooltiprequest function

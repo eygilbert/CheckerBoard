@@ -568,7 +568,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 	GetClientRect(hwnd, &WinDim);
 	r.left = 0;
 	r.right = WinDim.right;
-	r.bottom = WinDim.bottom;
+	r.bottom = WinDim.bottom - (offset - upperoffset);	// the thing in brackets is the status bar height
 	r.top = upperoffset;
 
 	InvalidateRect(hwnd, &r, 0);
