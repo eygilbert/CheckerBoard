@@ -3071,6 +3071,7 @@ int start_user_ballot(int bnum)
 	InvalidateRect(hwnd, NULL, 0);
 	newposition = TRUE;
 	reset_move_history = true;
+	reset_game_clocks();
 	return 1;
 }
 
