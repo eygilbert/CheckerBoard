@@ -7,8 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
-
+#include "afxres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -784,7 +783,7 @@ CAPTION "About CheckerBoard"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "OK",1,50,193,50,14,BS_CENTER
-    LTEXT           "This is CheckerBoard 1.74\nCopyright (c) 2000-2017 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
+    LTEXT           "This is CheckerBoard 1.75\nCopyright (c) 2000-2018 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
     CONTROL         AFX_IDC_CHANGE,-1,"Static",SS_BITMAP | SS_REALSIZEIMAGE,4,4,143,80
 END
 
@@ -1089,6 +1088,10 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO
 BEGIN
+    "IDD_CBABOUT", DIALOG
+    BEGIN
+    END
+
     "IDD_ENGINEOPTIONS", DIALOG
     BEGIN
     END
@@ -1140,6 +1143,11 @@ BEGIN
     0
 END
 
+IDD_CBABOUT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1163,8 +1171,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
-
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=CheckerBoard
-AppVerName=CheckerBoard version 1.74
+AppVerName=CheckerBoard version 1.75
 AppPublisher=Martin Fierz
 DefaultDirName={pf32}\CheckerBoard
 UsePreviousAppDir=no
@@ -12,7 +12,7 @@ DefaultGroupName=CheckerBoard
 DisableProgramGroupPage=no
 SourceDir=.
 OutputDir=Output
-OutputBaseFilename=CheckerBoardSetup32.174
+OutputBaseFilename=CheckerBoardSetup32.175
 Compression=lzma/ultra
 SolidCompression=yes
 Uninstallable=yes

@@ -170,6 +170,7 @@ bool two_player_mode;					// true if in 2-player mode
 int book_state;							// engine book state (0/1/2/3)
 int currentengine = 1;					// 1=primary, 2=secondary
 int maxmovecount = 300;					// engine match limit; use 200 if early_game_adjudication is enabled.
+bool has_getmovelist;					// true if current engine has enginecommand("get movelist")
 
 // keep a small user book
 userbookentry userbook[MAXUSERBOOK];
@@ -1899,10 +1900,10 @@ int handle_lbuttondown(int x, int y)
 		// if there is only one move with this piece, then do it!
 		if (islegal != NULL) {
 			legal = 0;
-			if (cbgame.gametype == GT_ENGLISH) {
+			if (has_getmovelist || cbgame.gametype == GT_ENGLISH) {
 
 				/* We can do a better job for English since we have a movelist generator. */
-				legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove);
+				legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove, cbgame.gametype);
 			}
 			else {
 				legalmovenumber = 0;
@@ -1940,9 +1941,9 @@ int handle_lbuttondown(int x, int y)
 
 				// a legal move! Add move to the game list.
 				// For English checkers we can fully describe ambiguous captures.
-				if (gametype() == GT_ENGLISH) {
+				if (has_getmovelist || cbgame.gametype == GT_ENGLISH) {
 					char pdn[40];
-					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn);
+					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn, cbgame.gametype);
 					addmovetogame(localmove, pdn);
 				}
 				else
@@ -2018,10 +2019,10 @@ int handle_lbuttondown(int x, int y)
 			legal = 0;
 			legalmovenumber = 0;
 			if (islegal != NULL) {
-				if (cbgame.gametype == GT_ENGLISH) {
+				if (has_getmovelist || cbgame.gametype == GT_ENGLISH) {
 
 					/* We can do a better job for English since we have a movelist generator. */
-					legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove);
+					legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove, cbgame.gametype);
 				}
 				else {
 					legalmovenumber = 0;
@@ -2039,9 +2040,9 @@ int handle_lbuttondown(int x, int y)
 
 				// only one legal move
 				// insert move in the linked list
-				if (gametype() == GT_ENGLISH) {
+				if (has_getmovelist || cbgame.gametype == GT_ENGLISH) {
 					char pdn[40];
-					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn);
+					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn, cbgame.gametype);
 					addmovetogame(localmove, pdn);
 				}
 				else
@@ -2077,10 +2078,10 @@ int handle_lbuttondown(int x, int y)
 		// check move and if ok
 		if (islegal != NULL) {
 			legal = 0;
-			if (cbgame.gametype == GT_ENGLISH) {
+			if (has_getmovelist || cbgame.gametype == GT_ENGLISH) {
 
 				/* We can do a better job for English since we have a movelist generator. */
-				legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove);
+				legal = num_matching_moves(cbboard8, cbcolor, clicks, localmove, cbgame.gametype);
 				if (legal > 1) {
 
 					/* Keep the clicks, he needs to add more squares to fully describe the move. */
@@ -2097,9 +2098,9 @@ int handle_lbuttondown(int x, int y)
 
 				// a legal move!
 				// insert move in the game
-				if (gametype() == GT_ENGLISH) {
+				if (has_getmovelist || cbgame.gametype == GT_ENGLISH) {
 					char pdn[40];
-					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn);
+					move_to_pdn_english(cbboard8, cbcolor, &localmove, pdn, cbgame.gametype);
 					addmovetogame(localmove, pdn);
 				}
 				else
@@ -3132,7 +3133,7 @@ int start3move(int opening_index)
 					movestring);
 		}
 		else {
-			nmatching = num_matching_moves(board, color, squares, matching_move);
+			nmatching = num_matching_moves(board, color, squares, matching_move, gtype);
 			assert(nmatching == 1);
 		}
 		domove(matching_move, board);
@@ -3273,7 +3274,7 @@ DWORD SearchThreadFunc(LPVOID param)
 	CBmove movelist[MAXMOVES];
 	CBmove localmove;
 	char PDN[40];
-	bool found_move;
+	bool found_move, have_valid_movelist;
 	int iscapture;
 	pos userbookpos;
 	double elapsed, maxtime;
@@ -3298,8 +3299,17 @@ DWORD SearchThreadFunc(LPVOID param)
 
 	abortcalculation = 0;				// if this remains 0, we will execute the move - else not
 
-	// test if there is a move at all
-	nmoves = getmovelist(cbcolor, movelist, cbboard8, &iscapture);
+	/* Test if there is a move at all.
+	 * If the engine has the optional "get movelist" engine command then query that, otherwise
+	 * checkerboard rather recklessly uses the English checkers built-in movelist generator,
+	 * regardless of game type.
+	 */
+	if (get_movelist_from_engine(cbboard8, cbcolor, movelist, &nmoves, &iscapture)) {
+		nmoves = getmovelist(cbcolor, movelist, cbboard8, &iscapture);
+		have_valid_movelist = (gametype() == GT_ENGLISH);
+	}
+	else
+		have_valid_movelist = true;
 	if (nmoves == 0) {
 		if (CBstate == ENGINEMATCH || CBstate == ENGINEGAME) {
 			gameover = TRUE;
@@ -3459,10 +3469,9 @@ DWORD SearchThreadFunc(LPVOID param)
 		// got board8 & a copy before move was made
 		if (CBstate != OBSERVEGAME && CBstate != ANALYZEGAME && CBstate != ANALYZEPDN && !abortcalculation) {
 
-			// determine the move that was made: we only do this if gametype is GT_ENGLISH,
-			//	else the engine must return the appropriate information in localmove
-			if (gametype() == GT_ENGLISH) {
-				nmoves = getmovelist(cbcolor, movelist, b8copy, &iscapture);
+			// determine the move that was made: we only do this if we have a real movelist
+			// else the engine must return the appropriate information in localmove
+			if (have_valid_movelist) {
 				cbmove = movelist[0];
 				for (i = 0; i < nmoves; i++) {
 
@@ -3472,7 +3481,7 @@ DWORD SearchThreadFunc(LPVOID param)
 					if (memcmp(cbboard8, b8copy, sizeof(cbboard8)) == 0) {
 						cbmove = movelist[i];
 						found_move = true;
-						move_to_pdn_english(nmoves, movelist, &cbmove, PDN);
+						move_to_pdn_english(nmoves, movelist, &cbmove, PDN, gametype());
 						break;
 					}
 				}
@@ -3482,7 +3491,7 @@ DWORD SearchThreadFunc(LPVOID param)
 			}
 			else {
 
-				// gametype not GT_ENGLISH, not regular checkers, use the move of the engine
+				// gametype not GT_ENGLISH and we don't have a real movelist, use the move of the engine
 				cbmove = localmove;
 				move4tonotation(localmove, PDN);
 				memcpy(cbboard8, original8board, sizeof(cbboard8));
@@ -4549,7 +4558,7 @@ int makeanalysisfile(char *filename)
 
 void setcurrentengine(int engineN)
 {
-	char s[256], windowtitle[256];
+	char reply[256], windowtitle[256];
 
 	// set the engine
 	if (engineN == 1) {
@@ -4565,15 +4574,23 @@ void setcurrentengine(int engineN)
 	currentengine = engineN;
 
 	if (CBstate != ENGINEMATCH) {
-		enginename(s);
+		enginename(reply);
 		sprintf(windowtitle, "CheckerBoard%s: ", g_app_instance_suffix);
-		strcat(windowtitle, s);
+		strcat(windowtitle, reply);
 		SetWindowText(hwnd, windowtitle);
 	}
 
 	// get book state of current engine
-	if (enginecommand("get book", s))
-		book_state = atoi(s);
+	if (enginecommand("get book", reply))
+		book_state = atoi(reply);
+
+	/* Set has_getmovelist. */
+	if (!enginecommand("get movelist B:W1:B", reply))
+		has_getmovelist = false;
+	else if (strcmp(reply, "movelist 0") == 0)
+		has_getmovelist = true;
+	else
+		has_getmovelist = false;
 }
 
 int gametype(void)
@@ -4949,7 +4966,7 @@ bool pdntogame(PDNgame &game, Board8x8 startposition, int startcolor, std::strin
 	return(false);
 }
 
-int builtinislegal(Board8x8 board8, int color, Squarelist &squares, CBmove *move)
+int builtinislegal(Board8x8 board8, int color, Squarelist &squares, CBmove *move, int gametype)
 {
 	// make all moves and try to find out if this move is legal
 	int i, n;
@@ -4957,10 +4974,15 @@ int builtinislegal(Board8x8 board8, int color, Squarelist &squares, CBmove *move
 	int isjump;
 	CBmove movelist[MAXMOVES];
 
-	n = getmovelist(color, movelist, board8, &isjump);
+	if (has_getmovelist)
+		get_movelist_from_engine(board8, color, movelist, &n, &isjump);
+	else {
+		n = getmovelist(color, movelist, board8, &isjump);
+		assert(gametype == GT_ENGLISH);
+	}
 	for (i = 0; i < n; i++) {
-		Lfrom = coortonumber(movelist[i].from, GT_ENGLISH);
-		Lto = coortonumber(movelist[i].to, GT_ENGLISH);
+		Lfrom = coortonumber(movelist[i].from, gametype);
+		Lto = coortonumber(movelist[i].to, gametype);
 		if (Lfrom == squares.first() && Lto == squares.last()) {
 
 			/* If more than 2 squares, the intermediates have to match also. */
@@ -4970,7 +4992,7 @@ int builtinislegal(Board8x8 board8, int color, Squarelist &squares, CBmove *move
 
 				bool match = true;
 				for (int k = 1; k < squares.size() - 1; ++k) {
-					int intermediate = coortonumber(movelist[i].path[k], GT_ENGLISH);
+					int intermediate = coortonumber(movelist[i].path[k], gametype);
 					if (squares.read(k) != intermediate) {
 						match = false;
 						break;
@@ -5008,7 +5030,7 @@ int builtinislegal(Board8x8 board8, int color, int from, int to, CBmove *move)
 
 	squares.append(from);
 	squares.append(to);
-	return(builtinislegal(board8, color, squares, move));
+	return(builtinislegal(board8, color, squares, move, GT_ENGLISH));
 }
 
 /*
@@ -5018,8 +5040,8 @@ int builtinislegal(Board8x8 board8, int color, int from, int to, CBmove *move)
  */
 int islegal_check(Board8x8 board8, int color, Squarelist &squares, CBmove *move, int gametype)
 {
-	if (gametype == GT_ENGLISH)
-		return(builtinislegal(board8, color, squares, move));
+	if (has_getmovelist || gametype == GT_ENGLISH)
+		return(builtinislegal(board8, color, squares, move, gametype));
 	else
 		return(islegal(board8, color, squares.first(), squares.last(), move));
 }
@@ -5028,14 +5050,14 @@ int islegal_check(Board8x8 board8, int color, Squarelist &squares, CBmove *move,
  * For gametype English only.
  * Return true if square is a from, to, or intermediate landed square in move.
  */
-bool square_in_move(int square, CBmove &move)
+bool square_in_move(int square, CBmove &move, int gametype)
 {
-	if (square == coortonumber(move.from, GT_ENGLISH))
+	if (square == coortonumber(move.from, gametype))
 		return(true);
-	if (square == coortonumber(move.to, GT_ENGLISH))
+	if (square == coortonumber(move.to, gametype))
 		return(true);
 	for (int i = 1; i < move.jumps; ++i)
-		if (square == coortonumber(move.path[i], GT_ENGLISH))
+		if (square == coortonumber(move.path[i], gametype))
 			return(true);
 
 	return(false);
@@ -5045,16 +5067,16 @@ bool square_in_move(int square, CBmove &move)
  * For gametype English only.
  * Return true if every square in squares is either a from, to, or intermediate landed square in move.
  */
-bool all_squares_match(Squarelist &squares, CBmove &move)
+bool all_squares_match(Squarelist &squares, CBmove &move, int gametype)
 {
 	/* Special case for 2 squares that both match the from square. They must also match
 	 * the to square to return true.
 	 */
 	if (squares.size() == 2 && squares.first() == squares.last())
-		return(squares.first() == coortonumber(move.from, GT_ENGLISH) && squares.last() == coortonumber(move.to, GT_ENGLISH));
+		return(squares.first() == coortonumber(move.from, gametype) && squares.last() == coortonumber(move.to, gametype));
 
 	for (int i = 0; i < squares.size(); ++i)
-		if (!square_in_move(squares.read(i), move))
+		if (!square_in_move(squares.read(i), move, gametype))
 			return(false);
 
 	return(true);
@@ -5088,15 +5110,15 @@ uint32_t get_sum_squares(CBmove &move)
  *		the move 2x9x18x11x2 is matched.
  * 3) To capture 2x9x18x27x20x11x4, click 2, 9, 20, and 4.
  */
-bool all_move_squares_matched(Squarelist &squares, CBmove &move)
+bool all_move_squares_matched(Squarelist &squares, CBmove &move, int gametype)
 {
-	if (squares.first() != coortonumber(move.from, GT_ENGLISH))
+	if (squares.first() != coortonumber(move.from, gametype))
 		return(false);
-	if (!squares.frequency(coortonumber(move.to, GT_ENGLISH)))
+	if (!squares.frequency(coortonumber(move.to, gametype)))
 		return(false);
 
 	for (int i = 1; i < move.jumps; ++i)
-		if (!squares.frequency(coortonumber(move.path[i], GT_ENGLISH)))
+		if (!squares.frequency(coortonumber(move.path[i], gametype)))
 			return(false);
 
 	return(true);
@@ -5108,19 +5130,19 @@ bool all_move_squares_matched(Squarelist &squares, CBmove &move)
  * The squares can be any of from, to, or any intermediate landing square during a capture.
  * If a single matching move is found, it is returned in move.
  */
-int num_matching_moves(CBmove movelist[], int nmoves, Squarelist &squares, CBmove &move)
+int num_matching_moves(CBmove movelist[], int nmoves, Squarelist &squares, CBmove &move, int gametype)
 {
 	int nmatches, sum_squares;
 
 	nmatches = 0;
 	for (int i = 0; i < nmoves; ++i) {
-		if (all_squares_match(squares, movelist[i])) {
+		if (all_squares_match(squares, movelist[i], gametype)) {
 
 			/* Now we know every square in squares has a match in this move.
 			 * If from, to, and every intermediate landed square in move has a match in squares,
 			 * then declare this move a singular match.
 			 */
-			if (all_move_squares_matched(squares, movelist[i])) {
+			if (all_move_squares_matched(squares, movelist[i], gametype)) {
 				nmatches = 1;
 				move = movelist[i];
 				break;
@@ -5144,28 +5166,31 @@ int num_matching_moves(CBmove movelist[], int nmoves, Squarelist &squares, CBmov
 }
 
 /*
- * For gametype English only.
+ * For gametype English only or Engines that have the optional getmovelist command.
  * Return the number of moves in the current position that match the squares in the Squarelist.
  * The squares can be any of from, to, or any intermediate landing square during a capture.
  * If a single matching move is found, it is returned in move.
  */
-int num_matching_moves(Board8x8 board8, int color, Squarelist &squares, CBmove &move)
+int num_matching_moves(Board8x8 board8, int color, Squarelist &squares, CBmove &move, int gametype)
 {
 	int nmoves, isjump;
 	CBmove movelist[MAXMOVES];
 
-	nmoves = getmovelist(color, movelist, board8, &isjump);
-	return(num_matching_moves(movelist, nmoves, squares, move));
+	if (has_getmovelist)
+		get_movelist_from_engine(board8, color, movelist, &nmoves, &isjump);
+	else
+		nmoves = getmovelist(color, movelist, board8, &isjump);
+	return(num_matching_moves(movelist, nmoves, squares, move, gametype));
 }
 
 /*
- * For gametype English only.
+ * For gametype English only or Engines that have the optional getmovelist command.
  * Take a CBmove and write the move in PDN text format.
  * Write capture moves in long format if needed to unambiguously describe them.
  * This function is only for English checkers.
  * Return true on error, false on success.
  */
-bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, char *pdn)
+bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, char *pdn, int gametype)
 {
 	int i, count;
 	char separator;
@@ -5174,31 +5199,34 @@ bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, ch
 
 	/* Find the number of moves that match the from and to squares. */
 	pdn[0] = 0;
-	squares.append(coortonumber(move->from, GT_ENGLISH));
-	squares.append(coortonumber(move->to, GT_ENGLISH));
-	count = num_matching_moves(movelist, nmoves, squares, matching_move);
+	squares.append(coortonumber(move->from, gametype));
+	squares.append(coortonumber(move->to, gametype));
+	count = num_matching_moves(movelist, nmoves, squares, matching_move, gametype);
 	if (count == 0)
 		return(true);
 
 	separator = move->jumps ? 'x' : '-';
 	if (count == 1)
-		sprintf(pdn, "%d%c%d", coortonumber(move->from, GT_ENGLISH), separator, coortonumber(move->to, GT_ENGLISH));
+		sprintf(pdn, "%d%c%d", coortonumber(move->from, gametype), separator, coortonumber(move->to, gametype));
 	else {
-		sprintf(pdn, "%d%c", coortonumber(move->from, GT_ENGLISH), separator);
+		sprintf(pdn, "%d%c", coortonumber(move->from, gametype), separator);
 		for (i = 1; i < move->jumps; ++i)
-			sprintf(pdn + strlen(pdn), "%d%c", coortonumber(move->path[i], GT_ENGLISH), separator);
-		sprintf(pdn + strlen(pdn), "%d", coortonumber(move->to, GT_ENGLISH));
+			sprintf(pdn + strlen(pdn), "%d%c", coortonumber(move->path[i], gametype), separator);
+		sprintf(pdn + strlen(pdn), "%d", coortonumber(move->to, gametype));
 	}
 	return(false);
 }
 
-bool move_to_pdn_english(Board8x8 board8, int color, CBmove *move, char *pdn)
+bool move_to_pdn_english(Board8x8 board8, int color, CBmove *move, char *pdn, int gametype)
 {
 	int isjump, nmoves;
 	CBmove movelist[MAXMOVES];
 
-	nmoves = getmovelist(color, movelist, board8, &isjump);
-	return(move_to_pdn_english(nmoves, movelist, move, pdn));
+	if (has_getmovelist)
+		get_movelist_from_engine(board8, color, movelist, &nmoves, &isjump);
+	else
+		nmoves = getmovelist(color, movelist, board8, &isjump);
+	return(move_to_pdn_english(nmoves, movelist, move, pdn, gametype));
 }
 
 void newgame(void)
@@ -5781,3 +5809,133 @@ int setenginestarting(int value)
 	enginestarting = value;
 	return 1;
 }
+
+enum MLTOK {
+	MLCMD, MLCOMMA, MLNUM, MLSEMI, MLEND
+};
+
+int getmltok(char msg[], int &idx, char num[])
+{
+	if (isdigit(msg[idx])) {
+		while(isdigit(msg[idx])) {
+			*num = msg[idx];
+			++idx;
+			++num;
+		}
+		*num = 0;
+		return(MLNUM);
+	}
+	if (msg[idx] == ',') {
+		++idx;
+		return(MLCOMMA);
+	}
+	if (msg[idx] == ';') {
+		++idx;
+		return(MLSEMI);
+	}
+	if (!strncmp(msg + idx, "movelist ", 9)) {
+		idx += 9;
+		return(MLCMD);
+	}
+	return(MLEND);
+}
+
+/*
+ * If the current engine has the optional "get movelist" engine command, then use it to obtain a movelist
+ * The function returns a non-zero value if the engine cannot use "get movelist" engine command.
+ */
+int get_movelist_from_engine(Board8x8 board8, int color, CBmove movelist[], int *nmoves, int *iscapture)
+{
+	int idx, square;
+	char buf[256];
+	char command[256];
+	char reply[ENGINECOMMAND_REPLY_SIZE];
+
+	if (!has_getmovelist)
+		return(1);
+
+	board8toFEN(board8, buf, color, cbgame.gametype);
+	sprintf(command, "get movelist %s", buf);
+	if (!enginecommand(command, reply))
+		return(1);
+
+	/* Reply should look like:
+	 * "movelist <nmoves>,<njumps1>,<oldpiece1>,<newpiece1>,<from sq1>,<to sq1>,
+	 * <landed sq1>,<cap. sq1>,<cappiece1>,<landed sq2>,<cap. sq2>,<cappiece2>,...;"
+	 * Each move terminates in a semicolon.
+	 * If no moves, the response is "movelist 0".
+	 */
+	idx = 0;
+	if (getmltok(reply, idx, buf) != MLCMD)
+		return(1);
+	if (getmltok(reply, idx, buf) != MLNUM)
+		return(1);
+	*nmoves = atoi(buf);
+	if (*nmoves == 0)
+		return(0);
+	if (getmltok(reply, idx, buf) != MLCOMMA)
+		return(0);
+	for (int mv = 0; mv < *nmoves; ++mv) {
+		if (getmltok(reply, idx, buf) != MLNUM)
+			return(1);
+		movelist[mv].jumps = atoi(buf);
+
+		if (getmltok(reply, idx, buf) != MLCOMMA)
+			return(1);
+		if (getmltok(reply, idx, buf) != MLNUM)
+			return(1);
+		movelist[mv].oldpiece = atoi(buf);
+
+		if (getmltok(reply, idx, buf) != MLCOMMA)
+			return(1);
+		if (getmltok(reply, idx, buf) != MLNUM)
+			return(1);
+		movelist[mv].newpiece = atoi(buf);
+
+		if (getmltok(reply, idx, buf) != MLCOMMA)
+			return(1);
+		if (getmltok(reply, idx, buf) != MLNUM)
+			return(1);
+		square = atoi(buf);
+		numbertocoors(square, &movelist[mv].from, cbgame.gametype);
+
+		if (getmltok(reply, idx, buf) != MLCOMMA)
+			return(1);
+		if (getmltok(reply, idx, buf) != MLNUM)
+			return(1);
+		square = atoi(buf);
+		numbertocoors(square, &movelist[mv].to, cbgame.gametype);
+
+		for (int i = 0; i < movelist[mv].jumps; ++i) {
+			if (getmltok(reply, idx, buf) != MLCOMMA)
+				return(1);
+			if (getmltok(reply, idx, buf) != MLNUM)
+				return(1);
+			square = atoi(buf);
+			numbertocoors(square, &movelist[mv].path[i + 1], cbgame.gametype);
+
+			if (getmltok(reply, idx, buf) != MLCOMMA)
+				return(1);
+			if (getmltok(reply, idx, buf) != MLNUM)
+				return(1);
+			square = atoi(buf);
+			numbertocoors(square, &movelist[mv].del[i], cbgame.gametype);
+
+			if (getmltok(reply, idx, buf) != MLCOMMA)
+				return(1);
+			if (getmltok(reply, idx, buf) != MLNUM)
+				return(1);
+			movelist[mv].delpiece[i] = atoi(buf);
+		}
+
+		if (getmltok(reply, idx, buf) != MLSEMI)
+			return(1);
+	}
+	if (getmltok(reply, idx, buf) != MLEND)
+		return(1);
+
+	*iscapture = movelist[0].jumps;
+	return(0);
+}
+
+

@@ -8,8 +8,8 @@
 #include "CB_movegen.h"
 
 // version 
-#define VERSION "1.74"
-#define PLACE "December 8, 2017"
+#define VERSION "1.75"
+#define PLACE "April 17, 2018"
 
 #define OP_CROSSBOARD 1			// different opening decks
 #define OP_MAILPLAY 2
@@ -48,9 +48,9 @@ int addmovetouserbook(Board8x8 board, CBmove *move);
 void add_piecesets_to_menu(HMENU hmenu);
 void addmovetogame(CBmove &move, char *pdn);
 int islegal_check(Board8x8 board, int color, Squarelist &squares, CBmove *move, int gametype);
-int num_matching_moves(Board8x8 board, int color, Squarelist &squares, CBmove &move);
-bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, char *pdn);
-bool move_to_pdn_english(Board8x8 board, int color, CBmove *move, char *pdn);
+int num_matching_moves(Board8x8 board, int color, Squarelist &squares, CBmove &move, int gametype);
+bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, char *pdn, int gametype);
+bool move_to_pdn_english(Board8x8 board, int color, CBmove *move, char *pdn, int gametype);
 int changeCBstate(int newstate);
 HWND CreateAToolBar(HWND hwndParent);
 int createcheckerboard(HWND hwnd);
@@ -108,6 +108,7 @@ int setenginestarting(int value);
 int showfile(char *filename);
 int start3move(int opening_index);
 int undomove(CBmove m, Board8x8 board);
+int get_movelist_from_engine(Board8x8 board, int color, CBmove movelist[], int *nmoves, int *iscapture);
 
 extern char CBdirectory[MAX_PATH];	// holds the directory from where CB is started:
 extern char CBdocuments[MAX_PATH];
