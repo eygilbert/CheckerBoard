@@ -469,7 +469,7 @@ BOOL CALLBACK DialogFuncAddcomment(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 			return 1;
 
 		case IDC_OK:
-			GetDlgItemText(hdwnd, IDC_COMMENT, comment, -1);
+			GetDlgItemText(hdwnd, IDC_COMMENT, comment, sizeof(comment));
 			if (cbgame.movesindex > 0)
 				sprintf(cbgame.moves[cbgame.movesindex - 1].comment, "%s", comment);
 
