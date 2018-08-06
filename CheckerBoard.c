@@ -4129,10 +4129,6 @@ DWORD AutoThreadFunc(LPVOID param)
 			break;
 
 		case OBSERVEGAME:
-			// select primary engine if this is not the case
-			if (currentengine != 1)
-				setcurrentengine(1);
-
 			// start engine if we have a new position.
 			if (newposition) {
 				playnow = 0;
