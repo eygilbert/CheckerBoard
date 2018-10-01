@@ -847,6 +847,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 					}
 					else {
 						reset_game(cbgame);
+						board8toFEN(cbboard8, cbgame.FEN, cbcolor, cbgame.gametype);
 						sprintf(statusbar_txt, "position copied");
 					}
 				}
