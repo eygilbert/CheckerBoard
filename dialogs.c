@@ -683,7 +683,7 @@ BOOL CALLBACK DialogFuncMoreOptions(HWND hwnd, UINT msg, UINT wparam, LONG lpara
 							   WM_GETTEXT,
 							   sizeof(new_options.mtc_directory),
 							   (LPARAM) new_options.mtc_directory);
-			if (browse_to_dir("Choose the MTC database directory", new_options.mtc_directory))
+			if (browse_to_dir("Choose the auxiliary database directory", new_options.mtc_directory))
 				SendDlgItemMessage(hwnd, IDC_MTC_DIR_EDIT, WM_SETTEXT, 0, (LPARAM) new_options.mtc_directory);
 			return(1);
 
@@ -698,7 +698,7 @@ BOOL CALLBACK DialogFuncMoreOptions(HWND hwnd, UINT msg, UINT wparam, LONG lpara
 			get_more_engine_options_from_dialog(hwnd, &new_options);
 			sprintf(command, "set check_mtc_dir %s", new_options.mtc_directory);
 			enginecommand(command, reply);
-			MessageBox(hwnd, reply, "MTC Endgame Database Directory Check", MB_OK);
+			MessageBox(hwnd, reply, "Auxiliary Endgame Database Directory Check", MB_OK);
 			return(1);
 
 		case IDC_OK:

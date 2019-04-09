@@ -24,15 +24,10 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 101                     BITMAP                  "Bitmap_1.bmp"
-
 102                     BITMAP                  "Bitmap_2.bmp"
-
 105                     BITMAP                  "Bitmap_3.bmp"
-
 111                     BITMAP                  "Bitmap_4.bmp"
-
 300                     BITMAP                  "Bitmap_5.bmp"
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -783,7 +778,7 @@ CAPTION "About CheckerBoard"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "OK",1,50,193,50,14,BS_CENTER
-    LTEXT           "This is CheckerBoard 1.75c\nCopyright (c) 2000-2018 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
+    LTEXT           "This is CheckerBoard 1.75d\nCopyright (c) 2000-2019 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
     CONTROL         AFX_IDC_CHANGE,-1,"Static",SS_BITMAP | SS_REALSIZEIMAGE,4,4,143,80
 END
 
@@ -960,7 +955,7 @@ BEGIN
     PUSHBUTTON      "Check",IDC_CHECK_MTC_DIR_BUTTON,78,154,50,14
     PUSHBUTTON      "Browse...",IDC_BROWSE_MTC_DIR_BUTTON,137,154,50,14
     CONTROL         "Enable",IDC_MTC_ENAB_CHECK,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,158,110,38,10
-    GROUPBOX        "MTC Database",IDC_STATIC,7,97,202,85
+    GROUPBOX        "Auxiliary Database (DTC, DTW, etc.)",IDC_STATIC,7,97,202,85
     EDITTEXT        IDC_BOOKFILE_EDIT,20,197,117,14,ES_AUTOHSCROLL
     PUSHBUTTON      "Browse...",IDC_BOOKFILE_BROWSE_BUTTON,146,196,50,14
     GROUPBOX        "Opening Book File",IDC_STATIC,7,185,202,33
@@ -1012,7 +1007,6 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 ICON1                   ICON                    "Icon_1.ico"
-
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
