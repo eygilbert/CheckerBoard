@@ -3761,9 +3761,11 @@ void quick_search_both_engines()
 
 	newgame();
 	playnow = 0;
+	SetCurrentDirectory(CBdirectory);
 	getmove1(cbboard8, cbcolor, 0.1, statusbar_txt, &playnow, 0, 0, &move);
 	newgame();
 	playnow = 0;
+	SetCurrentDirectory(CBdirectory);
 	getmove2(cbboard8, cbcolor, 0.1, statusbar_txt, &playnow, 0, 0, &move);
 }
 
@@ -4156,7 +4158,9 @@ DWORD AutoThreadFunc(LPVOID param)
 				}
 
 				// finally, display stats in window title
+				SetCurrentDirectory(CBdirectory);
 				enginecommand1("name", engine1);
+				SetCurrentDirectory(CBdirectory);
 				enginecommand2("name", engine2);
 
 				/* Restrict engine names in title to 30 chars. */
