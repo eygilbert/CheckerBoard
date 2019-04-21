@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <vector>
 #include "cb_interface.h"
 #include <time.h>

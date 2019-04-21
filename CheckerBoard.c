@@ -3232,7 +3232,7 @@ double maxtime_for_non_incremental_tc(double remaining, double increment)
 	if (remaining < 0.4 * increment)
 		return(0.4 * increment);
 	if (remaining > increment)
-		return(increment + (remaining - increment) / 3);
+		return(increment + (remaining - increment) / 2.5);
 	return(remaining);
 }
 
@@ -4628,6 +4628,7 @@ int enginename(char Lstr[MAXNAME])
 {
 	// set a default
 	sprintf(Lstr, "no engine found");
+	SetCurrentDirectory(CBdirectory);
 
 	if (currentengine == 1) {
 		if (enginecommand1 != 0) {
