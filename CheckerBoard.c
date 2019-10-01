@@ -2148,15 +2148,14 @@ int handletimer(void)
 	static int oldbook_state;
 	static int oldengine;
 	static int engineIcon;
-	int ch = '=';
 
 	if (strcmp(oldstr, statusbar_txt) != 0) {
+		strcpy(oldstr, statusbar_txt);
 		SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) statusbar_txt);
-		sprintf(oldstr, "%s", statusbar_txt);
 
 		// if we're running a test set, create a pseudolog-file
 		if (CBstate == RUNTESTSET) {
-			if (strchr(statusbar_txt, ch) != NULL) {
+			if (strchr(statusbar_txt, '=') != NULL) {
 				strcpy(filename, CBdocuments);
 				PathAppend(filename, "testlog.txt");
 				writefile(filename, "a", "%s\n", statusbar_txt);
@@ -3704,19 +3703,23 @@ int changeCBstate(int newstate)
 
 	switch (CBstate) {
 	case NORMAL:
+		two_player_mode = false;
 		CheckMenuItem(hmenu, CM_NORMAL, MF_CHECKED);
 		break;
 
 	case OBSERVEGAME:
+		two_player_mode = false;
 		CheckMenuItem(hmenu, CM_ANALYSIS, MF_CHECKED);
 		break;
 
 	case AUTOPLAY:
+		two_player_mode = false;
 		CheckMenuItem(hmenu, CM_AUTOPLAY, MF_CHECKED);
 		break;
 
 	case ENGINEMATCH:
 		/* Read ballots file if being used. */
+		two_player_mode = false;
 		if (cboptions.em_start_positions == START_POS_FROM_FILE) {
 			if (read_user_ballots_file()) {
 				changeCBstate(NORMAL);
@@ -3733,6 +3736,7 @@ int changeCBstate(int newstate)
 		break;
 
 	case ENTERGAME:
+		two_player_mode = true;
 		CheckMenuItem(hmenu, CM_2PLAYER, MF_CHECKED);
 		break;
 
