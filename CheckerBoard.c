@@ -5126,6 +5126,29 @@ bool all_move_squares_matched(Squarelist &squares, CBmove &move, int gametype)
 	return(true);
 }
 
+int num_moves_matching_fromto(CBmove movelist[], int nmoves, int from, int to, CBmove &move, int gametype)
+{
+	int nmatches, sum_squares;
+
+	nmatches = 0;
+	for (int i = 0; i < nmoves; ++i) {
+		if (from == coortonumber(movelist[i].from, gametype) && to == coortonumber(movelist[i].to, gametype)) {
+			if (nmatches == 0) {
+				++nmatches;
+				move = movelist[i];
+				sum_squares = get_sum_squares(move);
+			}
+
+			/* Use sum of squares to detect identical moves that are
+			 * captures by kings in a different order.
+			 */
+			if (sum_squares != get_sum_squares(movelist[i]))
+				++nmatches;
+		}
+	}
+	return(nmatches);
+}
+
 /*
  * For gametype English only.
  * Return the number of moves in movelist that match the squares in the Squarelist.
@@ -5194,27 +5217,38 @@ int num_matching_moves(Board8x8 board8, int color, Squarelist &squares, CBmove &
  */
 bool move_to_pdn_english(int nmoves, CBmove movelist[MAXMOVES], CBmove *move, char *pdn, int gametype)
 {
-	int i, count;
+	int i, fromto_count, all_match_count;
 	char separator;
 	CBmove matching_move;
 	Squarelist squares;
 
 	/* Find the number of moves that match the from and to squares. */
 	pdn[0] = 0;
-	squares.append(coortonumber(move->from, gametype));
-	squares.append(coortonumber(move->to, gametype));
-	count = num_matching_moves(movelist, nmoves, squares, matching_move, gametype);
-	if (count == 0)
+	fromto_count = num_moves_matching_fromto(movelist, nmoves, coortonumber(move->from, gametype), coortonumber(move->to, gametype), matching_move, gametype);
+	if (fromto_count == 0)
 		return(true);
 
 	separator = move->jumps ? 'x' : '-';
-	if (count == 1)
+	if (fromto_count == 1)
 		sprintf(pdn, "%d%c%d", coortonumber(move->from, gametype), separator, coortonumber(move->to, gametype));
 	else {
-		sprintf(pdn, "%d%c", coortonumber(move->from, gametype), separator);
-		for (i = 1; i < move->jumps; ++i)
-			sprintf(pdn + strlen(pdn), "%d%c", coortonumber(move->path[i], gametype), separator);
-		sprintf(pdn + strlen(pdn), "%d", coortonumber(move->to, gametype));
+		/* Add the path squares to the squares array. */
+		squares.append(coortonumber(move->from, gametype));
+		for (i = 1; i <= move->jumps; ++i)
+			squares.append(coortonumber(move->path[i], gametype));
+		squares.append(coortonumber(move->to, gametype));
+
+		/* Get count of moves that match all the squares. */
+		all_match_count = num_matching_moves(movelist, nmoves, squares, matching_move, gametype);
+		if (fromto_count > all_match_count) {
+			/* Need to use the full move notation. */
+			sprintf(pdn, "%d%c", coortonumber(move->from, gametype), separator);
+			for (i = 1; i < move->jumps; ++i)
+				sprintf(pdn + strlen(pdn), "%d%c", coortonumber(move->path[i], gametype), separator);
+			sprintf(pdn + strlen(pdn), "%d", coortonumber(move->to, gametype));
+		}
+		else
+			sprintf(pdn, "%d%c%d", coortonumber(move->from, gametype), separator, coortonumber(move->to, gametype));
 	}
 	return(false);
 }
