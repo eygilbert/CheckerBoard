@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=CheckerBoard64
-AppVerName=CheckerBoard64 version 1.75d
+AppVerName=CheckerBoard64 version 1.75e
 AppPublisher=Martin Fierz
 DefaultDirName={pf32}\CheckerBoard
 UsePreviousAppDir=no
@@ -14,7 +14,7 @@ DefaultGroupName=CheckerBoard
 DisableProgramGroupPage=no
 SourceDir=.
 OutputDir=Output
-OutputBaseFilename=CheckerBoardSetup64.175d
+OutputBaseFilename=CheckerBoardSetup64.175e
 Compression=lzma/ultra
 SolidCompression=yes
 Uninstallable=yes
@@ -25,8 +25,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "Executables\checkerboard64.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Executables\cake_186.dll"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Executables\cake_187.dll"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Executables\book.bin"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Executables\cake187.htm"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\help.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\helpspanish.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\nutshell.htm"; DestDir: "{app}"; Flags: ignoreversion

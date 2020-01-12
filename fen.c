@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <cctype>
 #include <stdio.h>
 #include "cb_interface.h"
 #include "CBstructs.h"
