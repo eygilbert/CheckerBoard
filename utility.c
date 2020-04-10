@@ -699,3 +699,74 @@ char *read_text_file(char *filename, READ_TEXT_FILE_ERROR_TYPE &etype)
 	etype = RTF_NO_ERROR;
 	return(buf);
 }
+
+bool is_conversion_move(CBmove &move)
+{
+	if (move.jumps > 0)
+		return(true);
+	if (move.oldpiece != move.newpiece)
+		return(true);
+	if ((move.oldpiece & CB_KING) == 0)
+		return(true);
+	return(false);
+}
+
+void detect_nonconversion_draws(PDNgame &game, bool *is_draw_by_repetition, bool *is_draw_by_40move_rule)
+{
+	size_t count;
+	struct gamepos {
+		int color;
+		pos board;
+	};
+
+	*is_draw_by_repetition = false;
+	*is_draw_by_40move_rule = false;
+
+	/* Count the number of most recent successive non-conversion moves. */
+	for (count = 0; count < game.moves.size(); ++count) {
+		if (is_conversion_move(game.moves[game.moves.size() - count - 1].move))
+			break;
+	}
+
+	if (count < 5)
+		return;
+
+	if (count >= 79) {		/* 40 side moves + 39 other-side moves = 79. */
+		*is_draw_by_40move_rule = true;
+		return;
+	}
+
+	/* Get the positions and check for 3-fold repetition. */
+	std::vector<gamepos> positions;
+	gamepos position;
+	Board8x8 board8;
+	int color;
+	if (game.FEN[0])
+		FENtoboard8(board8, game.FEN, &color, game.gametype);
+	else {
+		InitCheckerBoard(board8);
+		color = get_startcolor(game.gametype);
+	}
+	position.color = color;
+	boardtobitboard(board8, &position.board);
+	positions.push_back(position);
+
+	for (size_t i = 0; i < game.moves.size(); ++i) {
+		domove(game.moves[i].move, board8);
+		boardtobitboard(board8, &position.board);
+		position.color = CB_CHANGECOLOR(position.color);
+		positions.push_back(position);
+	}
+
+	int repeat_count = 1;
+	for (int i = 2; i < (int)count; i += 2) {
+		if (memcmp(&positions[positions.size() - i - 1], &positions.back(), sizeof(position)) == 0) {
+			++repeat_count;
+			if (repeat_count == 3) {
+				*is_draw_by_repetition = true;
+				return;
+			}
+		}
+	}
+}
+

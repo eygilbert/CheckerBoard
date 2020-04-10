@@ -3270,7 +3270,6 @@ DWORD SearchThreadFunc(LPVOID param)
 // to a file if CB is in either ANALYZEGAME or ENGINEMATCH mode
 {
 	int i, nmoves;
-	Board8x8 original8board, b8copy, originalcopy;
 	CBmove movelist[MAXMOVES];
 	CBmove localmove;
 	char PDN[40];
@@ -3344,14 +3343,10 @@ DWORD SearchThreadFunc(LPVOID param)
 	}
 
 	if (!found_move) {
+		Board8x8 original_board8;		/* The position before calling getmove. */
+		Board8x8 engine_board8;			/* The new position returned by getmove. */
 
 		// we did not find a move in our user book, so continue
-		// board8 is a global [8][8] int which holds the board
-		// get 3 copies of the global board8
-		memcpy(b8copy, cbboard8, sizeof(cbboard8));
-		memcpy(original8board, cbboard8, sizeof(cbboard8));
-		memcpy(originalcopy, cbboard8, sizeof(cbboard8));
-
 		// set thread priority
 		// next lower ist '_LOWEST', higher '_NORMAL'
 		enginethreadpriority = usersetpriority;
@@ -3406,8 +3401,10 @@ DWORD SearchThreadFunc(LPVOID param)
 				maxtime = timelevel_to_time(cboptions.level);
 			}
 
+			memcpy(original_board8, cbboard8, sizeof(cbboard8));
+			memcpy(engine_board8, cbboard8, sizeof(cbboard8));
 			start_clock();
-			game_result = (getmove)(originalcopy, cbcolor, maxtime, statusbar_txt, &playnow, info, moreinfo, &localmove);
+			game_result = (getmove)(engine_board8, cbcolor, maxtime, statusbar_txt, &playnow, info, moreinfo, &localmove);
 			elapsed = (clock() - time_ctrl.starttime) / (double)CLK_TCK;
 
 			/* Display the Play! bitmap with black foreground when the engine is not searching. */
@@ -3461,7 +3458,7 @@ DWORD SearchThreadFunc(LPVOID param)
 		// in observemode, the user will provide all moves, in analyse mode the autothread drives the
 		// game forward
 		if (CBstate != OBSERVEGAME && CBstate != ANALYZEGAME && CBstate != ANALYZEPDN && !abortcalculation)
-			memcpy(cbboard8, originalcopy, sizeof(cbboard8));
+			memcpy(cbboard8, engine_board8, sizeof(cbboard8));
 
 		if (CBstate == ENGINEGAME && game_result != CB_UNKNOWN)
 			gameover = TRUE;
@@ -3474,11 +3471,12 @@ DWORD SearchThreadFunc(LPVOID param)
 			if (have_valid_movelist) {
 				cbmove = movelist[0];
 				for (i = 0; i < nmoves; i++) {
+					Board8x8 temp_board;
 
-					//put original board8 in b8copy, execute move and compare with returned board8...
-					memcpy(b8copy, original8board, sizeof(b8copy));
-					domove(movelist[i], b8copy);
-					if (memcmp(cbboard8, b8copy, sizeof(cbboard8)) == 0) {
+					//put original board8 in a local copy, execute move and compare with returned board8...
+					memcpy(temp_board, original_board8, sizeof(temp_board));
+					domove(movelist[i], temp_board);
+					if (memcmp(cbboard8, temp_board, sizeof(cbboard8)) == 0) {
 						cbmove = movelist[i];
 						found_move = true;
 						move_to_pdn_english(nmoves, movelist, &cbmove, PDN, gametype());
@@ -3487,14 +3485,14 @@ DWORD SearchThreadFunc(LPVOID param)
 				}
 
 				if (!found_move)
-					memcpy(cbboard8, original8board, sizeof(cbboard8));
+					memcpy(cbboard8, original_board8, sizeof(cbboard8));
 			}
 			else {
 
 				// gametype not GT_ENGLISH and we don't have a real movelist, use the move of the engine
 				cbmove = localmove;
 				move4tonotation(localmove, PDN);
-				memcpy(cbboard8, original8board, sizeof(cbboard8));
+				memcpy(cbboard8, original_board8, sizeof(cbboard8));
 				found_move = true;
 			}
 		}
@@ -3546,26 +3544,34 @@ DWORD SearchThreadFunc(LPVOID param)
 	// Start the animation thread to animate the move and play it on the UI's board.
 	if ((CBstate != OBSERVEGAME) && (CBstate != ANALYZEGAME) && (CBstate != ANALYZEPDN) && found_move && !abortcalculation) {
 		bool add_gameover_comment = false;
+		bool is_draw_by_repetition = false;
+		bool is_draw_by_40move_rule = false;
 
 		addmovetogame(cbmove, PDN);		/* Add the move to the current game. */
 
 		// If we are in ENGINEMATCH state and the engine claims a result then we stop.
 		if (CBstate == ENGINEMATCH) {
-			if (game_result == CB_DRAW) {
-				gameover = TRUE;
-				add_gameover_comment = true;
-			}
-			else {
-				if (cboptions.early_game_adjudication && game_result != CB_UNKNOWN) {
+			detect_nonconversion_draws(cbgame, &is_draw_by_repetition, &is_draw_by_40move_rule);
+			if (!is_draw_by_repetition && !is_draw_by_40move_rule) {
+				if (game_result == CB_DRAW) {
 					gameover = TRUE;
 					add_gameover_comment = true;
 				}
+				else {
+					if (cboptions.early_game_adjudication && game_result != CB_UNKNOWN) {
+						gameover = TRUE;
+						add_gameover_comment = true;
+					}
+				}
 			}
+			else
+				gameover = TRUE;
 		}
 
 		// save engine string as comment if it's an engine match
 		// actually, always save if add comment is on
-		if ((addcomment || add_gameover_comment) && cbgame.movesindex > 0) {
+		// For enginematch, add comments for draws by 40-move rule or 3-fold repetition. 
+		if ((addcomment || add_gameover_comment || is_draw_by_repetition || is_draw_by_40move_rule) && cbgame.movesindex > 0) {
 			gamebody_entry *pgame = &cbgame.moves[cbgame.movesindex - 1];
 			strncpy(pgame->comment, statusbar_txt, COMMENTLENGTH - 1);
 			pgame->comment[COMMENTLENGTH - 1] = 0;
@@ -3573,6 +3579,18 @@ DWORD SearchThreadFunc(LPVOID param)
 			if (add_gameover_comment) {
 				strncat(pgame->comment, " : gameover claimed", COMMENTLENGTH - 1);
 				pgame->comment[COMMENTLENGTH - 1] = 0;
+			}
+
+			if (is_draw_by_repetition) {
+				strncat(pgame->comment, "; CB declared draw by 3-fold repetition", COMMENTLENGTH - 1);
+				pgame->comment[COMMENTLENGTH - 1] = 0;
+				game_result = CB_DRAW;
+			}
+
+			if (is_draw_by_40move_rule) {
+				strncat(pgame->comment, "; CB declared draw by 40-move rule", COMMENTLENGTH - 1);
+				pgame->comment[COMMENTLENGTH - 1] = 0;
+				game_result = CB_DRAW;
 			}
 		}
 
