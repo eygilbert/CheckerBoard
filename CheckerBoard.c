@@ -3310,13 +3310,9 @@ DWORD SearchThreadFunc(LPVOID param)
 	else
 		have_valid_movelist = true;
 	if (nmoves == 0) {
-		if (CBstate == ENGINEMATCH || CBstate == ENGINEGAME) {
+		if (CBstate == ENGINEMATCH || CBstate == ENGINEGAME || CBstate == AUTOPLAY) {
 			gameover = TRUE;
 			game_result = CB_LOSS;
-			sprintf(statusbar_txt, "game over");
-		}
-		else if (CBstate == AUTOPLAY) {
-			gameover = TRUE;
 			sprintf(statusbar_txt, "game over");
 		}
 		else
@@ -3460,9 +3456,6 @@ DWORD SearchThreadFunc(LPVOID param)
 		if (CBstate != OBSERVEGAME && CBstate != ANALYZEGAME && CBstate != ANALYZEPDN && !abortcalculation)
 			memcpy(cbboard8, engine_board8, sizeof(cbboard8));
 
-		if (CBstate == ENGINEGAME && game_result != CB_UNKNOWN)
-			gameover = TRUE;
-
 		// got board8 & a copy before move was made
 		if (CBstate != OBSERVEGAME && CBstate != ANALYZEGAME && CBstate != ANALYZEPDN && !abortcalculation) {
 
@@ -3548,24 +3541,21 @@ DWORD SearchThreadFunc(LPVOID param)
 		bool is_draw_by_40move_rule = false;
 
 		addmovetogame(cbmove, PDN);		/* Add the move to the current game. */
-
-		// If we are in ENGINEMATCH state and the engine claims a result then we stop.
-		if (CBstate == ENGINEMATCH) {
-			detect_nonconversion_draws(cbgame, &is_draw_by_repetition, &is_draw_by_40move_rule);
-			if (!is_draw_by_repetition && !is_draw_by_40move_rule) {
-				if (game_result == CB_DRAW) {
+		detect_nonconversion_draws(cbgame, &is_draw_by_repetition, &is_draw_by_40move_rule);
+		if (is_draw_by_repetition || is_draw_by_40move_rule)
+			gameover = TRUE;
+		else if (CBstate == ENGINEMATCH) {
+			// If we are in ENGINEMATCH state and the engine claims a result then we stop.
+			if (game_result == CB_DRAW) {
+				gameover = TRUE;
+				add_gameover_comment = true;
+			}
+			else {
+				if (cboptions.early_game_adjudication && game_result != CB_UNKNOWN) {
 					gameover = TRUE;
 					add_gameover_comment = true;
 				}
-				else {
-					if (cboptions.early_game_adjudication && game_result != CB_UNKNOWN) {
-						gameover = TRUE;
-						add_gameover_comment = true;
-					}
-				}
 			}
-			else
-				gameover = TRUE;
 		}
 
 		// save engine string as comment if it's an engine match
