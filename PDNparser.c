@@ -2,6 +2,7 @@
 // a PDN parser library
 // by martin fierz with some help by ed gilbert
 // originally written on 5th may 2001
+#include <algorithm>
 #include <stdio.h>
 #include "standardheader.h"
 #include "stdlib.h"
@@ -221,7 +222,7 @@ int PDNparseGetnextheader(const char **start, char *header, int maxlen)
 	}
 
 	// terminate header with a 0
-	header[min(i, maxlen - 1)] = 0;
+	header[std::min(i, maxlen - 1)] = 0;
 
 	/* if no closing brace is found */
 	if (*q == 0)
@@ -267,7 +268,7 @@ int PDNparseGetnexttag(const char **start, char *tag, int maxlen)
 		i++;
 	}
 
-	tag[min(i, maxlen - 1)] = 0;
+	tag[std::min(i, maxlen - 1)] = 0;
 
 	/* if no closing " is found */
 	if (*q == 0)
@@ -356,7 +357,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 			tokentype = PDN_FLUFF;
 			if (isdigit((uint8_t)*p) || *p == '{' || *p == '(' || is_pdnquote(*p)) {
 				state = PDN_DONE;
-				len = min((int)(p - tok_start), maxlen - 1);
+				len = std::min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -370,7 +371,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 			if (*p == '}') {
 				state = PDN_DONE;
 				++p;
-				len = min((int)(p - tok_start), maxlen - 1);
+				len = std::min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -387,7 +388,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 			if (*p == ')') {
 				state = PDN_DONE;
 				++p;
-				len = min((int)(p - tok_start), maxlen - 1);
+				len = std::min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -468,7 +469,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 
 				/* Finished reading a valid move. */
 				state = PDN_DONE;
-				len = min((int)(p - tok_start), maxlen - 1);
+				len = std::min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -486,7 +487,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 
 				/* No move separator, roll back to the end of move. */
 				state = PDN_DONE;
-				len = min((int)(possible_end - tok_start), maxlen - 1);
+				len = std::min((int)(possible_end - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
@@ -510,7 +511,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 
 				/* We did not get another 'to' square.  Return the valid move that we already passed. */
 				state = PDN_DONE;
-				len = min((int)(possible_end - tok_start), maxlen - 1);
+				len = std::min((int)(possible_end - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
@@ -531,13 +532,13 @@ int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 			state == PDN_WAITING_OPTIONAL_TO
 		) {
 			if (possible_end) {
-				len = min((int)(possible_end - tok_start), maxlen - 1);
+				len = std::min((int)(possible_end - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = possible_end;
 			}
 			else {
-				len = min((int)(p - tok_start), maxlen - 1);
+				len = std::min((int)(p - tok_start), maxlen - 1);
 				memcpy(token, tok_start, len);
 				token[len] = 0;
 				*start = p;
@@ -548,7 +549,7 @@ int PDNparseGetnextPDNtoken(const char **start, char *token, int maxlen)
 			return(tokentype);
 		}
 
-		len = min((int)(p - tok_start), maxlen - 1);
+		len = std::min((int)(p - tok_start), maxlen - 1);
 		memcpy(token, tok_start, len);
 		token[len] = 0;
 		*start = p;
@@ -700,7 +701,7 @@ int PDNparseGetnexttoken(const char **start, char *token, int maxlen)
 		}
 
 		*start = p + 1;
-		i = min(i, maxlen - 2);
+		i = std::min(i, maxlen - 2);
 		token[i] = '}';
 		token[i + 1] = 0;
 		return 1;
@@ -719,7 +720,7 @@ int PDNparseGetnexttoken(const char **start, char *token, int maxlen)
 		}
 
 		*start = p + 1;
-		i = min(i, maxlen - 2);
+		i = std::min(i, maxlen - 2);
 		token[i] = ')';
 		token[i + 1] = 0;
 		return 1;
@@ -742,13 +743,13 @@ int PDNparseGetnexttoken(const char **start, char *token, int maxlen)
 
 	// if we terminated with a full stop (.) ,add it
 	if (*p == '.') {
-		i = min(i, maxlen - 2);
+		i = std::min(i, maxlen - 2);
 		token[i] = *p;
 		p++;
 		i++;
 	}
 
-	token[min(i, maxlen - 1)] = 0;
+	token[std::min(i, maxlen - 1)] = 0;
 
 	// we have found a token, it is written to *token, now
 	//	we set the start pointer
