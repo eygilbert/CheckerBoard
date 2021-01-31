@@ -2,17 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
+#define version "1.75f"
 AppName=CheckerBoard
-AppVerName=CheckerBoard version 1.75f
+AppVerName=CheckerBoard version {#version}
 AppPublisher=Martin Fierz
-DefaultDirName={pf32}\CheckerBoard
+DefaultDirName={commonpf32}\CheckerBoard
 UsePreviousAppDir=no
-AppendDefaultDirName=no
+AppendDefaultDirName=yes
 DefaultGroupName=CheckerBoard
 DisableProgramGroupPage=no
 SourceDir=.
 OutputDir=Output
-OutputBaseFilename=CheckerBoardSetup32.175f
+OutputBaseFilename=CheckerBoardSetup32.{#version}
 Compression=lzma/ultra
 SolidCompression=yes
 Uninstallable=yes

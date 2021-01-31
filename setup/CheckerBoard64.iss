@@ -2,19 +2,20 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
+#define version "1.75f"
 AppName=CheckerBoard64
-AppVerName=CheckerBoard64 version 1.75f
+AppVerName=CheckerBoard64 version {#version}
 AppPublisher=Martin Fierz
-DefaultDirName={pf32}\CheckerBoard
+DefaultDirName={commonpf32}\CheckerBoard
 UsePreviousAppDir=no
-AppendDefaultDirName=no
+AppendDefaultDirName=yes
 ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 DefaultGroupName=CheckerBoard
 DisableProgramGroupPage=no
 SourceDir=.
 OutputDir=Output
-OutputBaseFilename=CheckerBoardSetup64.175f
+OutputBaseFilename=CheckerBoardSetup64.{#version}
 Compression=lzma/ultra
 SolidCompression=yes
 Uninstallable=yes
@@ -25,9 +26,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "Executables\checkerboard64.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Executables\cake_188.dll"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Executables\cake_188q.dll"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Executables\book.bin"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Executables\cake188.htm"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Executables\cake188q.htm"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Executables\egdb64.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\help.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\helpspanish.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\nutshell.htm"; DestDir: "{app}"; Flags: ignoreversion
