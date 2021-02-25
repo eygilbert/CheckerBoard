@@ -113,7 +113,6 @@ Board8x8 cbboard8;					/* the board being displayed in the GUI*/
 int cbcolor = CB_BLACK;				/* the side to move next in the GUI */
 bool setup_mode;
 static int addcomment;
-int handicap;
 int testset_number;
 int playnow;						/* playnow is passed to the checkers engines, it is set to nonzero if the user chooses 'play' */
 bool reset_move_history;			/* send option to engine to reset its list of game moves. */
@@ -1604,14 +1603,6 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				CheckMenuItem(hmenu, CM_ADDCOMMENT, MF_CHECKED);
 			else
 				CheckMenuItem(hmenu, CM_ADDCOMMENT, MF_UNCHECKED);
-			break;
-
-		case CM_HANDICAP:
-			toggle(&handicap);
-			if (handicap == TRUE)
-				CheckMenuItem(hmenu, CM_HANDICAP, MF_CHECKED);
-			else
-				CheckMenuItem(hmenu, CM_HANDICAP, MF_UNCHECKED);
 			break;
 
 		case CM_RUNTESTSET:
@@ -3365,21 +3356,24 @@ DWORD SearchThreadFunc(LPVOID param)
 			if (reset_move_history)
 				info |= CB_RESET_MOVES;
 			if (cboptions.use_incremental_time) {
+				double increment = cboptions.time_increment;
+				if (cboptions.handicap_enable && currentengine == 2)
+					increment *= cboptions.handicap_mult;
 				if (cbcolor == CB_BLACK) {
-					format_time_args(cboptions.time_increment, time_ctrl.black_time_remaining, &info, &moreinfo);
+					format_time_args(increment, time_ctrl.black_time_remaining, &info, &moreinfo);
 					maxtime = maxtime_for_incremental_tc(time_ctrl.black_time_remaining);
 				}
 				else {
-					format_time_args(cboptions.time_increment, time_ctrl.white_time_remaining, &info, &moreinfo);
+					format_time_args(increment, time_ctrl.white_time_remaining, &info, &moreinfo);
 					maxtime = maxtime_for_incremental_tc(time_ctrl.white_time_remaining);
 				}
 			}
 			else if (CBstate == ENGINEMATCH) {
 				maxtime = timelevel_to_time(cboptions.level);
 
-				// if in engine match handicap mode, give primary engine half the time of secondary engine.
-				if (handicap && currentengine == 1)
-					maxtime /= 2;
+				// if in engine match handicap mode, give adjust secondary engine's time.
+				if (cboptions.handicap_enable && currentengine == 2)
+					maxtime *= cboptions.handicap_mult;
 
 				if (cbcolor == CB_BLACK) {
 					time_ctrl.black_time_remaining += maxtime;
@@ -3416,15 +3410,20 @@ DWORD SearchThreadFunc(LPVOID param)
 			}
 #endif
 			if (cboptions.use_incremental_time) {
+				double increment = cboptions.time_increment;
+
+				if (CBstate == ENGINEMATCH && cboptions.handicap_enable && currentengine == 2)
+					increment *= cboptions.handicap_mult;
+
 				if (cbcolor == CB_BLACK) {
 					if (time_ctrl.black_time_remaining - elapsed < 0)
 						cblog("engine %d has negative remaining time %.3f\n", currentengine, time_ctrl.black_time_remaining - elapsed);
-					time_ctrl.black_time_remaining += cboptions.time_increment - elapsed;
+					time_ctrl.black_time_remaining += increment - elapsed;
 				}
 				else {
 					if (time_ctrl.white_time_remaining - elapsed < 0)
 						cblog("engine %d has negative remaining time %.3f\n", currentengine, time_ctrl.white_time_remaining - elapsed);
-					time_ctrl.white_time_remaining += cboptions.time_increment - elapsed;
+					time_ctrl.white_time_remaining += increment - elapsed;
 				}
 
 				/* If not engine match, then human player's clock starts now. For engine matches the
@@ -3511,21 +3510,24 @@ DWORD SearchThreadFunc(LPVOID param)
 		{
 			char filename[MAX_PATH];
 			char name[250];
+			double total;
+
+			/* Elapsed has already been subtracted from time_remaining, but we want to print the engine's
+			 * clock time at the beginning of its turn.
+			 */
+			if (cbcolor == CB_BLACK)
+				total = time_ctrl.black_time_remaining + elapsed;
+			else
+				total = time_ctrl.white_time_remaining + elapsed;
 
 			emlog_filename(filename);
 			enginename(name);
 			if (cboptions.use_incremental_time)
-				writefile(filename, "a", "%s played %s\nanalysis: %s\n", name, PDN, statusbar_txt);
-			else {
-				double total;
-
-				if (cbcolor == CB_BLACK)
-					total = time_ctrl.black_time_remaining + elapsed;
-				else
-					total = time_ctrl.white_time_remaining + elapsed;
-				writefile(filename, "a", "%s played %s; Times (total, given to engine, used): %.3f, %.3f, %.3f\nanalysis: %s\n",
+				writefile(filename, "a", "%s played %s; Times (clock, 'maxtime' sent, used): %.3f, %.3f, %.3f\nanalysis: %s\n", 
 					name, PDN, total, maxtime, elapsed, statusbar_txt);
-			}
+			else
+				writefile(filename, "a", "%s played %s; Times (clock, given to engine, used): %.3f, %.3f, %.3f\nanalysis: %s\n",
+					name, PDN, total, maxtime, elapsed, statusbar_txt);
 		}
 		break;
 	}
@@ -4346,6 +4348,16 @@ DWORD AutoThreadFunc(LPVOID param)
 				movecount++;
 				if (movecount <= 2)
 					reset_move_history = true;		/* First search of a new game for each side. */
+
+				/* If this is the first move of a new game, and using incremental time mode, and handicap is enabled,
+				 * adjust engine2's initial time clock by the handicap multiplier.
+				 */
+				if (movecount == 1 && cboptions.use_incremental_time && cboptions.handicap_enable) {
+					if (emstats.engine1_plays_black(gamenumber))
+						time_ctrl.white_time_remaining *= cboptions.handicap_mult;
+					else
+						time_ctrl.black_time_remaining *= cboptions.handicap_mult;
+				}
 
 				setenginestarting(TRUE);
 				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);

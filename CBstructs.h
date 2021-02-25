@@ -38,6 +38,8 @@ struct CBoptions {
 	bool exact_time;
 	bool use_incremental_time;
 	bool early_game_adjudication;
+	bool handicap_enable;		/* enable handicap multiplier for engine 2's time in engine matches. */
+	double handicap_mult;		/* eninge 2's time multiplier when handicap match is enabled. */
 	EM_START_POSITIONS em_start_positions;
 	int level;
 	double initial_time;		/* incremental time control settings. */

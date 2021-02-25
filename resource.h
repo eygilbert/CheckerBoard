@@ -25,6 +25,7 @@
 #define IDC_CHECK_MTC_DIR_BUTTON        1005
 #define IDC_CHECK2                      1006
 #define IDC_MTC_ENAB_CHECK              1006
+#define IDC_HANDICAP_CHECK              1006
 #define IDC_BOOKFILE_EDIT               1007
 #define IDC_MAX_SEARCH_THREADS_COMBO    1008
 #define IDC_CPUS_EDIT                   1009
@@ -38,6 +39,8 @@
 #define IDC_MATCH_REPEAT_COUNT          1018
 #define IDC_EDIT2                       1019
 #define IDC_START_POS_FILENAME          1019
+#define IDC_EDIT3                       1020
+#define IDC_HANDICAP_MULT_EDIT          1020
 #define ID_LANGAGE_FRANCAIS             40039
 #define ID_SPRACHE_FRANCAIS             40040
 #define ID_LANGUAGE_FRANCAIS            40041
@@ -49,7 +52,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        110
 #define _APS_NEXT_COMMAND_VALUE         40046
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

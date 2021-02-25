@@ -1458,8 +1458,23 @@ BOOL DialogStartEngineMatchFunc(HWND hwnd, UINT message, WPARAM wparam, LPARAM l
 		hctrl = GetDlgItem(hwnd, IDC_EARLY_GAME_ADJ_CHECK);
 		SendMessage(hctrl, BM_SETCHECK, cboptions.early_game_adjudication, 0);
 
+		/* Init the handicap check box. */
+		hctrl = GetDlgItem(hwnd, IDC_HANDICAP_CHECK);
+		SendMessage(hctrl, BM_SETCHECK, cboptions.handicap_enable, 0);
+
+		/* Init the handicap multiplier. */
+		sprintf(buf, "%.3f", cboptions.handicap_mult);
+		SetDlgItemText(hwnd, IDC_HANDICAP_MULT_EDIT, (LPSTR)buf);
+
+		/* Gray out controls that are not active. */
 		hctrl = GetDlgItem(hwnd, ID_RESUME_MATCH);
 		if (match_is_resumable())
+			EnableWindow(hctrl, 1);
+		else
+			EnableWindow(hctrl, 0);
+
+		hctrl = GetDlgItem(hwnd, IDC_HANDICAP_MULT_EDIT);
+		if (cboptions.handicap_enable)
 			EnableWindow(hctrl, 1);
 		else
 			EnableWindow(hctrl, 0);
@@ -1478,6 +1493,17 @@ BOOL DialogStartEngineMatchFunc(HWND hwnd, UINT message, WPARAM wparam, LPARAM l
 			}
 			break;
 
+		case IDC_HANDICAP_CHECK:
+			hctrl = GetDlgItem(hwnd, IDC_HANDICAP_CHECK);
+			lstatus = SendMessage(hctrl, BM_GETCHECK, 0, 0);
+			cboptions.handicap_enable = lstatus ? true : false;
+			hctrl = GetDlgItem(hwnd, IDC_HANDICAP_MULT_EDIT);
+			if (cboptions.handicap_enable)
+				EnableWindow(hctrl, 1);
+			else
+				EnableWindow(hctrl, 0);
+			break;
+
 		case ID_RESUME_MATCH:
 			cboptions.match_repeat_count = GetDlgItemInt(hwnd, IDC_MATCH_REPEAT_COUNT, &status, FALSE);
 			cboptions.match_repeat_count = max(1, cboptions.match_repeat_count);
@@ -1486,6 +1512,12 @@ BOOL DialogStartEngineMatchFunc(HWND hwnd, UINT message, WPARAM wparam, LPARAM l
 			lstatus = SendMessage(hctrl, BM_GETCHECK, 0, 0);
 			cboptions.early_game_adjudication = lstatus ? true : false;
 			GetDlgItemText(hwnd, IDC_START_POS_FILENAME, cboptions.start_pos_filename, sizeof(cboptions.start_pos_filename));
+
+			hctrl = GetDlgItem(hwnd, IDC_HANDICAP_CHECK);
+			lstatus = SendMessage(hctrl, BM_GETCHECK, 0, 0);
+			cboptions.handicap_enable = lstatus ? true : false;
+			GetDlgItemText(hwnd, IDC_HANDICAP_MULT_EDIT, buf, sizeof(buf));
+			sscanf(buf, "%lf", &cboptions.handicap_mult);
 
 			EndDialog(hwnd, TRUE);
 			return(TRUE);
@@ -1518,6 +1550,13 @@ BOOL DialogStartEngineMatchFunc(HWND hwnd, UINT message, WPARAM wparam, LPARAM l
 			lstatus = SendMessage(hctrl, BM_GETCHECK, 0, 0);
 			cboptions.early_game_adjudication = lstatus ? true : false;
 			GetDlgItemText(hwnd, IDC_START_POS_FILENAME, cboptions.start_pos_filename, sizeof(cboptions.start_pos_filename));
+
+			hctrl = GetDlgItem(hwnd, IDC_HANDICAP_CHECK);
+			lstatus = SendMessage(hctrl, BM_GETCHECK, 0, 0);
+			cboptions.handicap_enable = lstatus ? true : false;
+			GetDlgItemText(hwnd, IDC_HANDICAP_MULT_EDIT, buf, sizeof(buf));
+			sscanf(buf, "%lf", &cboptions.handicap_mult);
+
 			reset_match_stats();
 			EndDialog(hwnd, TRUE);
 			return(TRUE);

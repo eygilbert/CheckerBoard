@@ -153,6 +153,8 @@ void loadsettings(CBoptions *options, char CBdirectory[256])
 		options->exact_time = false;
 		options->use_incremental_time = false;
 		options->early_game_adjudication = true;
+		options->handicap_enable = false;
+		options->handicap_mult = 1.0;
 		options->em_start_positions = START_POS_3MOVE;
 		options->start_pos_filename[0] = 0;
 		options->level = timetoken_to_level(LEVEL2S);

@@ -24,10 +24,15 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 101                     BITMAP                  "Bitmap_1.bmp"
+
 102                     BITMAP                  "Bitmap_2.bmp"
+
 105                     BITMAP                  "Bitmap_3.bmp"
+
 111                     BITMAP                  "Bitmap_4.bmp"
+
 300                     BITMAP                  "Bitmap_5.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -174,7 +179,6 @@ BEGIN
         MENUITEM "Add Comments to PDN",         802
         MENUITEM "Static Evaluation",           803
         MENUITEM "Run Test Set",                805
-        MENUITEM "Handicap Mode",               806
     END
 END
 
@@ -317,7 +321,6 @@ BEGIN
         MENUITEM "Add Comments to PDN",         802
         MENUITEM "Static Evaluation",           803
         MENUITEM "Run Test Set",                805
-        MENUITEM "Handicap Mode",               806
     END
 END
 
@@ -460,7 +463,6 @@ BEGIN
         MENUITEM "Ajouter des commentaires au PDN", 802
         MENUITEM "Evaluation statique",         803
         MENUITEM "Lancer le test",              805
-        MENUITEM "Mode Handicap",               806
     END
 END
 
@@ -603,7 +605,6 @@ BEGIN
         MENUITEM "Añadir Comentarios a PDN",    802
         MENUITEM "Evaluacion Estatica",         803
         MENUITEM "Ejecutar Conjunto de Pruebas", 805
-        MENUITEM "Modo Desventaja",             806
     END
 END
 
@@ -746,7 +747,6 @@ BEGIN
         MENUITEM "Add Comments to PDN",         802
         MENUITEM "Static Evaluation",           803
         MENUITEM "Run Test Set",                805
-        MENUITEM "Handicap Mode",               806
     END
 END
 
@@ -778,7 +778,7 @@ CAPTION "About CheckerBoard"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "OK",1,50,193,50,14,BS_CENTER
-    LTEXT           "This is CheckerBoard 1.75f\nCopyright (c) 2000-2020 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
+    LTEXT           "This is CheckerBoard 1.75g\nCopyright (c) 2000-2021 Martin Fierz\nwith contributions by Ed Gilbert\n\nCheckerBoard is an interface program to checkers engines\n\nInspired by Tim Mann's Winboard\n\nThanks to all who have contributed",101,7,88,140,98,NOT WS_GROUP
     CONTROL         AFX_IDC_CHANGE,-1,"Static",SS_BITMAP | SS_REALSIZEIMAGE,4,4,143,80
 END
 
@@ -979,23 +979,27 @@ BEGIN
     LTEXT           "Increment (secs)",IDC_STATIC,21,52,84,8,0,WS_EX_RIGHT
 END
 
-IDD_START_ENGINE_MATCH DIALOGEX 0, 0, 367, 200
+IDD_START_ENGINE_MATCH DIALOGEX 0, 0, 367, 258
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Start Engine Match"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Start",ID_START_MATCH,251,179,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,309,179,50,14
+    DEFPUSHBUTTON   "Start",ID_START_MATCH,251,237,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,309,237,50,14
     COMBOBOX        IDC_START_POSITIONS,265,74,75,36,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     RTEXT           "Start positions",IDC_STATIC,192,77,66,8
-    DEFPUSHBUTTON   "Resume",ID_RESUME_MATCH,193,179,50,14
+    DEFPUSHBUTTON   "Resume",ID_RESUME_MATCH,193,237,50,14
     EDITTEXT        IDC_MATCH_REPEAT_COUNT,308,23,32,14,ES_RIGHT | ES_AUTOHSCROLL
     RTEXT           "Match repeat count",IDC_STATIC,230,25,72,8
     CONTROL         "Allow early game adjudication",IDC_EARLY_GAME_ADJ_CHECK,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,198,52,142,10,WS_EX_RIGHT
-    EDITTEXT        IDC_START_POS_FILENAME,82,102,258,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_START_POS_FILENAME,78,102,262,14,ES_AUTOHSCROLL
     RTEXT           "Start positions file",IDC_STATIC,7,105,65,8
     DEFPUSHBUTTON   "Browse...",ID_BROWSE,290,128,50,14
+    CONTROL         "Enable",IDC_HANDICAP_CHECK,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,137,174,35,10
+    EDITTEXT        IDC_HANDICAP_MULT_EDIT,299,171,35,14,ES_RIGHT | ES_AUTOHSCROLL
+    RTEXT           "Engine 2's time multiplier",IDC_STATIC,202,174,93,8
+    GROUPBOX        "Handicap mode",IDC_STATIC,123,155,217,41
 END
 
 
@@ -1007,6 +1011,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 ICON1                   ICON                    "Icon_1.ico"
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -1111,7 +1116,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 360
         TOPMARGIN, 7
-        BOTTOMMARGIN, 193
+        BOTTOMMARGIN, 251
     END
 END
 #endif    // APSTUDIO_INVOKED
