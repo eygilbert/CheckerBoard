@@ -70,7 +70,7 @@ the CheckerBoard window title bar. Normally, will you play against an engine,
 but you can also have two engines play each other, or have an engine analyze a game.
 <br>
 CheckerBoard comes with three engines: Cake, one of the best checkers programs for 
-the win32 platform, Simple Checkers (with source code), and Dama Italiana (also with source code), 
+the Windows 64-bit platform, Simple Checkers (with source code), and Dama Italiana (also with source code), 
 which plays the Italian version of checkers. CheckerBoard plays the English/American variation 
 of checkers by default. At the end of this page there is documentation on how CheckerBoard 
 interfaces to checkers engines, so you can easily write your own engine if you want to. 
@@ -441,13 +441,18 @@ on checkers both for beginners and experts.
     engines. Select a primary engine and secondary engine for the match using <b>Engine</b>,
     <b>Select</b>. The start positions for the match can be 3-move ballots,
     using the <b>3-move deck</b> selected in the <b>Options</b> menu, or
-    positions taken from a PDN file. There are 11-man ballot start files for
-    both English and Italian checkers in the CheckerBoard program directory. Use the &quot;<b>Start positions</b>&quot;
+    positions taken from a PDN file. Use the &quot;<b>Start positions</b>&quot;
     control to choose, and use the <b>Browse</b> button to select a PDN file if
     &quot;<b>from a PDN file</b>&quot; is selected for the start positions. Each
-    match game starts at the position following the last move in PDN file games.
-    <ul>
-      <li>Since engine match involves using 2 engines, it is important that
+    match game starts at the position following the last move in PDN file games.</li>
+  <li>CheckerBoard can play a handicap match where one engine is given a time
+    handicap relative to the other. To play a handicap match, put a check in the
+    enable box in the &quot;Handicap mode&quot; section, and enter a number for
+    &quot;Engine 2's time multiplier&quot;. This can be a number less than or
+    greater than 1, but the most straightforward way to do it is to make engine
+    1 the stronger engine, and then give engine 2 a multiplier greater than 1
+    which will tend to make the two engines more evenly matched.</li>
+  <li>Since engine match involves using 2 engines, it is important that
         computer memory be shared equitably between them. When using
         CheckerBoard with only one engine, that engine is often given most of
         the computer's memory for egdb cache and hashtable to get best search
@@ -456,18 +461,17 @@ on checkers both for beginners and experts.
         computer, and leave 1 or 2 GB remaining for Windows to use. You can use
         Windows Task Manager to see how much memory CheckerBoard is using during
         an engine match.</li>
-      <li>During engine matches, CheckerBoard keeps track of the time used by
+  <li>During engine matches, CheckerBoard keeps track of the time used by
         each engine, and allocates time for each move based on how much they
         have already used. It does this in both fixed time per move and
         incremental time Levels.</li>
-      <li>An engine match can be stopped by hitting the Escape key. An
-        unfinished, stopped match can be resumed with the Resume button.&nbsp;</li>
-      <li>Details of an engine match are logged in the files <b>stats.txt</b>, <b>match.pdn</b>,
+  <li>An engine match can be stopped by pressing the Escape key. An
+        unfinished, stopped match can be resumed from the state where it was
+    stopped with the Resume button.&nbsp;</li>
+  <li>Details of an engine match are logged in the files <b>stats.txt</b>, <b>match.pdn</b>,
         <b>match_progress.txt</b>, and <b>matchlog.txt</b>. You can find these
         files under your user Documents directory in <b> ..\Martin
         Fierz\CheckerBoard\games\matches</b>.</li>
-    </ul>
-  </li>
 </ul>
 
 
