@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-#define version "1.75f"
+#define version "1.75g"
 AppName=CheckerBoard64
 AppVerName=CheckerBoard64 version {#version}
 AppPublisher=Martin Fierz
@@ -26,9 +26,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "Executables\checkerboard64.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Executables\cake_188q.dll"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Executables\cake_189d.dll"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Executables\book.bin"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Executables\cake188q.htm"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Executables\cake189.htm"; DestDir: "{app}\engines"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Executables\egdb64.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\help.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\helpspanish.htm"; DestDir: "{app}"; Flags: ignoreversion
