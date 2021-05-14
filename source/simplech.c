@@ -212,7 +212,7 @@ BOOL WINAPI DllMain(HANDLE hDLL, DWORD dwReason, LPVOID lpReserved)
 	return TRUE;
 }
 
-int WINAPI enginecommand(char str[256], char reply[256])
+int WINAPI enginecommand(const char *str, char reply[256])
 {
 	// answer to commands sent by CheckerBoard.
 	// Simple Checkers does not answer to some of the commands,

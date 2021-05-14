@@ -39,3 +39,4 @@ int writefile(char *filename, char *mode, char *fmt, ...);
 char *read_text_file(char *filename, READ_TEXT_FILE_ERROR_TYPE &etype);
 inline void strncpy_terminated(char *dest, char *src, size_t maxlen) {strncpy(dest, src, maxlen); dest[maxlen - 1] = 0;}
 void detect_nonconversion_draws(PDNgame &game, bool *is_draw_by_repetition, bool *is_draw_by_40move_rule);
+void send_game_history(PDNgame &game, Board8x8 currentboard, int currentcolor);

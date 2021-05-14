@@ -14,7 +14,7 @@
 // 	you must compile your engine as a dll, and provide the following 2
 // 	functions:		
 //  int WINAPI getmove(Board8x8 board, int color, double maxtime, char str[1024], int *playnow, int info, int moreinfo, CBmove *move);
-//  int WINAPI enginecommand(char command[256], char reply[1024]);
+//  int WINAPI enginecommand(const char *command, char reply[1024]);
 // TODO: bug report: if you hit takeback while CB is animating a move, you get an undefined state
 
 /******************************************************************************/
@@ -169,7 +169,7 @@ bool two_player_mode;					// true if in 2-player mode
 int book_state;							// engine book state (0/1/2/3)
 int currentengine = 1;					// 1=primary, 2=secondary
 int maxmovecount = 300;					// engine match limit; use 200 if early_game_adjudication is enabled.
-bool has_getmovelist;					// true if current engine has enginecommand("get movelist")
+bool has_getmovelist;					// true if current engine has enginecommand "get movelist"
 
 // keep a small user book
 userbookentry userbook[MAXUSERBOOK];
@@ -1527,10 +1527,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			if (getenginebusy() || getanimationbusy())
 				break;
 
-			if (currentengine == 1)
-				setcurrentengine(2);
-			else
-				setcurrentengine(1);
+			togglecurrentengine();
 
 			// reset game if an engine of different game type was selected!
 			if (gametype() != cbgame.gametype) {
@@ -3053,7 +3050,7 @@ int start_user_ballot(int bnum)
 {
 	char fen[260];
 
-	cbgame.moves.clear();
+	reset_game(cbgame);
 	memcpy(cbboard8, user_ballots[bnum].board, sizeof(cbboard8));
 	cbcolor = user_ballots[bnum].color;
 	board8toFEN(user_ballots[bnum].board, fen, user_ballots[bnum].color, gametype());
@@ -3390,6 +3387,9 @@ DWORD SearchThreadFunc(LPVOID param)
 
 				maxtime = timelevel_to_time(cboptions.level);
 			}
+
+			/* Send the most recent reversible moves so the engine can detect repetition draws. */
+			send_game_history(cbgame, cbboard8, cbcolor);
 
 			memcpy(original_board8, cbboard8, sizeof(cbboard8));
 			memcpy(engine_board8, cbboard8, sizeof(cbboard8));
@@ -3776,11 +3776,15 @@ void quick_search_both_engines()
 	newgame();
 	playnow = 0;
 	SetCurrentDirectory(CBdirectory);
-	getmove1(cbboard8, cbcolor, 0.1, statusbar_txt, &playnow, 0, 0, &move);
+	setcurrentengine(1);
+	send_game_history(cbgame, cbboard8, cbcolor);
+	getmove(cbboard8, cbcolor, 0.1, statusbar_txt, &playnow, 0, 0, &move);
 	newgame();
 	playnow = 0;
 	SetCurrentDirectory(CBdirectory);
-	getmove2(cbboard8, cbcolor, 0.1, statusbar_txt, &playnow, 0, 0, &move);
+	setcurrentengine(2);
+	send_game_history(cbgame, cbboard8, cbcolor);
+	getmove(cbboard8, cbcolor, 0.1, statusbar_txt, &playnow, 0, 0, &move);
 }
 
 void emstats_filename(char *filename)
@@ -4031,8 +4035,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			if (startmatch == TRUE)
 				startmatch = FALSE;
 			else {
-				currentengine ^= 3;
-				setcurrentengine(currentengine);
+				togglecurrentengine();
 				enginename(Lstr);
 				sprintf(statusbar_txt, "CheckerBoard%s: ", g_app_instance_suffix);
 				strcat(statusbar_txt, Lstr);
@@ -4581,6 +4584,11 @@ int makeanalysisfile(char *filename)
 	return 1;
 }
 
+void togglecurrentengine(void)
+{
+	setcurrentengine(currentengine ^ 3);
+}
+
 void setcurrentengine(int engineN)
 {
 	char reply[256], windowtitle[256];
@@ -4635,7 +4643,7 @@ int gametype(void)
 	return GT_ENGLISH;
 }
 
-int enginecommand(char command[MAXNAME], char reply[ENGINECOMMAND_REPLY_SIZE])
+int enginecommand(const char *command, char reply[ENGINECOMMAND_REPLY_SIZE])
 // sends a command to the current engine, defined with the currentengine variable
 // wraps a 'safety layer around calls to engine command by checking if this is supported */
 {
@@ -4685,7 +4693,7 @@ int enginename(char Lstr[MAXNAME])
 	return 0;
 }
 
-int domove(CBmove m, Board8x8 b)
+int domove(const CBmove &m, Board8x8 b)
 {
 	// do move m on board b
 	int i, x, y;
@@ -4706,7 +4714,7 @@ int domove(CBmove m, Board8x8 b)
 	return 1;
 }
 
-int undomove(CBmove m, Board8x8 b)
+int undomove(CBmove &m, Board8x8 b)
 {
 	// take back move m on board b
 	int i, x, y;
@@ -4728,7 +4736,7 @@ int undomove(CBmove m, Board8x8 b)
 	return 1;
 }
 
-void move4tonotation(CBmove m, char s[80])
+void move4tonotation(const CBmove &m, char s[80])
 // takes a move in coordinates, and transforms it to numbers.
 {
 	int from, to;

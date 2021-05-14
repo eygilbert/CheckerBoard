@@ -8,8 +8,8 @@
 #include "CB_movegen.h"
 
 // version 
-#define VERSION "1.75g"
-#define PLACE "February 24, 2021"
+#define VERSION "1.76"
+#define PLACE "May 13, 2021"
 
 #define OP_CROSSBOARD 1			// different opening decks
 #define OP_MAILPLAY 2
@@ -55,13 +55,13 @@ int changeCBstate(int newstate);
 HWND CreateAToolBar(HWND hwndParent);
 int createcheckerboard(HWND hwnd);
 bool doload(PDNgame *PDNgame, const char *gamestring, int *color, Board8x8 board, std::string &errormsg);
-int domove(CBmove m, Board8x8 board);
+int domove(const CBmove &m, Board8x8 board);
 int update_match_stats(int result, int movecount, int gamenumber, emstats_t *stats);
 void emlog_filename(char *filename);
 void empdn_filename(char *filename);
 void emprogress_filename(char *filename);
 void emstats_filename(char *filename);
-int enginecommand(char command[256], char reply[ENGINECOMMAND_REPLY_SIZE]);
+int enginecommand(const char *command, char reply[ENGINECOMMAND_REPLY_SIZE]);
 int enginename(char str[MAXNAME]);
 void get_game_clocks(double *black_clock, double *white_clock);
 void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT_COUNTS &res);
@@ -92,7 +92,7 @@ int loadpreviousgame(void);
 char *loadPDNdbstring(char *dbname);
 int makeanalysisfile(char *filename);
 bool match_is_resumable(void);
-void move4tonotation(CBmove, char str[80]);
+void move4tonotation(const CBmove &move, char str[80]);
 void newgame(void);
 int num_ballots(void);
 void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm);
@@ -100,6 +100,7 @@ bool pdntogame(PDNgame &game, Board8x8 startposition, int startcolor, std::strin
 int read_match_stats(void);
 void reset_match_stats(void);
 void setcurrentengine(int engine);
+void togglecurrentengine(void);
 int SetMenuLanguage(int language);
 int selectgame(int how);
 int setanimationbusy(int value);
@@ -107,7 +108,7 @@ int setenginebusy(int value);
 int setenginestarting(int value);
 int showfile(char *filename);
 int start3move(int opening_index);
-int undomove(CBmove m, Board8x8 board);
+int undomove(CBmove &move, Board8x8 board);
 int get_movelist_from_engine(Board8x8 board, int color, CBmove movelist[], int *nmoves, int *iscapture);
 
 extern char CBdirectory[MAX_PATH];	// holds the directory from where CB is started:

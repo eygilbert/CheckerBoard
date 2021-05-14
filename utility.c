@@ -770,3 +770,37 @@ void detect_nonconversion_draws(PDNgame &game, bool *is_draw_by_repetition, bool
 	}
 }
 
+void send_game_history(PDNgame &game, Board8x8 currentboard, int currentcolor)
+{
+	int count;
+	int color;
+	std::string gamehist;
+	Board8x8 board8;
+	char reply[ENGINECOMMAND_REPLY_SIZE];
+
+	memcpy(board8, currentboard, sizeof(Board8x8));
+	color = currentcolor;
+
+	/* Unmake each non-conversion move on the local board8, starting with the most recent. */
+	for (count = 0; count < game.movesindex; ++count) {
+		size_t movei = game.movesindex - count - 1;
+		if (is_conversion_move(game.moves[movei].move))
+			break;
+
+		undomove(game.moves[movei].move, board8);
+		color = CB_CHANGECOLOR(color);
+
+		/* Build the pdn list of moves in reverse. */
+		int from = coorstonumber(game.moves[movei].move.from.x, game.moves[movei].move.from.y, game.gametype);
+		int to = coorstonumber(game.moves[movei].move.to.x, game.moves[movei].move.to.y, game.gametype);
+		gamehist = " " + std::to_string(from) + "-" + std::to_string(to) + gamehist;
+	}
+
+	std::string fen;
+	board8toFEN(board8, fen, color, game.gametype);
+
+	gamehist = "set gamehist " + fen + gamehist;
+	enginecommand(gamehist.c_str(), reply);
+}
+
+

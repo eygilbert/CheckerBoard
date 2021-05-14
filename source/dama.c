@@ -111,8 +111,6 @@ int WINAPI getmove
 			int unused,
 			CBmove *move
 		);
-int WINAPI enginecommand(char command[256], char reply[256]);
-int WINAPI islegal(Board8x8 board, int color, int from, int to, CBmove *move);
 
 void movetonotation(move2 move, char str[80]);
 
