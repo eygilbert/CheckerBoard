@@ -4,7 +4,9 @@
 #define STEPS 12.0					// 12 number of animation steps to make
 #define CLOCKHEIGHT 25
 
+
 DWORD AnimationThreadFunc(HWND hwnd);
+DWORD draw_move(HWND hwnd, Board8x8 board, CBmove &move);
 int getxymetrics(double *xmetric, double *ymetric, HWND hwnd);
 int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, Board8x8 board);
 int printsampleboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc);
@@ -20,3 +22,7 @@ int diagramtoclipboard(HWND hwnd);
 int samplediagramtoclipboard(HWND hwnd);
 int setoffsets(int _offset, int _upperoffset);
 void set_animation(bool state);
+void display_move(Board8x8 board8, CBmove &move);
+void display_board(Board8x8 board8);
+void display_board(Board8x8 board8, int x, int y);
+void display_board(Board8x8 board8, Squarelist &squarelist);

@@ -12,6 +12,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <time.h>
+#include <mutex>
 #include "standardheader.h"
 #include "cb_interface.h"
 #include "CBstructs.h"
@@ -22,11 +23,42 @@
 #include "utility.h"
 #include "bmp.h"
 
+struct Msg_store {
+	bool msg_available;
+	Drawboard_msg message;
+	HANDLE msg_available_event;
+	std::mutex mutex;
+
+	Msg_store() {
+		msg_available_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+		msg_available = false;
+	}
+
+	void write(Drawboard_msg &msg) {
+		mutex.lock();
+		message = msg;
+		SetEvent(msg_available_event);
+		msg_available = true;
+		mutex.unlock();
+	}
+
+	void read(Drawboard_msg &msg) {
+		WaitForSingleObject(msg_available_event, INFINITE);
+		mutex.lock();
+		if (!msg_available)
+			assert(0);
+		msg = message;
+		msg_available = false;
+		ResetEvent(msg_available_event);
+		mutex.unlock();
+	}
+};
+
+Msg_store draw_msg;
+
 // lots of external variables from checkerboard.c - very ugly
-extern CBmove cbmove;
 extern CBoptions cboptions;
 extern Board8x8 cbboard8;
-extern int cbcolor;
 extern PDNgame cbgame;
 
 // disable double-to-int warning in this file to avoid getting dozens of warnings
@@ -40,6 +72,69 @@ static int offset = 0, upperoffset = 0;
 static HFONT myfont;	// font for board numbers
 static bool animation_state = true;
 static HANDLE memdc_lock;		/* Prevent multiple threads from simultaneous access to memdc. */
+
+
+DWORD AnimationThreadFunc(HWND hwnd)
+{
+	Drawboard_msg msg;
+	while (1) {
+		draw_msg.read(msg);
+		switch (msg.msg_type) {
+		case drawboard:
+			printboard(hwnd, memdc, bmpdc, stretchdc, msg.board);
+			selectstones(msg.highlighted_squares, hwnd);
+			break;
+
+		case animate_move:
+			draw_move(hwnd, msg.board, msg.move);
+			break;
+		}
+	}
+}
+
+
+void display_move(Board8x8 board8, CBmove &move)
+{
+	Drawboard_msg msg;
+
+	msg.msg_type = animate_move;
+	memcpy(msg.board, board8, sizeof(Board8x8));
+	msg.move = move;
+	draw_msg.write(msg);
+}
+
+
+void display_board(Board8x8 board8)
+{
+	Drawboard_msg msg;
+
+	msg.msg_type = drawboard;
+	memcpy(msg.board, board8, sizeof(Board8x8));
+	draw_msg.write(msg);
+}
+
+
+void display_board(Board8x8 board8, int x, int y)
+{
+	Drawboard_msg msg;
+
+	msg.msg_type = drawboard;
+	memcpy(msg.board, board8, sizeof(Board8x8));
+	msg.highlighted_squares.append(coorstonumber(x, y, cbgame.gametype));
+	draw_msg.write(msg);
+}
+
+
+void display_board(Board8x8 board8, Squarelist &squarelist)
+{
+	Drawboard_msg msg;
+
+	msg.msg_type = drawboard;
+	memcpy(msg.board, board8, sizeof(Board8x8));
+	msg.highlighted_squares = squarelist;
+	draw_msg.write(msg);
+}
+
 
 int setoffsets(int _offset, int _upperoffset)
 {
@@ -120,6 +215,7 @@ int updategraphics(HWND hwnd)
 	ReleaseDC(hwnd, hdc);
 	return 1;
 }
+
 
 int resizegraphics(HWND hwnd)
 {
@@ -310,7 +406,7 @@ void draw_highlight(int x, int y, int xoffset, int yoffset, int size)
 	LineTo(memdc, size * x + xoffset, size * (7 - y) + upperoffset + yoffset);
 }
 
-DWORD AnimationThreadFunc(HWND hwnd)
+DWORD draw_move(HWND hwnd, Board8x8 board, CBmove &move)
 {
 	/* this thread drives the animation of the checker */
 
@@ -322,8 +418,6 @@ DWORD AnimationThreadFunc(HWND hwnd)
 
 	/* the global 'move' is used by this function */
 
-	// this function is also responsible for executing the move on the internal board of CB.
-	//char str[32];
 	int i, j;
 	int maxX, maxY;
 	int x, y, x2, y2;	// the move goes from x,y to x2,y2;
@@ -360,30 +454,30 @@ DWORD AnimationThreadFunc(HWND hwnd)
 	getxymetrics(&xmetric, &ymetric, hwnd);
 	size = xmetric;
 
-	x = cbmove.from.x;
-	y = cbmove.from.y;
+	x = move.from.x;
+	y = move.from.y;
 
-	if (cbmove.oldpiece == (CB_BLACK | CB_KING))
+	if (move.oldpiece == (CB_BLACK | CB_KING))
 		blackking = 1;
-	if (cbmove.oldpiece == (CB_WHITE | CB_MAN))
+	if (move.oldpiece == (CB_WHITE | CB_MAN))
 		whiteman = 1;
-	if (cbmove.oldpiece == (CB_WHITE | CB_KING))
+	if (move.oldpiece == (CB_WHITE | CB_KING))
 		whiteking = 1;
-	if (cbmove.oldpiece == (CB_BLACK | CB_MAN))
+	if (move.oldpiece == (CB_BLACK | CB_MAN))
 		blackman = 1;
 
 	// remove pieces on from and to square, which
 	// would disturb animation
-	cbboard8[x][y] = 0;
-	x2 = cbmove.to.x;
-	y2 = cbmove.to.y;
-	cbboard8[x2][y2] = 0;
+	board[x][y] = 0;
+	x2 = move.to.x;
+	y2 = move.to.y;
+	board[x2][y2] = 0;
 
 	// create a background image for the animation
 	// PUT THIS BACK IN FOR ANIMATION!!
 #ifdef ANIMATION
 	if (animation_state)
-		printboard(hwnd, bgdc, bmpdc, stretchdc, cbboard8);
+		printboard(hwnd, bgdc, bmpdc, stretchdc, board);
 #endif
 	coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
 	coorstocoors(&x2, &y2, cboptions.invert, cboptions.mirror);
@@ -391,7 +485,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 	/* print the board without the stone which moves into bgdc */
 
 	/* find the number of jumps to do */
-	jumps = cbmove.jumps;
+	jumps = move.jumps;
 
 #ifdef ANIMATION
 	if (animation_state) {
@@ -466,12 +560,12 @@ DWORD AnimationThreadFunc(HWND hwnd)
 		else {
 
 			// a jumping move
-			x = cbmove.from.x;
-			y = cbmove.from.y;
+			x = move.from.x;
+			y = move.from.y;
 			coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
 			for (j = 0; j < jumps; j++) {
-				x2 = cbmove.path[j + 1].x;
-				y2 = cbmove.path[j + 1].y;
+				x2 = move.path[j + 1].x;
+				y2 = move.path[j + 1].y;
 				coorstocoors(&x2, &y2, cboptions.invert, cboptions.mirror);
 
 				// now animate the part-move:
@@ -540,8 +634,8 @@ DWORD AnimationThreadFunc(HWND hwnd)
 
 	// make a clean image now
 	// TODO: don't mix up game play with animation!
-	domove(cbmove, cbboard8);
-	printboard(hwnd, memdc, bmpdc, stretchdc, cbboard8);
+	domove(move, board);
+	printboard(hwnd, memdc, bmpdc, stretchdc, board);
 
 	// if move highlighting is on, we do it!
 	// this should go in a separate function!
@@ -551,10 +645,10 @@ DWORD AnimationThreadFunc(HWND hwnd)
 		// create a pen:
 		hPen = CreatePen(PS_SOLID, 1, cboptions.colors[0]);
 
-		x = cbmove.from.x;
-		y = cbmove.from.y;
-		x2 = cbmove.to.x;
-		y2 = cbmove.to.y;
+		x = move.from.x;
+		y = move.from.y;
+		x2 = move.to.x;
+		y2 = move.to.y;
 		coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
 		coorstocoors(&x2, &y2, cboptions.invert, cboptions.mirror);
 		hOldPen = (HPEN) SelectObject(memdc, hPen);
@@ -573,12 +667,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 
 	InvalidateRect(hwnd, &r, 0);
 	ReleaseMutex(memdc_lock);
-
-	// TODO: should not mix game state stuff with animation!
-	cbcolor = CB_CHANGECOLOR(cbcolor);
-
 	setanimationbusy(FALSE);
-	setenginestarting(FALSE);
 	return 0;
 }
 

@@ -195,3 +195,14 @@ private:
 	char m_size;
 	char squares[15];
 };
+
+enum Drawboard_msg_type {
+	drawboard, animate_move
+};
+
+struct Drawboard_msg {
+	Drawboard_msg_type msg_type;
+	Board8x8 board;
+	CBmove move;
+	Squarelist highlighted_squares;
+};

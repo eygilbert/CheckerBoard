@@ -214,25 +214,12 @@ enum state {
 
 void start_animation_thread(void)
 {
-	static HANDLE animation_lock_handle;
-	static HANDLE animation_thread_handle;
-
-	/* Use a mutex to prevent multiple threads from simultaneously starting the thread. */
-	if (!animation_lock_handle)
-		animation_lock_handle = CreateMutex(NULL, FALSE, NULL);
-
-	WaitForSingleObject(animation_lock_handle, INFINITE);
-	if (animation_thread_handle != NULL)
-		CloseHandle(animation_thread_handle);
-
-	setanimationbusy(TRUE);
-	animation_thread_handle = CreateThread(NULL,
+	HANDLE handle = CreateThread(NULL,
 								0,
 								(LPTHREAD_START_ROUTINE)AnimationThreadFunc,
 								hwnd,
 								0,
 								&g_AniThreadId);
-	ReleaseMutex(animation_lock_handle);
 }
 
 int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPSTR lpszArgs, int nWinMode)
@@ -323,6 +310,8 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPSTR lpszArgs, int
 	// start a timer @ 10Hz: every time this timer goes off, handletimer() is called
 	// this updates the status bar and the toolbar
 	SetTimer(hwnd, 1, 100, NULL);
+
+	start_animation_thread();
 
 	// create the message loop
 	while (GetMessage(&msg, NULL, 0, 0)) {
@@ -803,7 +792,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
 
 				if (FENtoboard8(cbboard8, gamestring, &cbcolor, cbgame.gametype)) {
-					updateboardgraphics(hwnd);
+					display_board(cbboard8);
 					reset_move_history = true;
 					newposition = TRUE;
 					sprintf(statusbar_txt, "position copied");
@@ -860,7 +849,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				free(gamestring);
 
 				// game is fully loaded, clean up
-				updateboardgraphics(hwnd);
+				display_board(cbboard8);
 				reset_move_history = true;
 				newposition = TRUE;
 				PostMessage(hwnd, WM_COMMAND, GAMEINFO, 0);
@@ -874,7 +863,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			// this is the only place where the engine is started
 			if (setup_mode)
 				set_setup_mode(false);
-			if (!getenginebusy() && !getanimationbusy()) {
+			if (!getenginebusy()) {
 
 				// TODO think about synchronization issues here!
 				setenginebusy(TRUE);
@@ -920,7 +909,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 					// only if there are any positions
 					bitboardtoboard8(&(userbook[userbookcur].position), cbboard8);
-					updateboardgraphics(hwnd);
+					display_board(cbboard8);
 				}
 				break;
 			}
@@ -933,7 +922,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 				gamebody_entry *tbmove = &cbgame.moves[cbgame.movesindex];
 				undomove(tbmove->move, cbboard8);
-				updateboardgraphics(hwnd);
+				display_board(cbboard8);
 
 				// shouldnt this color thing be handled in undomove?
 				cbcolor = CB_CHANGECOLOR(cbcolor);
@@ -986,7 +975,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 					// only if there are any positions
 					bitboardtoboard8(&(userbook[userbookcur].position), cbboard8);
-					updateboardgraphics(hwnd);
+					display_board(cbboard8);
 				}
 				break;
 			}
@@ -995,8 +984,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			if (cbgame.movesindex < (int)cbgame.moves.size()) {
 				gamebody_entry *pmove = &cbgame.moves[cbgame.movesindex];
 				domove(pmove->move, cbboard8);
-				updateboardgraphics(hwnd);
 				cbcolor = CB_CHANGECOLOR(cbcolor);
+				display_board(cbboard8);
 
 				// get move number:
 				// and print move number and move into the status bar
@@ -1035,7 +1024,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 			if (CBstate == OBSERVEGAME)
 				PostMessage(hwnd, WM_COMMAND, INTERRUPTENGINE, 0);
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			sprintf(statusbar_txt, "you are now at the start of the game");
 			newposition = TRUE;
 			reset_move_history = true;
@@ -1049,7 +1038,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			forward_to_game_end();
 			if (CBstate == OBSERVEGAME)
 				PostMessage(hwnd, WM_COMMAND, INTERRUPTENGINE, 0);
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			sprintf(statusbar_txt, "you are now at the end of the game");
 			newposition = TRUE;
 			reset_move_history = true;
@@ -1174,7 +1163,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			SetCurrentDirectory("bmp");
 			initbmp(hwnd, piecesetname[cboptions.piecesetindex]);
 			resizegraphics(hwnd);
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			InvalidateRect(hwnd, NULL, 1);
 			SetCurrentDirectory(CBdirectory);
 			break;
@@ -1188,7 +1177,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			}
 			else
 				sprintf(statusbar_txt, "no new colors! error %i", CommDlgExtendedError());
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			break;
 
 		//  set color for board numbers
@@ -1200,7 +1189,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			}
 			else
 				sprintf(statusbar_txt, "no new colors! error %i", CommDlgExtendedError());
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			break;
 
 		case OPTIONS3MOVE:
@@ -1293,7 +1282,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 					// only if there are any positions
 					bitboardtoboard8(&(userbook[userbookcur].position), cbboard8);
-					updateboardgraphics(hwnd);
+					display_board(cbboard8);
 				}
 			}
 			break;
@@ -1334,7 +1323,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 					// only if there are any positions
 					bitboardtoboard8(&(userbook[userbookcur].position), cbboard8);
-					updateboardgraphics(hwnd);
+					display_board(cbboard8);
 				}
 
 				// save user book
@@ -1465,7 +1454,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				CheckMenuItem(hmenu, DISPLAYINVERT, MF_CHECKED);
 			else
 				CheckMenuItem(hmenu, DISPLAYINVERT, MF_UNCHECKED);
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			break;
 
 		case DISPLAYMIRROR:
@@ -1476,7 +1465,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				CheckMenuItem(hmenu, DISPLAYMIRROR, MF_CHECKED);
 			else
 				CheckMenuItem(hmenu, DISPLAYMIRROR, MF_UNCHECKED);
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			break;
 
 		case DISPLAYNUMBERS:
@@ -1486,7 +1475,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				CheckMenuItem(hmenu, DISPLAYNUMBERS, MF_CHECKED);
 			else
 				CheckMenuItem(hmenu, DISPLAYNUMBERS, MF_UNCHECKED);
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			break;
 
 		case SETUPMODE:
@@ -1499,7 +1488,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				set_setup_mode(true);
 
 			memset(cbboard8, 0, sizeof(cbboard8));
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			break;
 
 		case TOGGLEMODE:
@@ -1829,7 +1818,7 @@ int handle_rbuttondown(int x, int y)
 			}
 		}
 
-		updateboardgraphics(hwnd);
+		display_board(cbboard8);
 	}
 
 	return 1;
@@ -1862,7 +1851,7 @@ int handle_lbuttondown(int x, int y)
 			break;
 		}
 
-		updateboardgraphics(hwnd);
+		display_board(cbboard8);
 		return 1;
 	}
 
@@ -1945,8 +1934,9 @@ int handle_lbuttondown(int x, int y)
 				if (CBstate == BOOKADD)
 					addmovetouserbook(cbboard8, &localmove);
 
-				// call animation function which will also execute the move
-				start_animation_thread();
+				display_move(cbboard8, cbmove);
+				domove(cbmove, cbboard8);
+				cbcolor = CB_CHANGECOLOR(cbcolor);
 				clicks.clear();
 
 				// if we are in enter game mode: tell engine to stop
@@ -1968,15 +1958,12 @@ int handle_lbuttondown(int x, int y)
 		) {
 
 			// re-print board to overwrite last selection if there was one
-			updateboardgraphics(hwnd);
-
-			// and then select stone
-			selectstone(x, y, hwnd);
+			display_board(cbboard8, x, y);
 		}
 
 		// else, reset the click count to 0.
 		else {
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			clicks.clear();
 		}
 	}
@@ -1993,16 +1980,13 @@ int handle_lbuttondown(int x, int y)
 		// however, with the new one-click-move input, this will work fine now!
 		if ((cbboard8[x][y] & cbcolor) && clicks.frequency(square) == 1) {
 
-			// re-print board to overwrite last selection if there was one
-			updateboardgraphics(hwnd);
-
-			// and then select stone
-			selectstone(x, y, hwnd);
-
 			// set this click to first click
 			from = clicks.last();
 			clicks.clear();
 			clicks.append(from);
+
+			// re-print board to overwrite last selection if there was one
+			display_board(cbboard8, clicks);
 
 			// check whether this is an only move
 			legal = 0;
@@ -2045,7 +2029,9 @@ int handle_lbuttondown(int x, int y)
 					addmovetouserbook(cbboard8, &localmove);
 
 				// call animation function which will also execute the move
-				start_animation_thread();
+				display_move(cbboard8, cbmove);
+				domove(cbmove, cbboard8);
+				cbcolor = CB_CHANGECOLOR(cbcolor);
 
 				// if we are in enter game mode: tell engine to stop
 				if (CBstate == OBSERVEGAME)
@@ -2074,8 +2060,7 @@ int handle_lbuttondown(int x, int y)
 				if (legal > 1) {
 
 					/* Keep the clicks, he needs to add more squares to fully describe the move. */
-					updateboardgraphics(hwnd);
-					selectstones(clicks, hwnd);
+					display_board(cbboard8, clicks);
 					return(1);
 				}
 			}
@@ -2103,7 +2088,9 @@ int handle_lbuttondown(int x, int y)
 					addmovetouserbook(cbboard8, &localmove);
 
 				// call animation function which will also execute the move
-				start_animation_thread();
+				display_move(cbboard8, cbmove);
+				domove(cbmove, cbboard8);
+				cbcolor = CB_CHANGECOLOR(cbcolor);
 
 				// if we are in enter game mode: tell engine to stop
 				if (CBstate == OBSERVEGAME)
@@ -2116,7 +2103,7 @@ int handle_lbuttondown(int x, int y)
 			}
 		}
 
-		updateboardgraphics(hwnd);
+		display_board(cbboard8);
 		clicks.clear();
 	}
 
@@ -2794,7 +2781,7 @@ int loadgamefromPDNstring(int gameindex, char *dbstring)
 		MessageBox(hwnd, errormsg.c_str(), "Error", MB_OK);
 
 	// game is fully loaded, clean up
-	updateboardgraphics(hwnd);
+	display_board(cbboard8);
 	reset_move_history = true;
 	newposition = TRUE;
 	sprintf(statusbar_txt, "game loaded");
@@ -3056,7 +3043,7 @@ int start_user_ballot(int bnum)
 	board8toFEN(user_ballots[bnum].board, fen, user_ballots[bnum].color, gametype());
 	sprintf(cbgame.FEN, "%s", fen);
 	sprintf(cbgame.event, "ballot %d", bnum + 1);
-	updateboardgraphics(hwnd);
+	display_board(cbboard8);
 	InvalidateRect(hwnd, NULL, 0);
 	newposition = TRUE;
 	reset_move_history = true;
@@ -3141,7 +3128,7 @@ int start3move(int opening_index)
 
 	sprintf(statusbar_txt, cbgame.event);
 	InvalidateRect(hwnd, NULL, 0);
-	updateboardgraphics(hwnd);
+	display_board(cbboard8);
 
 	reset_move_history = true;
 	reset_game_clocks();
@@ -3308,7 +3295,6 @@ DWORD SearchThreadFunc(LPVOID param)
 
 		setenginebusy(FALSE);
 		setenginestarting(FALSE);
-		setanimationbusy(FALSE);
 		return 1;
 	}
 
@@ -3590,7 +3576,9 @@ DWORD SearchThreadFunc(LPVOID param)
 		if (cboptions.sound)
 			PlaySound("start.wav", NULL, SND_FILENAME | SND_ASYNC);
 
-		start_animation_thread();
+		display_move(cbboard8, cbmove);
+		domove(cbmove, cbboard8);
+		cbcolor = CB_CHANGECOLOR(cbcolor);
 	}
 
 	reset_move_history = false;
@@ -3918,7 +3906,7 @@ DWORD AutoThreadFunc(LPVOID param)
 	//  'analyze game', 'engine match', 'autoplay' and 'play (->normal)'
 	//  all automatic changes are in here!
 	//
-	//  it uses the booleans enginebusy and animationbusy to
+	//  it uses the boolean enginebusy to
 	//  detect if it is allowed to do anything
 	char Lstr[256];
 	char windowtitle[256];
@@ -3999,11 +3987,11 @@ DWORD AutoThreadFunc(LPVOID param)
 
 			// convert position to internal board
 			FENtoboard8(cbboard8, FEN, &cbcolor, cbgame.gametype);
-			updateboardgraphics(hwnd);
+			display_board(cbboard8);
 			reset_move_history = true;
 			newposition = TRUE;
-			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 			setenginestarting(TRUE);
+			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 			Sleep(SLEEPTIME);
 			break;
 
@@ -5305,7 +5293,7 @@ void newgame(void)
 	reset_move_history = true;
 	cboptions.mirror = is_mirror_gametype(cbgame.gametype);
 	cbcolor = get_startcolor(cbgame.gametype);
-	updateboardgraphics(hwnd);
+	display_board(cbboard8);
 	reset_game_clocks();
 }
 
