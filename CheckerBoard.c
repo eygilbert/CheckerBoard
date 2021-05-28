@@ -1465,7 +1465,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				CheckMenuItem(hmenu, DISPLAYMIRROR, MF_CHECKED);
 			else
 				CheckMenuItem(hmenu, DISPLAYMIRROR, MF_UNCHECKED);
-			display_board(cbboard8);
+			updateboardgraphics(hwnd);
+			PostMessage(hwnd, (UINT) WM_SIZE, (WPARAM) 0, (LPARAM) 0);
 			break;
 
 		case DISPLAYNUMBERS:
