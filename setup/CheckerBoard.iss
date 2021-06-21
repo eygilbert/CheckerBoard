@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-#define version "1.75g"
+#define version "1.76"
 AppName=CheckerBoard
 AppVerName=CheckerBoard version {#version}
 AppPublisher=Martin Fierz
@@ -29,12 +29,16 @@ Source: "..\helpspanish.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\nutshell.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\toolbar.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\bmp\*"; DestDir: "{app}\bmp"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\db\db2.cpr"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\db\db2.idx"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\db\db3.cpr"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\db\db3.idx"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\db\db4.cpr"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\db\db4.idx"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db2.cpr1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db2.idx1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db3.cpr1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db3.idx1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db4.cpr1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db4.idx1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db5.cpr1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db5.idx1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db6.cpr1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\db_english\wld_v2\db6.idx1"; DestDir: "{app}\db"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\nutshellgif\*"; DestDir: "{app}\nutshellgif"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\source\cb_interface.h"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\source\dama.c"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
