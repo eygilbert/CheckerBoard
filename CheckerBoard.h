@@ -8,8 +8,8 @@
 #include "CB_movegen.h"
 
 // version 
-#define VERSION "1.76"
-#define PLACE "May 13, 2021"
+#define VERSION "1.77"
+#define PLACE "September 13, 2021"
 
 #define OP_CROSSBOARD 1			// different opening decks
 #define OP_MAILPLAY 2

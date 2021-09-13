@@ -3,6 +3,7 @@ typedef struct {
 	int hash_MB;
 	int book;
 	int allscores;
+	int solve;
 } ENGINE_OPTIONS;
 
 typedef struct {
@@ -53,6 +54,7 @@ int get_more_engine_options_from_dialog(HWND hwnd, MORE_ENGINE_OPTIONS *options)
 #define IDC_EGDBSIZE 1003
 #define IDC_STATIC 1004
 #define IDC_ALLSCORES 1001
+#define IDC_SOLVE 1009
 
 /*3-move dialog */
 #define IDC_CROSSBOARD 1000

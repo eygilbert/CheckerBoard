@@ -40,7 +40,7 @@ int Tabs[4];
 
 /* Combo box entries. */
 static int limit_pieces[] = { 24, 10, 9, 8, 7, 6, 5, 4 };
-static int thread_limits[] = { 8, 7, 6, 5, 4, 3, 2, 1 };
+static int thread_limits[] = { 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
 INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
 {
@@ -872,21 +872,21 @@ int getoptionsfromdialog(HWND hdwnd, ENGINE_OPTIONS *options)
 	char Lstr[256];
 	int index;
 
-	// set hashtable size
+	// get hashtable size
 	index = (int)SendDlgItemMessage(hdwnd, IDC_HASHSIZE, LB_GETCURSEL, 0, 0L);
 	if (index > -1) {
 		SendDlgItemMessage(hdwnd, IDC_HASHSIZE, LB_GETTEXT, index, (LPARAM) Lstr);
 		options->hash_MB = atoi(Lstr);
 	}
 
-	// set egdb cache size
+	// get egdb cache size
 	index = (int)SendDlgItemMessage(hdwnd, IDC_EGDBSIZE, LB_GETCURSEL, 0, 0L);
 	if (index > -1) {
 		SendDlgItemMessage(hdwnd, IDC_EGDBSIZE, LB_GETTEXT, index, (LPARAM) Lstr);
 		options->db_MB = atoi(Lstr);
 	}
 
-	// set opening book on/off
+	// get opening book setting
 	if (SendDlgItemMessage(hdwnd, IDC_BOOKOFF, BM_GETCHECK, 0, 0))
 		options->book = CB_BOOK_NONE;
 	if (SendDlgItemMessage(hdwnd, IDC_BOOKALLKINDS, BM_GETCHECK, 0, 0))
@@ -896,9 +896,11 @@ int getoptionsfromdialog(HWND hdwnd, ENGINE_OPTIONS *options)
 	if (SendDlgItemMessage(hdwnd, IDC_BOOKBEST, BM_GETCHECK, 0, 0))
 		options->book = CB_BOOK_BEST_MOVES;
 
-	// set all scores on/off
+	// get all scores
 	options->allscores = (int)SendDlgItemMessage(hdwnd, IDC_ALLSCORES, BM_GETCHECK, 0, 0);
 
+	// get solve mode
+	options->solve = (int)SendDlgItemMessage(hdwnd, IDC_SOLVE, BM_GETCHECK, 0, 0);
 	return 1;
 }
 
@@ -938,6 +940,12 @@ int setengineoptions(HWND hdwnd, int availableMB, ENGINE_OPTIONS *oldoptions, EN
 	// set all scores on/off
 	if (newoptions->allscores != oldoptions->allscores) {
 		sprintf(commandstring, "set allscores %i", newoptions->allscores);
+		enginecommand(commandstring, reply);
+	}
+
+	// set solve on/off
+	if (newoptions->solve != oldoptions->solve) {
+		sprintf(commandstring, "set solve %i", newoptions->solve);
 		enginecommand(commandstring, reply);
 	}
 
@@ -1036,8 +1044,20 @@ int getengineoptions(HWND hdwnd, ENGINE_OPTIONS *options)
 		EnableWindow(hwndControl, 0);
 	else
 		EnableWindow(hwndControl, 1);
+	SendMessage(hwndControl, BM_SETCHECK, options->allscores, 0);
 
-	SendDlgItemMessage(hdwnd, IDC_ALLSCORES, BM_SETCHECK, options->allscores, 0);
+	/* Check if the engine supports the "solve" engine command. */
+	hwndControl = GetDlgItem(hdwnd, IDC_SOLVE);
+	if (enginecommand("get solve", reply)) {
+		EnableWindow(hwndControl, 1);
+		options->solve = atoi(reply);
+	}
+	else {
+		EnableWindow(hwndControl, 0);
+		options->solve = 0;
+	}
+
+	SendMessage(hwndControl, BM_SETCHECK, options->solve, 0);
 
 	/* See if we should enable the "More Options..." button. */
 	hwndControl = GetDlgItem(hdwnd, IDC_MORE_OPTIONS_BUTTON);
@@ -1166,7 +1186,7 @@ int get_more_engine_options(HWND hwnd, MORE_ENGINE_OPTIONS *options)
 		SetDlgItemText(hwnd, IDC_BOOKFILE_EDIT, (LPSTR) options->book_filename);
 
 		/* Enable the browse button. */
-		hctrl = GetDlgItem(hwnd, IDC_BOOKFILE_EDIT);
+		hctrl = GetDlgItem(hwnd, IDC_BOOKFILE_BROWSE_BUTTON);
 		EnableWindow(hctrl, 1);
 	}
 	else {
@@ -1175,7 +1195,7 @@ int get_more_engine_options(HWND hwnd, MORE_ENGINE_OPTIONS *options)
 		SetDlgItemText(hwnd, IDC_BOOKFILE_EDIT, (LPSTR) options->book_filename);
 
 		/* Disable the browse button. */
-		hctrl = GetDlgItem(hwnd, IDC_BOOKFILE_EDIT);
+		hctrl = GetDlgItem(hwnd, IDC_BOOKFILE_BROWSE_BUTTON);
 		EnableWindow(hctrl, 0);
 	}
 
