@@ -813,51 +813,32 @@ BOOL CALLBACK EngineOptionsFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 			EndDialog(hdwnd, 0);
 			return 1;
 
-		case IDC_OK:
-			// find out which engine we are setting params for:
-			rbprimary = (int)SendDlgItemMessage(hdwnd, IDC_PRIMARY, BM_GETCHECK, 0, 0);
-			rbsecondary = (int)SendDlgItemMessage(hdwnd, IDC_SECONDARY, BM_GETCHECK, 0, 0);
-
-			getoptionsfromdialog(hdwnd, &currentoptions);
-			if (rbprimary) {
-				setcurrentengine(1);
-				setengineoptions(hdwnd, availableMB, &primaryoptions, &currentoptions);
-			}
-
-			if (rbsecondary) {
-				setcurrentengine(2);
-				setengineoptions(hdwnd, availableMB, &secondaryoptions, &currentoptions);
-			}
-
-			EndDialog(hdwnd, 0);
-			return 1;
-
-		case IDC_APPLY:
-			// TODO: more duplicate code!
-			// find out which engine we are setting params for:
-			rbprimary = (int)SendDlgItemMessage(hdwnd, IDC_PRIMARY, BM_GETCHECK, 0, 0);
-			rbsecondary = (int)SendDlgItemMessage(hdwnd, IDC_SECONDARY, BM_GETCHECK, 0, 0);
-
-			getoptionsfromdialog(hdwnd, &currentoptions);
-			if (rbprimary) {
-				setcurrentengine(1);
-				setengineoptions(hdwnd, availableMB, &primaryoptions, &currentoptions);
-				primaryoptions = currentoptions;
-			}
-
-			if (rbsecondary) {
-				setcurrentengine(2);
-				setengineoptions(hdwnd, availableMB, &secondaryoptions, &currentoptions);
-				secondaryoptions = currentoptions;
-			}
-
-			return 1;
-
 		case IDC_MORE_OPTIONS_BUTTON:
 			DialogBox((HINSTANCE) GetWindowLongPtr(hdwnd, GWL_HINSTANCE),
-					  MAKEINTRESOURCE(IDD_MORE_ENGINE_OPTIONS_DIALOG),
-					  hdwnd,
-					  (DLGPROC) DialogFuncMoreOptions);
+				MAKEINTRESOURCE(IDD_MORE_ENGINE_OPTIONS_DIALOG),
+				hdwnd,
+				(DLGPROC) DialogFuncMoreOptions);
+			return(0);
+
+		case IDC_OK:
+		case IDC_APPLY:
+			// find out which engine we are setting params for:
+			rbprimary = (int)SendDlgItemMessage(hdwnd, IDC_PRIMARY, BM_GETCHECK, 0, 0);
+			rbsecondary = (int)SendDlgItemMessage(hdwnd, IDC_SECONDARY, BM_GETCHECK, 0, 0);
+
+			getoptionsfromdialog(hdwnd, &currentoptions);
+			if (rbprimary) {
+				setcurrentengine(1);
+				setengineoptions(hdwnd, availableMB, &primaryoptions, &currentoptions);
+			}
+
+			if (rbsecondary) {
+				setcurrentengine(2);
+				setengineoptions(hdwnd, availableMB, &secondaryoptions, &currentoptions);
+			}
+
+			if (LOWORD(wParam) == IDC_OK)
+				EndDialog(hdwnd, 0);
 			break;
 		}
 
