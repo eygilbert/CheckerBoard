@@ -184,16 +184,20 @@ engine should support:</p>
       <li><b>get movelist &lt;fen&gt;</b>: returns a list of legal moves in
         ASCII format for the the position &lt;fen&gt;. This query is only sent
         by CheckerBoard when the gametype is something other than English
-        checkers. The reply should be in the format:&nbsp;<br>
+        checkers. You don't need to handle this for English checkers, but you
+        should handle it for other variants. The reply should be in the
+        format:&nbsp;<br>
         "movelist &lt;nmoves>,&lt;njumps1>,&lt;oldpiece1>,&lt;newpiece1>,&lt;from sq1>,&lt;to sq1>,&lt;landed sq1>,&lt;cap. sq1>,&lt;cappiece1>,&lt;landed sq2>,&lt;cap. sq2>,&lt;cappiece2>,...;".
         Each move terminates in a semicolon. If no moves, the response is "movelist 0".
         At startup, CheckerBoard sends a position with no moves and looks for
-        the exact response of &quot;movelist 0&quot; to check to confirm that
-        the engine supports this command.</li>
+        the exact response of &quot;movelist 0&quot; to confirm that the engine
+        supports this command. Below are 2 examples from Italian checkers.<br>
+        Example1: enginecommand &quot;get movelist B:W31:B3&quot;<br>
+        Response: "movelist 2,0,6,6,3,6;0,6,6,3,7;"<br>
+        Example2: enginecommand &quot;get movelist B:W11,13,19,21:B6,9&quot;<br>
+        Response: "movelist 2,2,6,6,9,25,18,13,5,25,21,5;2,6,6,6,22,15,11,5,22,19,5;"</li>
     </ul>
   </li>
-</ul>
-<ul style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">
   <li><b>help</b>: print the name of a HTML help file in reply. CheckerBoard
     will invoke the default HTML viewer to display the file.</li>
   <li><b>name</b>: print the name of your engine in the reply string.</li>
@@ -260,15 +264,11 @@ engine should support:</p>
 <span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">Your
 engine may choose not to implement some of the enginecommand commands of the
 protocol. If your engine does not handle an enginecommand argument sent to it by
-CheckerBoard, it should return 0 and print a question mark into reply. If you
-print the question mark on unhandled commands, CheckerBoard will gray out the
-corresponding options in the engine options dialog. Note that the 0 and the
-question mark are not synonyms: your engine may return a 0 if it is asked to use
-a huge hashtable, meaning that it did not change the hashtable size. As a
-general rule, you should print some acknowledgment in reply that you did handle
-a command. This is useful if you ever want to use the engine command dialog,
-which displays the reply of the engine. If it handles the command, it should
-return 1 to let CheckerBoard know that it understood and processed the command.<br>
+CheckerBoard, the function should return the value 0. As a general rule, you
+should print some acknowledgment in reply that you did handle a command. This is
+useful if you ever want to use the engine command dialog, which displays the
+reply of the engine. If it handles the command, it should return 1 to let
+CheckerBoard know that it understood and processed the command.<br>
 </span>
 <h4><span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline; float: none">Time
 Control</span></h4>
