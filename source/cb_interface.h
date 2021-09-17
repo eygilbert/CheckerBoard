@@ -9,6 +9,7 @@
  */
 
 /* Piece types on Board8x8, used by getmove(), islegal(). */
+#define CB_FREE 0
 #define CB_WHITE 1
 #define CB_BLACK 2
 #define CB_MAN 4

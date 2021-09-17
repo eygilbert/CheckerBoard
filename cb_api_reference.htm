@@ -1,0 +1,341 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>The enginecommand function is used for all other communication between
+engine and CheckerBoard</title>
+</head>
+
+<body>
+
+<h1 style="font-family: &quot;Times New Roman&quot;, serif; font-size: 48px; font-style: italic; font-weight: bold; margin-bottom: 20px; margin-top: 15px; color: rgb(0, 128, 192); font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: right; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">CB
+API reference</h1>
+<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: rgb(255, 255, 255); background: rgb(0, 128, 192); padding: 2px; margin-bottom: 0px; margin-top: 4px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Introduction</h4>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">CheckerBoard
+is explicitly only designed as an interface to checkers engines, and
+CheckerBoard is free. Therefore, CheckerBoard is a good choice for an interface
+if you want to develop a checkers engine, because it relieves you from the
+hassle of interface programming, and because it gives you the capability to test
+your engine against other engines with the engine-engine mode. If you would like
+to program an engine for CheckerBoard or if you have already written a checkers
+program and want to adapt it to run as engine in CheckerBoard, here is the
+documentation of the CheckerBoad API. If you want to use my engine Cake in your
+checkers program, you are welcome to do so. There are no restrictions on the use
+of cake.dll by third parties - you may also use it in a commercial program. Of
+course, cake.dll comes without any warranties, all liabilities are excluded.</p>
+<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: rgb(255, 255, 255); background: rgb(0, 128, 192); padding: 2px; margin-bottom: 0px; margin-top: 4px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Limitations</h4>
+<span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">The
+CheckerBoard API is not a well-designed protocol by a professional computer
+programmer. I know that it is far from perfect, and if you feel you have a
+suggestion for an improvement, feel free to tell me about it. A big hole in the
+protocol is that pondering is not supported. Besides that, there is a number of
+minor limitations which I do not think are very important. However, if you think
+otherwise, please tell me about it.</span>
+<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: rgb(255, 255, 255); background: rgb(0, 128, 192); padding: 2px; margin-bottom: 0px; margin-top: 4px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">The
+CheckerBoard API</h4>
+<span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">CheckerBoard
+expects your engine to be compiled as a dll and to be in the engines
+subdirectory under CheckerBoard, and its supporting files should also go there
+(helpfiles etc). Your program will see the CheckerBoard directory as the working
+directory when it is called from CheckerBoard.</span>
+<p><span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">An
+engine must support 2 required functions. If your engine plays a different
+version than English checkers, you must provide 2 more functions for
+multi-version support.<span>&nbsp;</span></span><b style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">The
+calling convention for all functions is __stdcall.</b></p>
+<p>The CheckerBoard install package includes the C++ header file <b>cb_interface.h</b>
+that has defnitions for most of the types, function prototypes, and constants
+that you need to interface to CheckerBoard. You can #include this file in your
+project if your engine is written in C++, or use it as a quick reference even if
+you're using a different language.</p>
+<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: rgb(255, 255, 255); background: rgb(0, 128, 192); padding: 2px; margin-bottom: 0px; margin-top: 4px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Required
+Functions</h4>
+<span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">The
+current CheckerBoard API (version 2) requires the following 2 functions:</span>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><code>int
+WINAPI getmove(int board[8][8], int color, double maxtime, char str[1024], int
+*playnow, int info, int moreinfo, struct CBmove *move);<br>
+int WINAPI enginecommand(char command[256], char reply[1024]);</code><br>
+where struct CBmove is defined as follows:</p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><code>struct
+CBmove<br>
+{<br>
+&nbsp;&nbsp;&nbsp; int jumps; // number of jumps in this move<br>
+&nbsp;&nbsp;&nbsp; int newpiece; // moving piece after jump<br>
+&nbsp;&nbsp;&nbsp; int oldpiece; // moving piece before jump<br>
+&nbsp;&nbsp;&nbsp; struct coor from,to; // from,to squares of moving piece<br>
+&nbsp;&nbsp;&nbsp; struct coor path[12]; // intermediate squares to jump to<br>
+&nbsp;&nbsp;&nbsp; struct coor del[12]; // squares where men are removed<br>
+&nbsp;&nbsp;&nbsp; int delpiece[12]; // piece type which is removed<br>
+};</code></p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><code>struct
+coor<br>
+{<br>
+&nbsp;&nbsp;&nbsp; int x;<br>
+&nbsp;&nbsp;&nbsp; int y;<br>
+};</code></p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">If
+you plan to write an engine that plays English/American checkers, you can
+immediately forget about the struct CBmove again.</p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">The
+function getmove gets a move from the engine. <b>getmove</b><span>&nbsp;</span>receives
+the current board position in the 2-dimentional array board[8][8], and returns
+the position after the engine's response move in the same array.&nbsp;</p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">The
+side to move is in color.<br>
+<br>
+Maxtime is the time your program should think<span>&nbsp;</span><b>on average</b><span>&nbsp;</span>for
+its move. CheckerBoard does not check the time usage of an engine, which means
+you can take as much time as you like on your move if you want - but of course
+that's not what the user expects!<br>
+<br>
+The board position and the side to move use the conventions:</p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><code>#define
+CB_WHITE 1<br>
+#define CB_BLACK 2<br>
+#define CB_MAN 4<br>
+#define CB_KING 8<br>
+#define CB_FREE 0</code></p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">so
+for instance if an array entry is 10 that means it is a black king. You can use
+statements like<span>&nbsp;</span><code>if board[i][j]==CB_BLACK|CB_KING...</code><span>&nbsp;</span>to
+find out if there is a certain piece on a square. The header file cb_interface.h
+defines functions coorstonumber() and numbertocoors() so that you can easily
+convert between traditional square numbers and CheckerBoard's 2-dimentional
+array representation of a board.<br>
+<br>
+The parameter color is either CB_BLACK or CB_WHITE and tells the engine which
+side is to move.&nbsp;<br>
+<br>
+The next parameter is a pointer to a string. This string is displayed in the
+status bar of CheckerBoard. You can use this to display search information. Just
+write something like<span>&nbsp;</span><code>sprintf(str,&quot;i am
+winning&quot;);</code><span>&nbsp;</span>and &quot;i am winning&quot; will be
+displayed in the status bar. The status bar is updated every 0.1s in
+CheckerBoard. There is no defined format for the string you should display
+there, you are completely free. However, I suggest that you do something similar
+as Cake does.<br>
+The next parameter is a pointer to the integer playnow. You should monitor
+playnow and immediately return if it is nonzero. This means that the user has
+chosen &quot;Play&quot; in the CheckerBoard menu.<br>
+<br>
+The next parameter, info, is a bunch of flags which are used for some advanced
+stuff:</p>
+<ul>
+  <li>
+    <p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Bit
+    0 was originally defined as a &quot;reset moves&quot; message to the engine.
+    In order to detect draw by repetition, the engine was supposed to keep track
+    of game moves, and reset its game history when bit 0 was set, because maybe
+    a new game was started or some other interruption occured to the normal flow
+    of the game. However this scheme is unsatisfactory because the engine cannot
+    properly keep track of the game history during other search modes such as
+    Analysis. In 2021, the &quot;set gamehist&quot; enginecommand was added so
+    that the engine always has the most current history of reversible moves
+    before each call to getmove().</li>
+  <li>
+    <p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Bit
+    1 is set if 'exact' has been selected in the 'level' menu. In this case,
+    your engine should return a move exactly after the time that has been
+    selected by maxtime, and not take any longer.</li>
+  <li>
+    <p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Bits
+    2 and 3 are used for incremental time control, otherwise known as a Fischer
+    clock. Additional parameters for incremental time are in the moreinfo
+    parameter. See cb_interface.h for details on how this works, and a function
+    to unpack the bits for the initial time and increment values.</li>
+</ul>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">The
+further bits are reserved for future extensions.<br>
+<br>
+Getmove should return a value between 0 and 3, defined as follows:<br>
+<br>
+<code>#define CB_DRAW 0<br>
+#define CB_WIN 1<br>
+#define CB_LOSS 2<br>
+#define CB_UNKNOWN 3<br>
+<br>
+</code>CheckerBoard uses the return value in automated engine matches to
+terminate a game when an engine claims a draw, win or loss. When CheckerBoard is
+in any other play mode, the return value of getmove is not used.</p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">The<span>&nbsp;</span><b>enginecommand</b><span>&nbsp;</span>function
+is used for all other communication between engine and CheckerBoard. The
+interface uses enginecommand to send a command string to the engine, which
+should print a reply into the reply string. Here's a list of the commands your
+engine should support:</p>
+<ul style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">
+  <li><b>about</b>: print a short description of your program in the reply
+    string. This will be displayed in a message box, so you must also provide
+    the formatting with \n for new lines.</li>
+  <li><b>get ...</b><span>&nbsp;</span>asks for the value of an option or engine
+    attribute. See also &quot;set&quot; below.
+    <ul>
+      <li><b>get protocolversion</b>: print the protocol version number in reply
+        (currently &quot;2&quot;). This enables the interface to detect older
+        engines and interact properly with them if the protocol is updated.</li>
+      <li><b>get gametype</b>: print the game type number of the version of
+        checkers your engine plays in the reply string. American/English: 21,
+        Italian: 22, Spanish: 24, Russian: 25, Brazilian: 26.</li>
+      <li><b>get movelist &lt;fen&gt;</b>: returns a list of legal moves in
+        ASCII format for the the position &lt;fen&gt;. This query is only sent
+        by CheckerBoard when the gametype is something other than English
+        checkers. The reply should be in the format:&nbsp;<br>
+        "movelist &lt;nmoves>,&lt;njumps1>,&lt;oldpiece1>,&lt;newpiece1>,&lt;from sq1>,&lt;to sq1>,&lt;landed sq1>,&lt;cap. sq1>,&lt;cappiece1>,&lt;landed sq2>,&lt;cap. sq2>,&lt;cappiece2>,...;".
+        Each move terminates in a semicolon. If no moves, the response is "movelist 0".
+        At startup, CheckerBoard sends a position with no moves and looks for
+        the exact response of &quot;movelist 0&quot; to check to confirm that
+        the engine supports this command.</li>
+    </ul>
+  </li>
+</ul>
+<ul style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">
+  <li><b>help</b>: print the name of a HTML help file in reply. CheckerBoard
+    will invoke the default HTML viewer to display the file.</li>
+  <li><b>name</b>: print the name of your engine in the reply string.</li>
+  <li><b>set option X</b><span>&nbsp;</span>sets an option to X.
+    <ul>
+      <li><b>set allscores X</b>: X = 0,1. <span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">Set
+        to 1 if you want allscores mode (the engine displays a list of all moves
+        with their scores instead of the normal search info), 0 if you want in
+        normal mode. The allscores mode is a good tool for a human to help in
+        analysis.</span></li>
+      <li><b>set book X</b>: set the book strength. Currently, CheckerBoard
+        supports values 0...3, meaning no book, all kinds of moves, good moves,
+        best moves, respectively. How you want to interpret the book strength is
+        your decision.</li>
+      <li><b>set bookfile X</b>: set the filename and path of the opening book
+        file to X. If the opening book file is in the same directory as the
+        engine DLL, then only the filename is sufficient. Otherwise, the full
+        path to the file should be included with the filename.</li>
+      <li><b>set dbmbytes X</b>: set the WLD endgame database cache size to X MiB.</li>
+      <li><b>set dbpath X</b>: set the path to the WLD files to X. If the path
+        starts with a drive letter or backslash root specifier then the path is
+        interpreted as an absolute path, else it is relative to the current
+        directory.</li>
+      <li><b>set enable_mtc X</b>: X = 0,1.&nbsp;<br>
+        Enable or disable the auxiliary endgame database, which might be MTC or
+        DTW.&nbsp;</li>
+      <li><b>set enable_wld X</b>:&nbsp; X = 0,1.&nbsp;<br>
+        Enable or disable the WLD database.</li>
+      <li><b>set gamehist X</b>: this command is sent by CheckerBoard
+        immediately before each call to getmove(). The purpose is to inform the
+        engine of any reversible moves in the recent game history, so that it
+        can properly detect draws by repetition. It sends the game position after the most recent non-reversible move, followed optionally by any reversible moves that occurred after that position.
+        Reversible moves are non-capture king moves, so most of the time it just sends the current board position. At the beginning of a game it typically looks like this:<br>
+        <br>
+        set gamehist B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12<br>
+        <br>
+        Here's an example of what is sent later in the game when there are recent king moves:<br>
+        <br>
+        set gamehist B:WK12,K27,30,32:B21,K24,28,K31 24-19 27-24 19-15 12-16<br>
+        <br>
+        The position at the end of the FEN setup and optional list of moves
+        should always be identical to the position that is sent with the
+        immediately following call to getmove().<br>
+      </li>
+      <li><b>set hashsize X</b>: set the hashtable size in MiB.</li>
+      <li><b>set max_dbpieces X</b>: set the maximum number of pieces of
+        positions for which the WLD db will be used.</li>
+      <li><b>set mtcpath X</b>: set the path to the auxiliary endgame db files
+        to X. If the path starts with a drive letter or backslash root specifier
+        then the path is interpreted as an absolute path, else it is relative to
+        the current directory.</li>
+      <li><b>set searchthreads X</b>: set the number of search threads that the
+        engine should use.</li>
+      <li><b>set solve X</b>: X = 0,1. <br>
+        Enable or disable solve mode. In this mode, the engine search is
+        optimized for &quot;problem&quot; positions where there might be several
+        sacrifices before the path to the solution is clear. In a normal search,
+        these positions are sometimes difficult to solve because the search
+        depth is reduced along paths that look inferior due to a substantial
+        loss of material.</li>
+    </ul>
+  </li>
+</ul>
+<span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">Your
+engine may choose not to implement some of the enginecommand commands of the
+protocol. If your engine does not handle an enginecommand argument sent to it by
+CheckerBoard, it should return 0 and print a question mark into reply. If you
+print the question mark on unhandled commands, CheckerBoard will gray out the
+corresponding options in the engine options dialog. Note that the 0 and the
+question mark are not synonyms: your engine may return a 0 if it is asked to use
+a huge hashtable, meaning that it did not change the hashtable size. As a
+general rule, you should print some acknowledgment in reply that you did handle
+a command. This is useful if you ever want to use the engine command dialog,
+which displays the reply of the engine. If it handles the command, it should
+return 1 to let CheckerBoard know that it understood and processed the command.<br>
+</span>
+<h4><span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline; float: none">Time
+Control</span></h4>
+<p>In normal searches, CheckerBoard sends the selected move time parameter with
+getmove(), and the engine should try to use approximately that time for its
+search, but CheckerBoard doesn't check it and it doesn't care if the time used
+is much different than the value sent. During engine matches with a fixed time
+per move setting, CheckerBoard handles the search times a little differently. It
+keeps track of a clock for each opponent. It increases each engine's clock time
+by the per move time setting before each move, and it subtracts the measured
+search time from the engine's clock after getmove() returns. CheckerBoard sends
+a search time value to getmove that is based on the remaining clock time and the
+per move increment as described in the table below.</p>
+<table border="1" width="49%">
+  <tr>
+    <td width="48%" bgcolor="#FFCC99" align="center">Clock time</td>
+    <td width="52%" bgcolor="#FFCC99" align="center">value sent to getmove()</td>
+  </tr>
+  <tr>
+    <td width="48%" align="center">less than 40% of increment</td>
+    <td width="52%" align="center">40% of increment</td>
+  </tr>
+  <tr>
+    <td width="48%" align="center">between 40% and 100% of increment</td>
+    <td width="52%" align="center">clock</td>
+  </tr>
+  <tr>
+    <td width="48%" align="center">greater than increment</td>
+    <td width="52%" align="center">increment + (clock - increment) / 2.5</td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: rgb(255, 255, 255); background: rgb(0, 128, 192); padding: 2px; margin-bottom: 0px; margin-top: 4px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Multi-Version
+Support Functions</h4>
+<span style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">If
+you want to write an engine that plays a different version of checkers than
+English, you must add another function to your dll:</span><code style="color: rgb(0, 0, 0); font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><br>
+int WINAPI islegal(int board[8][8], int color, int from, int to, struct CBmove
+*move);</code>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">In
+addition to this, your engine command function must recognize the command<span>&nbsp;</span><b>get
+gametype</b><span>&nbsp;</span>and return the appropriate number for your
+version of checkers.<br>
+<b>Islegal</b><span>&nbsp;</span>tells CheckerBoard about the rules of your
+version of checkers. When the user wants to play a move from 'from' to 'to',
+islegal is called. You must use your move generator to find out if 'color' can
+play this move on 'board'. If yes, return 1, else 0. If the move is legal, you
+must also tell CheckerBoard what it is, so that it can animate the move
+properly. You do this by filling in the CBmove struct.</p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Note
+that the use of the islegal() function does not properly handle positions where
+there is more than one way that a capture move can be made between the same
+'from' and 'to' squares. For this reason, in 2018 the &quot;get movelist&quot;
+engincommand was added to CheckerBoard. Engines for Non-English variants should
+implement this command. See the description of <b>enginecommand</b> above.</p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">In
+case that this is not clear enough, study the code of simple checkers, which is
+included in the CheckerBoard installation. Simple Checkers is an example for an
+English engine. If you plan to play a different version, look at the source code
+for dama to see how this works.</p>
+<p style="color: rgb(0, 0, 0); font-family: Verdana, Georgia, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Once
+you have finished your engine, you must copy the dll into the CheckerBoard
+folder and select your engine with 'engine-&gt;select...'. Of course I would
+love to hear from you if you do write an engine for CheckerBoard. If you do,
+please send me a mail to<span>&nbsp;</span><i>nospam1 at fierz dot ch</i>. I
+would like to link to your page, or, if you don't have one, I would put your
+engine on my server.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</body>
+
+</html>
