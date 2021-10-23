@@ -4807,6 +4807,11 @@ void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm)
 	// print PDN
 	counter = 0;
 	for (i = 0; i < (int)game.moves.size(); ++i) {
+		if (i == 0 && is_second_player(game, i)) {
+			movenumber = "1. ... ";
+			counter += movenumber.size();
+			pdnstring += movenumber;
+		}
 
 		// print the move number
 		if (!is_second_player(game, i)) {
