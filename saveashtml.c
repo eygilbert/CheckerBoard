@@ -307,9 +307,6 @@ int saveashtml(char *filename, PDNgame *game)
 	fprintf(fp, "</TD></TR></TABLE></BODY>\n</HTML>");
 	fclose(fp);
 	sprintf(filename, "");
-
-	// put gifs into the save directory
-	install_gifs();
 	return 1;
 }
 
@@ -475,58 +472,3 @@ void PDNgametoPDNHTMLstring(PDNgame *game, std::string &pdnstring)
 	pdnstring += s;
 }
 
-/*
- * Copy the 6 board gif files to a "gif" directory under
- * the current directory.
- */
-void install_gifs(void)
-{
-	char gifsrcdir[MAX_PATH];
-
-	CreateDirectory("gif", NULL);
-	SetCurrentDirectory("gif");
-	sprintf(gifsrcdir, "%s\\games\\gif", CBdirectory);
-	copy_file(gifsrcdir, "dark.gif");
-	copy_file(gifsrcdir, "light.gif");
-	copy_file(gifsrcdir, "lightbm.gif");
-	copy_file(gifsrcdir, "lightbk.gif");
-	copy_file(gifsrcdir, "lightwm.gif");
-	copy_file(gifsrcdir, "lightwk.gif");
-	SetCurrentDirectory("..");
-}
-
-/*
- * Copy a file from the source directory
- * to the current directory.
- */
-void copy_file(char *srcdir, char *fname)
-{
-	int value;
-	char fullname[MAX_PATH];
-	FILE *srcfp, *destfp;
-
-	/* Open source file. */
-	sprintf(fullname, "%s\\%s", srcdir, fname);
-	srcfp = fopen(fullname, "rb");
-	if (!srcfp)
-		return;
-
-	/* Open destination file. */
-	destfp = fopen(fname, "wb");
-	if (!destfp) {
-		fclose(srcfp);
-		return;
-	}
-
-	/* Copy contents. */
-	while (1) {
-		value = getc(srcfp);
-		if (value == EOF)
-			break;
-
-		putc(value, destfp);
-	}
-
-	fclose(srcfp);
-	fclose(destfp);
-}

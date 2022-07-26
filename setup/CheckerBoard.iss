@@ -17,6 +17,7 @@ OutputBaseFilename=CheckerBoardSetup32.{#version}
 Compression=lzma/ultra
 SolidCompression=yes
 Uninstallable=yes
+UsedUserAreasWarning=no
 DirExistsWarning=no
 
 [Languages]
@@ -48,6 +49,7 @@ Source: "..\source\enginedefs.h"; DestDir: "{app}\source"; Flags: ignoreversion 
 Source: "..\source\simplech.c"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\source\simplech.def"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\source\simplechhelp.htm"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\games\gif\*"; DestDir: "{userdocs}\Martin Fierz\CheckerBoard\games\gif"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Dirs]
 Name: "{app}\engines"
