@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-#define version "1.77"
+#define version "1.77a"
 AppName=CheckerBoard
 AppVerName=CheckerBoard version {#version}
 AppPublisher=Martin Fierz
