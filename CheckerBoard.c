@@ -3393,6 +3393,7 @@ DWORD SearchThreadFunc(LPVOID param)
 
 			memcpy(original_board8, cbboard8, sizeof(cbboard8));
 			memcpy(engine_board8, cbboard8, sizeof(cbboard8));
+			memset(&localmove, 0, sizeof(localmove));
 			start_clock();
 			game_result = (getmove)(engine_board8, cbcolor, maxtime, statusbar_txt, &playnow, info, moreinfo, &localmove);
 			elapsed = (clock() - time_ctrl.starttime) / (double)CLK_TCK;
@@ -3483,9 +3484,15 @@ DWORD SearchThreadFunc(LPVOID param)
 
 				// gametype not GT_ENGLISH and we don't have a real movelist, use the move of the engine
 				cbmove = localmove;
-				move4tonotation(localmove, PDN);
+				if (localmove.oldpiece != 0) {
+					move4tonotation(localmove, PDN);
+					found_move = true;
+				}
+				else {
+					sprintf(PDN, "null move");
+					found_move = false;
+				}
 				memcpy(cbboard8, original_board8, sizeof(cbboard8));
-				found_move = true;
 			}
 		}
 
