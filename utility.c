@@ -257,7 +257,7 @@ int PDNtoclipboard(HWND hwnd, PDNgame &game)
 	return 1;
 }
 
-int logtofile(char *filename, char *str, char *mode)
+int logtofile(char *filename, const char *str, const char *mode)
 {
 	// appends the text <str> to the file <filename>
 	FILE *fp;
@@ -277,7 +277,7 @@ int logtofile(char *filename, char *str, char *mode)
 	return 1;
 }
 
-int writefile(char *filename, char *mode, char *fmt, ...)
+int writefile(char *filename, const char *mode, const char *fmt, ...)
 {
 	FILE *fp;
 	va_list args;
@@ -362,7 +362,7 @@ char *textfromclipboard(HWND hwnd, char *str)
 	return gamestring;
 }
 
-int fileispresent(char *filename)
+int fileispresent(const char *filename)
 {
 	// returns 1 if a file with name "filename" is present, 0 otherwise
 	FILE *fp;
@@ -502,7 +502,7 @@ void cblog_init()
 	}
 }
 
-void CBlog(char *str)
+void CBlog(const char *str)
 {
 	FILE *cblogfile;
 

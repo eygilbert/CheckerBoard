@@ -39,7 +39,7 @@ int columns[NUMCOLS] = { PLAYERWIDTH, PLAYERWIDTH, RESULTWIDTH, EVENTWIDTH };
 int Tabs[4];
 
 /* Combo box entries. */
-static int limit_pieces[] = { 24, 10, 9, 8, 7, 6, 5, 4 };
+static int limit_pieces[] = { 24, 12, 11, 10, 9, 8, 7, 6, 5, 4 };
 static int thread_limits[] = { 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
 INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
@@ -63,7 +63,7 @@ INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
 	return 0;
 }
 
-int browse_to_dir(char *title, char *path)
+int browse_to_dir(const char *title, char *path)
 {
 	int status;
 	BROWSEINFO bi;
@@ -385,6 +385,7 @@ HWND InitHeader(HWND hParent)
 	WINDOWPOS winpos;
 	HD_ITEM hditem;
 	HFONT hFont;
+	char header[80];
 
 	GetClientRect(hParent, &rect);
 
@@ -414,23 +415,27 @@ HWND InitHeader(HWND hParent)
 
 	// insert items into header
 	hditem.mask = HDI_FORMAT | HDI_WIDTH | HDI_TEXT;
-	hditem.pszText = "Black";
+	strcpy(header, "Black");
+	hditem.pszText = header;
 	hditem.cchTextMax = (int)strlen(hditem.pszText);
 	hditem.cxy = columns[0];
 	hditem.fmt = HDF_STRING | HDF_LEFT;
 	Header_InsertItem(hHead, 0, &hditem);
 
-	hditem.pszText = "White";
+	strcpy(header, "White");
+	hditem.pszText = header;
 	hditem.cxy = columns[1];
 	hditem.cchTextMax = (int)strlen(hditem.pszText);
 	Header_InsertItem(hHead, 1, &hditem);
 
-	hditem.pszText = "Result";
+	strcpy(header, "Result");
+	hditem.pszText = header;
 	hditem.cxy = columns[2];
 	hditem.cchTextMax = (int)strlen(hditem.pszText);
 	Header_InsertItem(hHead, 2, &hditem);
 
-	hditem.pszText = "Event";
+	strcpy(header, "Event");
+	hditem.pszText = header;
 	hditem.cxy = columns[3];
 	hditem.cchTextMax = (int)strlen(hditem.pszText);
 	Header_InsertItem(hHead, 3, &hditem);

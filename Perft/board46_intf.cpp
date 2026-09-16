@@ -201,7 +201,7 @@ int parse_fen(char *buf, int board46[46], int *ret_color)
 int print_fen_pieces(int board46[46], int color, char *buf)
 {
 	int len, sq, index;
-	char *comma;
+	const char *comma;
 
 	comma = "";
 	len = sprintf(buf, color == CB_BLACK ? ":B" : ":W");

@@ -643,7 +643,7 @@ void updatestretchDC(HWND hwnd, HDC bmpdc, HDC stretchdc, int size)
 void format_clock(double clk, char *txt)
 {
 	int hours, mins, secs;
-	char *sign = "";
+	const char *sign = "";
 
 	if (clk < 0) {
 		sign = "-";

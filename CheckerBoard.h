@@ -8,8 +8,8 @@
 #include "CB_movegen.h"
 
 // version 
-#define VERSION "1.77a"
-#define PLACE "July 16, 2022"
+#define VERSION "1.78"
+#define PLACE "September 16, 2026"
 
 #define OP_CROSSBOARD 1			// different opening decks
 #define OP_MAILPLAY 2
@@ -66,7 +66,7 @@ int enginename(char str[MAXNAME]);
 void get_game_clocks(double *black_clock, double *white_clock);
 void get_pdnsearch_stats(std::vector<gamepreview> &previews, RESULT_COUNTS &res);
 int get_startcolor(int gametype);
-char *pdn_result_to_string(PDN_RESULT result, int gametype);
+const char *pdn_result_to_string(PDN_RESULT result, int gametype);
 PDN_RESULT string_to_pdn_result(char *resultstr, int gametype);
 int getfilename(char filename[255], int what);
 int getanimationbusy(void);
@@ -95,7 +95,7 @@ bool match_is_resumable(void);
 void move4tonotation(const CBmove &move, char str[80]);
 void newgame(void);
 int num_ballots(void);
-void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm);
+void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, const char *lineterm);
 bool pdntogame(PDNgame &game, Board8x8 startposition, int startcolor, std::string &errormsg);
 int read_match_stats(void);
 void reset_match_stats(void);
@@ -106,7 +106,7 @@ int selectgame(int how);
 int setanimationbusy(int value);
 int setenginebusy(int value);
 int setenginestarting(int value);
-int showfile(char *filename);
+int showfile(const char *filename);
 int start3move(int opening_index);
 int undomove(CBmove &move, Board8x8 board);
 int get_movelist_from_engine(Board8x8 board, int color, CBmove movelist[], int *nmoves, int *iscapture);

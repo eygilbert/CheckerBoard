@@ -1727,7 +1727,7 @@ int get_startcolor(int gametype)
 	return(color);
 }
 
-char *pdn_result_to_string(PDN_RESULT result, int gametype)
+const char *pdn_result_to_string(PDN_RESULT result, int gametype)
 {
 	switch (result) {
 	case UNKNOWN_RES:
@@ -2814,82 +2814,101 @@ int handletooltiprequest(LPTOOLTIPTEXT TTtext)
 	switch (TTtext->hdr.idFrom) {
 	// set tooltips
 	case TOGGLEBOOK:
-		TTtext->lpszText = "Change engine book setting";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Change engine book setting");
 		break;
 
 	case TOGGLEMODE:
-		TTtext->lpszText = "Switch from normal to 2-player mode and back";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Switch from normal to 2-player mode and back");
 		break;
 
 	case TOGGLEENGINE:
-		TTtext->lpszText = "Switch from primary to secondary engine and back";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Switch from primary to secondary engine and back");
 		break;
 
 	case GAMEFIND:
-		TTtext->lpszText = "Find Game";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Find Game");
 		break;
 
 	case GAMENEW:
-		TTtext->lpszText = "New Game";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "New Game");
 		break;
 
 	case MOVESBACK:
-		TTtext->lpszText = "Take Back";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Take Back");
 		break;
 
 	case MOVESFORWARD:
-		TTtext->lpszText = "Forward";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Forward");
 		break;
 
 	case MOVESPLAY:
-		TTtext->lpszText = "Play";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Play");
 		break;
 
 	case HELPHELP:
-		TTtext->lpszText = "Help";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Help");
 		break;
 
 	case GAMELOAD:
-		TTtext->lpszText = "Load Game";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Load Game");
 		break;
 
 	case GAMESAVE:
-		TTtext->lpszText = "Save Game";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Save Game");
 		break;
 
 	case MOVESBACKALL:
-		TTtext->lpszText = "Go to the start of the game";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Go to the start of the game");
 		break;
 
 	case MOVESFORWARDALL:
-		TTtext->lpszText = "Go to the end of the game";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Go to the end of the game");
 		break;
 
 	case DISPLAYINVERT:
-		TTtext->lpszText = "Invert Board";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Invert Board");
 		break;
 
 	case SETUPCC:
+		TTtext->lpszText = TTtext->szText;
 		if (cbcolor == CB_BLACK)
-			TTtext->lpszText = "Red to move";
+			strcpy(TTtext->szText, "Red to move");
 		else
-			TTtext->lpszText = "White to move";
+			strcpy(TTtext->szText, "White to move");
 		break;
 
 	case BOOKMODE_VIEW:
-		TTtext->lpszText = "View User Book";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "View User Book");
 		break;
 
 	case BOOKMODE_ADD:
-		TTtext->lpszText = "Add Moves to User Book";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Add Moves to User Book");
 		break;
 
 	case BOOKMODE_DELETE:
-		TTtext->lpszText = "Delete Position from User Book";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "Delete Position from User Book");
 		break;
 
 	case HELPHOMEPAGE:
-		TTtext->lpszText = "CheckerBoard Homepage";
+		TTtext->lpszText = TTtext->szText;
+		strcpy(TTtext->szText, "CheckerBoard Homepage");
 		break;
 	}
 
@@ -3024,7 +3043,7 @@ int createcheckerboard(HWND hwnd)
 	return 1;
 }
 
-int showfile(char *filename)
+int showfile(const char *filename)
 {
 	// opens a file with the default viewer, e.g. a html help file
 	int error;
@@ -4762,7 +4781,7 @@ void move4tonotation(const CBmove &m, char s[80])
 	strcat(s, Lstr);
 }
 
-std::string make_header(char *name, char *value)
+std::string make_header(const char *name, char *value)
 {
 	std::string header;
 
@@ -4774,7 +4793,7 @@ std::string make_header(char *name, char *value)
 	return(header);
 }
 
-void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, char *lineterm)
+void PDNgametoPDNstring(PDNgame &game, std::string &pdnstring, const char *lineterm)
 {
 	// prints a formatted PDN in *pdnstring
 	// uses lineterm as the line terminator; for the clipboard this should be \r\n, normally just \n
@@ -4883,7 +4902,7 @@ void addmovetogame(CBmove &move, char *pdn)
 		cbgame.moves.push_back(entry);
 	}
 	catch(...) {
-		char *msg = "could not allocate memory for CB movelist";
+		const char *msg = "could not allocate memory for CB movelist";
 		CBlog(msg);
 		strcpy(statusbar_txt, msg);
 	}
@@ -5496,7 +5515,7 @@ int load_engine
 		CB_GETSTRING *namefn,
 		CB_GETMOVE *getmovefn,
 		CB_ISLEGAL *islegalfn,
-		char *pri_or_sec
+		const char *pri_or_sec
 	)
 {
 	char buf[256];

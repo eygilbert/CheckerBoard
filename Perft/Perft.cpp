@@ -118,7 +118,7 @@ INT64 Perft(int board[46], int color, int depth, int ply, int printpos)
 
 void usage()
 {
-	char *usagetxt = 
+	const char *usagetxt = 
 		"usage: perft [options]\n"
 		"\n"
 		"-d depth           set max depth (default 12)\n"

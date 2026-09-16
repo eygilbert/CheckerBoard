@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <vector>
 #include <windows.h>
 #include <cctype>
 #include <stdio.h>
@@ -6,6 +8,7 @@
 #include "CheckerBoard.h"
 #include "coordinates.h"
 #include "fen.h"
+#include "utility.h"
 
 /*
  * Return true if the string looks like a fen position.
@@ -122,43 +125,67 @@ int FENtoboard8(Board8x8 board, const char *buf, int *poscolor, int gametype)
 	return(1);
 }
 
+struct Piece {
+	uint8_t square;
+	uint8_t king;
+};
+
+auto comp_squares(const Piece &sq0, const Piece &sq1)
+{
+	return(sq0.square < sq1.square);
+}
+
 void board8toFEN(const Board8x8 board, std::string &fenstr, int color, int gametype)
 {
-	int i, j, square;
+	int i, j;
+	std::vector<Piece> pieces;
+	Piece piece;
 
 	fenstr = color == CB_BLACK ? "B" : "W";
 
 	/* Add the white pieces. */
-	fenstr += ":W";
 	for (j = 0; j <= 7; j++) {
 		for (i = 7; i >= 0; i--) {
-			square = coorstonumber(i, j, gametype);
-			if (board[i][j] == (CB_WHITE | CB_MAN))
-				fenstr += std::to_string(square) + ",";
-			if (board[i][j] == (CB_WHITE | CB_KING))
-				fenstr += "K" + std::to_string(square) + ",";
+			if (board[i][j] & CB_WHITE) {
+				piece.king = board[i][j] & CB_KING;
+				piece.square = coorstonumber(i, j, gametype);
+				pieces.push_back(piece);
+			}
 		}
 	}
 
-	/* remove last comma */
-	if (fenstr[fenstr.size() - 1] == ',')
-		fenstr.pop_back();
+	fenstr += ":W";
+	std::sort(pieces.begin(), pieces.end(), comp_squares);
+	for (size_t i = 0; i < pieces.size(); ++i) {
+		if (pieces[i].king)
+			fenstr += "K";
+		fenstr += std::to_string(pieces[i].square);
+		if (i < pieces.size() - 1)
+			fenstr += ",";
+	}
 
 	/* Add the black pieces. */
-	fenstr += ":B";
+	pieces.clear();
 	for (j = 0; j <= 7; j++) {
 		for (i = 7; i >= 0; i--) {
-			square = coorstonumber(i, j, gametype);
-			if (board[i][j] == (CB_BLACK | CB_MAN))
-				fenstr += std::to_string(square) + ",";
-			if (board[i][j] == (CB_BLACK | CB_KING))
-				fenstr += "K" + std::to_string(square) + ",";
+			if (board[i][j] & CB_BLACK) {
+				piece.king = board[i][j] & CB_KING;
+				piece.square = coorstonumber(i, j, gametype);
+				pieces.push_back(piece);
+			}
 		}
 	}
 
-	/* remove last comma */
-	if (fenstr[fenstr.size() - 1] == ',')
-		fenstr.pop_back();
+	fenstr += ":B";
+	std::sort(pieces.begin(), pieces.end(), comp_squares);
+	for (size_t i = 0; i < pieces.size(); ++i) {
+		if (pieces[i].king)
+			fenstr += "K";
+		fenstr += std::to_string(pieces[i].square);
+		if (i < pieces.size() - 1)
+			fenstr += ",";
+	}
+
 }
 
 void board8toFEN(const Board8x8 board, char *fenstr, int color, int gametype)

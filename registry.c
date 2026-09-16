@@ -24,6 +24,8 @@
 #else
 #define CB_REGISTRY_NAME	"Software\\Martin Fierz\\CheckerBoard\\"
 #endif
+	
+static char reg_class[] = "CB_KEY";
 
 // VERSION will be appended to this name
 void savesettings(CBoptions *options)
@@ -37,7 +39,7 @@ void savesettings(CBoptions *options)
 	sprintf(subkey, "%s%s", CB_REGISTRY_NAME, VERSION);
 
 	// open registry key
-	RegCreateKeyEx(HKEY_CURRENT_USER, subkey, 0, "CB_Key", 0, KEY_WRITE, NULL, &hKey, &result);
+	RegCreateKeyEx(HKEY_CURRENT_USER, subkey, 0, reg_class, 0, KEY_WRITE, NULL, &hKey, &result);
 
 	// save options struct
 	options->crc = sizeof(CBoptions);
@@ -65,7 +67,7 @@ void loadsettings(CBoptions *options, char CBdirectory[256])
 
 	// open registry key for checkerboard,
 	// if it doesnt exist, create it
-	RegCreateKeyEx(HKEY_CURRENT_USER, subkey, 0, "CB_Key", 0, KEY_READ, NULL, &hKey, &result);
+	RegCreateKeyEx(HKEY_CURRENT_USER, subkey, 0, reg_class, 0, KEY_READ, NULL, &hKey, &result);
 
 	/* Initialize the CBdirectory with the location of the executable.
 	 * If that fails, then initialize it with the current directory and 
