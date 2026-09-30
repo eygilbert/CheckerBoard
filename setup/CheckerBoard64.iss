@@ -56,7 +56,7 @@ Source: "..\source\enginedefs.h"; DestDir: "{app}\source"; Flags: ignoreversion 
 Source: "..\source\simplech.c"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\source\simplech.def"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\source\simplechhelp.htm"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\games\gif\*"; DestDir: "{userdocs}\Martin Fierz\CheckerBoard\games\gif"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\games\gif\*"; DestDir: "{app}\games\gif"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Dirs]
 Name: "{app}\engines"
@@ -66,5 +66,5 @@ Name: startmenu; Description: Create a start menu entry
 Name: desktopicon; Description: Create a desktop shortcut
 
 [Icons]
-Name: "{commonprograms}\CheckerBoard\CheckerBoard64"; Filename: "{app}\CheckerBoard64.exe"; WorkingDir: "{app}"; Tasks: startmenu
-Name: "{commondesktop}\CheckerBoard64"; Filename: "{app}\CheckerBoard64.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{commonprograms}\CheckerBoard\CheckerBoard64"; Filename: "{app}\checkerboard64.exe"; WorkingDir: "{app}"; Tasks: startmenu
+Name: "{commondesktop}\CheckerBoard64"; Filename: "{app}\checkerboard64.exe"; WorkingDir: "{app}"; Tasks: desktopicon
