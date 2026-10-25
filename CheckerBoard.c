@@ -1622,7 +1622,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		// save settings
 		savesettings(&cboptions);
 
-		// unload engines
+		// stop a search in progress, then unload engines
+		abortengine();
 		{
 			BOOL fFreeResult = FreeLibrary(hinstLib1);
 			fFreeResult = FreeLibrary(hinstLib2);
@@ -5572,6 +5573,9 @@ void loadengines(char *pri_fname, char *sec_fname)
 	int status;
 	HMODULE primaryhandle, secondaryhandle;
 	char Lstr[256];
+
+	/* An engine may be unloaded below, so stop a search in progress first. */
+	abortengine();
 
 	// set built in functions
 	CBgametype = (CB_GETGAMETYPE) builtingametype;
