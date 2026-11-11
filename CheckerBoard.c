@@ -613,6 +613,10 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case GAMEANALYZE:
 			if (CBstate == BOOKVIEW || CBstate == BOOKADD)
 				break;
+			if (cbgame.moves.empty()) {
+				MessageBox(hwnd, "There are no moves in this game to analyze.", "Analyze Game", MB_OK);
+				break;
+			}
 			if (fixed_time_needed_msg())
 				break;
 			changeCBstate(ANALYZEGAME);
@@ -4218,16 +4222,19 @@ DWORD AutoThreadFunc(LPVOID param)
 			if (currentengine != 1)
 				setcurrentengine(1);
 
-			PostMessage(hwnd, WM_COMMAND, MOVESFORWARDALL, 0);
-			Sleep(SLEEPTIME);
+			// Sent, not posted, so the main thread has gone to the end of the game before
+			// movesindex is read below.
+			SendMessage(hwnd, WM_COMMAND, MOVESFORWARDALL, 0);
 
 			// start analysis logfile - overwrite anything old
 			strcpy(analysisfilename, CBdocuments);
 			PathAppend(analysisfilename, "analysis.txt");
 			Lfp = fopen(analysisfilename, "w");
 			fclose(Lfp);
-			sprintf(statusbar_txt, "played in game: 1. %s", cbgame.moves[cbgame.movesindex - 1].PDN);
-			logtofile(analysisfilename, statusbar_txt, "a");
+			if (cbgame.movesindex > 0) {
+				sprintf(statusbar_txt, "played in game: 1. %s", cbgame.moves[cbgame.movesindex - 1].PDN);
+				logtofile(analysisfilename, statusbar_txt, "a");
+			}
 
 			setenginestarting(TRUE);
 			post_auto_play();
