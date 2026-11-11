@@ -693,6 +693,26 @@ void format_clock(double clk, char *txt)
 }
 
 
+/*
+ * The clock uses the same font as the status bar.
+ * Created on first use and kept for the life of the program.
+ * Only called with memdc_lock held, so the lazy creation is safe.
+ */
+static HFONT get_clock_font(void)
+{
+	static HFONT clockfont;
+	NONCLIENTMETRICS ncm;
+
+	if (clockfont == NULL) {
+		ncm.cbSize = sizeof(ncm);
+		if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0))
+			clockfont = CreateFontIndirect(&ncm.lfStatusFont);
+		if (clockfont == NULL)
+			return((HFONT)GetStockObject(DEFAULT_GUI_FONT));
+	}
+	return(clockfont);
+}
+
 void drawclock(HWND hwnd, HDC hdc)
 {
 	/* Fill the clock background region. */
@@ -731,11 +751,15 @@ void drawclock(HWND hwnd, HDC hdc)
 		 * is currently selected in hdc (printboard selects the board numbers font), and
 		 * restore the previous ones afterwards.
 		 */
-		HFONT oldfont = (HFONT)SelectObject(hdc, GetStockObject(SYSTEM_FONT));
+		HFONT oldfont = (HFONT)SelectObject(hdc, get_clock_font());
 		COLORREF oldcolor = SetTextColor(hdc, PALETTERGB(0, 0, 0));
 		COLORREF oldbkcolor = SetBkColor(hdc, PALETTERGB(255, 255, 255));
 		int oldbkmode = SetBkMode(hdc, OPAQUE);
-		TextOut(hdc, 5 + xoffset, upperoffset + yoffset - (CLOCKHEIGHT - 3), clocktext, (int)strlen(clocktext));
+		TEXTMETRIC tm;
+		int y = upperoffset + yoffset - CLOCKHEIGHT;
+		if (GetTextMetrics(hdc, &tm) && tm.tmHeight < CLOCKHEIGHT)
+			y += (CLOCKHEIGHT - 1 - tm.tmHeight) / 2;	/* Center vertically above the separator line. */
+		TextOut(hdc, 5 + xoffset, y, clocktext, (int)strlen(clocktext));
 		SetBkMode(hdc, oldbkmode);
 		SetBkColor(hdc, oldbkcolor);
 		SetTextColor(hdc, oldcolor);
