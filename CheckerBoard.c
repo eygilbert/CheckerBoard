@@ -5487,6 +5487,16 @@ bool doload(PDNgame *game, const char *gamestring, int *color, Board8x8 board8, 
 		}
 #endif
 
+		/* Too long to be a move (the tokenizer allows spaces inside moves). Keep it as a
+		 * comment for the previous move rather than overflow entry.PDN; the moves after
+		 * it will then be reported as illegal.
+		 */
+		if (strlen(token) >= sizeof(entry.PDN)) {
+			if (game->moves.size() > 0)
+				sprintf(game->moves[game->moves.size() - 1].comment, "%s", token);
+			continue;
+		}
+
 		// ok, it was just a move. Save just the move string now, and we will fill in
 		// the move details when done reading the pdn.
 		sprintf(entry.PDN, "%s", token);
