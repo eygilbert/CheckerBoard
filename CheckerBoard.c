@@ -2331,8 +2331,9 @@ int handlegamereplace(int replaceindex, char *databasename)
 	if (DialogBox(g_hInst, "IDD_SAVEGAME", hwnd, (DLGPROC) DialogFuncSavegame)) {
 
 		// if the user gives his ok, replace:
-		// set reindex flag
-		reindex = 1;
+		char tmpname[MAX_PATH + 16];
+		char msg[MAX_PATH + 200];
+		bool write_ok;
 
 		// read database into memory */
 		dbstring = read_text_file(databasename, etype);
@@ -2344,8 +2345,17 @@ int handlegamereplace(int replaceindex, char *databasename)
 			return 0;
 		}
 
-		// rewrite file
-		fp = fopen(databasename, "w");
+		/* Write the new database to a temporary file next to the original, then replace the
+		 * original with it, so the original is not lost if the write fails partway.
+		 */
+		sprintf(tmpname, "%s.cbtmp", databasename);
+		fp = fopen(tmpname, "w");
+		if (fp == NULL) {
+			free(dbstring);
+			sprintf(msg, "Could not replace the game.\nCould not create the temporary file\n%s", tmpname);
+			MessageBox(hwnd, msg, "Error", MB_OK);
+			return 0;
+		}
 
 		// get all games up to gameindex and write them into file
 		p = dbstring;
@@ -2359,7 +2369,7 @@ int handlegamereplace(int replaceindex, char *databasename)
 
 		// write replaced game
 		PDNgametoPDNstring(cbgame, gamestring, "\n");
-		if (gameindex != 0)
+		if (replaceindex != 0)
 			fprintf(fp, "\n\n%s", gamestring.c_str());
 		else
 			fprintf(fp, "%s", gamestring.c_str());
@@ -2368,9 +2378,28 @@ int handlegamereplace(int replaceindex, char *databasename)
 		while (PDNparseGetnextgame(&p, gamestring))
 			fprintf(fp, "%s", gamestring.c_str());
 
-		fclose(fp);
-		if (dbstring != NULL)
-			free(dbstring);
+		write_ok = !ferror(fp);
+		if (fclose(fp) != 0)
+			write_ok = false;
+		free(dbstring);
+
+		if (!write_ok) {
+			DeleteFile(tmpname);
+			sprintf(msg, "Could not replace the game.\nWriting the temporary file failed (disk full?):\n%s\n\nThe database was not changed.", tmpname);
+			MessageBox(hwnd, msg, "Error", MB_OK);
+			return 0;
+		}
+
+		// Replace the original. This fails, leaving it unchanged, if it is read-only or in use.
+		if (!MoveFileEx(tmpname, databasename, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+			DeleteFile(tmpname);
+			sprintf(msg, "Could not replace the game in\n%s\n\nThe file may be read-only or in use. It was not changed.", databasename);
+			MessageBox(hwnd, msg, "Error", MB_OK);
+			return 0;
+		}
+
+		// set reindex flag
+		reindex = 1;
 		return 1;
 	}
 
