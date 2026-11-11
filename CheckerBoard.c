@@ -2977,7 +2977,7 @@ void add_piecesets_to_menu(HMENU hmenu)
 int createcheckerboard(HWND hwnd)
 {
 	FILE *fp;
-	COLORREF dCustomColors[16];
+	static COLORREF dCustomColors[16];	/* ccs keeps a pointer to this, so not on the stack. */
 	char windowtitle[256], str2[256];
 	RECT rect;
 

@@ -223,7 +223,7 @@ extern char g_app_instance_suffix[10];
 
 int initcolorstruct(HWND hwnd, CHOOSECOLOR *ccs, int index)
 {
-	COLORREF dCustomColors[16];
+	static COLORREF dCustomColors[16];	/* ChooseColor() uses this after we return, so not on the stack. */
 	extern CBoptions cboptions;
 	ccs->lStructSize = (DWORD) sizeof(CHOOSECOLOR);
 	ccs->hwndOwner = (HWND) hwnd;
