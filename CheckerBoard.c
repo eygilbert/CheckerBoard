@@ -283,7 +283,7 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPSTR lpszArgs, int
 	UpdateWindow(hwnd);
 
 	// set database filename in case of shell-doubleclick on a *.pdn file
-	sprintf(savegame_filename, lpszArgs);
+	strncpy_terminated(savegame_filename, lpszArgs, sizeof(savegame_filename));
 
 	// initialize common controls - toolbar and status bar need this
 	iccex.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -808,7 +808,12 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 					newposition = TRUE;
 					sprintf(statusbar_txt, "position copied");
 					PostMessage(hwnd, WM_COMMAND, GAMEINFO, 0);
-					sprintf(cbgame.FEN, gamestring);
+
+					/* The old moves do not belong to the new position. Store the position as a
+					 * FEN made from the board, not the clipboard text, which can be any length.
+					 */
+					reset_game(cbgame);
+					board8toFEN(cbboard8, cbgame.FEN, cbcolor, cbgame.gametype);
 				}
 				else
 					sprintf(statusbar_txt, "no valid FEN position in clipboard!");
@@ -1817,7 +1822,7 @@ int handlesetupcc(int *color)
 
 	// and the FEN string
 	board8toFEN(cbboard8, str2, *color, cbgame.gametype);
-	sprintf(cbgame.FEN, str2);
+	sprintf(cbgame.FEN, "%s", str2);
 	return 1;
 }
 
@@ -3170,7 +3175,7 @@ int start3move(int opening_index)
 		length += sprintf(cbgame.event + length, " (%s)", ballotp->name);
 	length += sprintf(cbgame.event + length, ": %s", translated_movestring);
 
-	sprintf(statusbar_txt, cbgame.event);
+	sprintf(statusbar_txt, "%s", cbgame.event);
 	InvalidateRect(hwnd, NULL, 0);
 	updateboardgraphics(hwnd);
 
@@ -4333,7 +4338,7 @@ DWORD AutoThreadFunc(LPVOID param)
 						event += cbgame.event;
 					else
 						event += user_ballots[game0_to_ballot0(gamenumber - 1)].event;
-					sprintf(cbgame.event, event.c_str());
+					strncpy_terminated(cbgame.event, event.c_str(), sizeof(cbgame.event));
 
 					/* Save the Event text to the matchlog file. */
 					emlog_filename(statsfilename);
