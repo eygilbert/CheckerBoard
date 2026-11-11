@@ -679,8 +679,12 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			// show save game dialog. if OK is selected, call 'savehtml' to do the work
 			if (DialogBox(g_hInst, "IDD_SAVEGAME", hwnd, (DLGPROC) DialogFuncSavegame)) {
 				if (getfilename(savegame_filename, OF_SAVEASHTML)) {
-					saveashtml(savegame_filename, &cbgame);
-					sprintf(statusbar_txt, "game saved as HTML!");
+					if (saveashtml(savegame_filename, &cbgame))
+						sprintf(statusbar_txt, "game saved as HTML!");
+					else {
+						sprintf(str1024, "Could not write the HTML file\n%s", savegame_filename);
+						MessageBox(hwnd, str1024, "Error", MB_OK);
+					}
 				}
 			}
 			break;
@@ -697,6 +701,14 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				PDNgametoPDNstring(cbgame, gamepdn, "\n");
 				fprintf(fp, "\n%s", gamepdn.c_str());
 				fclose(fp);
+			}
+			else if (CBstate == ENGINEMATCH) {
+				// No message box: it would stop an unattended match.
+				sprintf(statusbar_txt, "could not save the game to %s", savegame_filename);
+			}
+			else {
+				sprintf(str1024, "Could not save the game to\n%s\n\nThe file may be read-only or in use.", savegame_filename);
+				MessageBox(hwnd, str1024, "Error", MB_OK);
 			}
 
 			// set reindex flag
@@ -4128,7 +4140,8 @@ DWORD AutoThreadFunc(LPVOID param)
 
 				// testset start: clear file testlog.txt
 				Lfp = fopen(testlogname, "w");
-				fclose(Lfp);
+				if (Lfp != NULL)
+					fclose(Lfp);
 			}
 			else
 				// write analysis
@@ -4230,7 +4243,8 @@ DWORD AutoThreadFunc(LPVOID param)
 			strcpy(analysisfilename, CBdocuments);
 			PathAppend(analysisfilename, "analysis.txt");
 			Lfp = fopen(analysisfilename, "w");
-			fclose(Lfp);
+			if (Lfp != NULL)
+				fclose(Lfp);
 			if (cbgame.movesindex > 0) {
 				sprintf(statusbar_txt, "played in game: 1. %s", cbgame.moves[cbgame.movesindex - 1].PDN);
 				logtofile(analysisfilename, statusbar_txt, "a");

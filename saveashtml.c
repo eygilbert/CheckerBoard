@@ -65,6 +65,8 @@ int saveashtml(char *filename, PDNgame *game)
 
 	movenumber++;
 	fp = fopen(filename, "w");
+	if (fp == NULL)
+		return 0;
 
 	fprintf(fp, "<HTML>\n<HEAD>\n<META name=\"GENERATOR\" content=\"CheckerBoard %s\">\n<TITLE>\n", VERSION);
 	fprintf(fp, "%s - %s\n</TITLE>\n", game->black, game->white);

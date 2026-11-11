@@ -165,7 +165,8 @@ void init_logfile()
 	}
 	sprintf(logfilename, "%s\\Dama.log", path);
 	fp = fopen(logfilename, "w");
-	fclose(fp);
+	if (fp != NULL)
+		fclose(fp);
 }
 
 void log(const char *fmt, ...)

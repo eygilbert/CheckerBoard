@@ -498,7 +498,8 @@ void cblog_init()
 	if (cblogfile_path[0] == 0) {
 		sprintf(cblogfile_path, "%s\\CBlog%s.txt", CBdocuments, g_app_instance_suffix);
 		cblogfile = fopen(cblogfile_path, "w");
-		fclose(cblogfile);
+		if (cblogfile != NULL)
+			fclose(cblogfile);
 	}
 }
 

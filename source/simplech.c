@@ -160,7 +160,8 @@ void init_logfile()
 	}
 	sprintf(logfilename, "%s\\Simplech.log", path);
 	fp = fopen(logfilename, "w");
-	fclose(fp);
+	if (fp != NULL)
+		fclose(fp);
 }
 
 void log(const char *fmt, ...)
