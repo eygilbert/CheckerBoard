@@ -5430,6 +5430,8 @@ bool doload(PDNgame *game, const char *gamestring, int *color, Board8x8 board8, 
 	if (issetup)
 		FENtoboard8(board8, game->FEN, color, game->gametype);
 
+	std::string too_long_move;	/* a move token too long to store, if any. */
+
 	/* ok, headers read, now parse PDN input:*/
 	while ((state = (PDN_PARSE_STATE) PDNparseGetnextPDNtoken(&p, token, sizeof(token)))) {
 
@@ -5487,14 +5489,12 @@ bool doload(PDNgame *game, const char *gamestring, int *color, Board8x8 board8, 
 		}
 #endif
 
-		/* Too long to be a move (the tokenizer allows spaces inside moves). Keep it as a
-		 * comment for the previous move rather than overflow entry.PDN; the moves after
-		 * it will then be reported as illegal.
+		/* Too long to be a move (the tokenizer allows spaces inside moves), and too long
+		 * for entry.PDN. Stop here and report it like an illegal move.
 		 */
 		if (strlen(token) >= sizeof(entry.PDN)) {
-			if (game->moves.size() > 0)
-				sprintf(game->moves[game->moves.size() - 1].comment, "%s", token);
-			continue;
+			too_long_move = token;
+			break;
 		}
 
 		// ok, it was just a move. Save just the move string now, and we will fill in
@@ -5508,6 +5508,13 @@ bool doload(PDNgame *game, const char *gamestring, int *color, Board8x8 board8, 
 
 	// fill in the move information.
 	result = pdntogame(*game, board8, *color, errormsg);
+	if (!result && !too_long_move.empty()) {
+		errormsg = "[Event \"" + std::string(game->event) + "\"]\n";
+		errormsg += "Illegal move " + too_long_move.substr(0, 20) + "... (too long)";
+		errormsg += ", near move " + std::to_string(1 + game->moves.size() / 2);
+		errormsg += "\nGame was truncated at that point.";
+		result = true;
+	}
 	reset_move_history = true;
 	newposition = TRUE;
 	return(result);
