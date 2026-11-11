@@ -460,7 +460,7 @@ void set_setup_mode(bool state)
 	if (state) {
 
 		// entering setup mode
-		PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+		abortengine();
 		CheckMenuItem(hmenu, SETUPMODE, MF_CHECKED);
 		sprintf(statusbar_txt, "Setup mode...");
 	}
@@ -605,7 +605,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			break;
 
 		case GAMENEW:
-			PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+			abortengine();
 			newgame();
 			break;
 
@@ -632,7 +632,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			break;
 
 		case GAME3MOVE:
-			PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+			abortengine();
 			if (cboptions.op_crossboard || cboptions.op_barred || cboptions.op_mailplay) {
 				int opening_index = getopening(&cboptions);
 				PostMessage(hwnd, WM_COMMAND, START3MOVE, opening_index);
@@ -816,7 +816,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 			// now if we have something, do something with it
 			if (gamestring != NULL) {
-				PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+				abortengine();
 
 				if (FENtoboard8(cbboard8, gamestring, &cbcolor, cbgame.gametype)) {
 					updateboardgraphics(hwnd);
@@ -855,7 +855,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			// now that the game is in gamestring doload() on it
 			if (gamestring != NULL) {
 				std::string errormsg;
-				PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+				abortengine();
 
 				/* Detect fen or game, load it in either case. */
 				if (is_fen(gamestring)) {
@@ -1059,7 +1059,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			// take back all moves
 			if (CBstate == BOOKVIEW || CBstate == BOOKADD)
 				break;
-			PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+			abortengine();
 			while (cbgame.movesindex > 0) {
 				--cbgame.movesindex;
 				undomove(cbgame.moves[cbgame.movesindex].move, cbboard8);
@@ -1078,7 +1078,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			// go forward all moves
 			if (CBstate == BOOKVIEW || CBstate == BOOKADD)
 				break;
-			PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+			abortengine();
 			forward_to_game_end();
 			if (CBstate == OBSERVEGAME)
 				PostMessage(hwnd, WM_COMMAND, INTERRUPTENGINE, 0);
@@ -2557,7 +2557,7 @@ int selectgame(int how)
 	SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) statusbar_txt);
 
 	// stop engine
-	PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+	abortengine();
 
 	if (how == RE_SEARCH) {
 
@@ -5919,23 +5919,30 @@ int getenginebusy(void)
 }
 
 /*
- * Tell engine to abort searching immediately.
- * Wait a maximum of 1 second for the engine to finish aborting.
+ * Tell engine to abort searching immediately, and wait for it to stop.
+ * Also wait for an animation in progress: the animation thread plays the move on
+ * cbboard8 when it finishes, so a caller that changes the board must wait for it.
+ * Wait a maximum of 2 seconds.
  */
 void abortengine()
 {
 	clock_t t0;
+	MSG msg;
 
-	if (!getenginebusy())
-		return;
-
-	abortcalculation = 1;
-	playnow = 1;
+	if (getenginebusy()) {
+		abortcalculation = 1;
+		playnow = 1;
+	}
 
 	t0 = clock();
-	while (getenginebusy()) {
+	while (getenginebusy() || getanimationbusy()) {
+
+		/* The animation thread SendMessages WM_PAINT to the main window and waits for it.
+		 * PeekMessage lets those sent messages through while we wait here.
+		 */
+		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
 		Sleep(10);
-		if ((int)(clock() - t0) > 1000)
+		if ((int)(clock() - t0) > 2000)
 			break;
 	}
 }
