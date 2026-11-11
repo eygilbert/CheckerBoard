@@ -2333,7 +2333,8 @@ int handlegamereplace(int replaceindex, char *databasename)
 		// if the user gives his ok, replace:
 		char tmpname[MAX_PATH + 16];
 		char msg[MAX_PATH + 200];
-		bool write_ok;
+		char *gamestart, *gametext;
+		bool write_ok, found;
 
 		// read database into memory */
 		dbstring = read_text_file(databasename, etype);
@@ -2344,6 +2345,28 @@ int handlegamereplace(int replaceindex, char *databasename)
 				sprintf(statusbar_txt, "malloc error");
 			return 0;
 		}
+
+		/* Find the game to replace. The text before it and after it is copied unchanged,
+		 * including the blank lines between games and the end of the file.
+		 */
+		p = dbstring;
+		found = true;
+		for (i = 0; i < replaceindex && found; i++)
+			found = PDNparseGetnextgame(&p, gamestring) != 0;
+		gamestart = p;
+		if (found)
+			found = PDNparseGetnextgame(&p, gamestring) != 0;
+		if (!found) {
+			free(dbstring);
+			sprintf(msg, "Could not find game %d in\n%s\n\nThe file may have changed since the game was loaded.\nIt was not changed.", replaceindex + 1, databasename);
+			MessageBox(hwnd, msg, "Error", MB_OK);
+			return 0;
+		}
+
+		// The old game's text starts with the white space that separates it from the game before.
+		gametext = gamestart;
+		while (*gametext == ' ' || *gametext == '\t' || *gametext == '\n' || *gametext == '\r')
+			++gametext;
 
 		/* Write the new database to a temporary file next to the original, then replace the
 		 * original with it, so the original is not lost if the write fails partway.
@@ -2357,26 +2380,20 @@ int handlegamereplace(int replaceindex, char *databasename)
 			return 0;
 		}
 
-		// get all games up to gameindex and write them into file
-		p = dbstring;
-		for (i = 0; i < replaceindex; i++) {
-			PDNparseGetnextgame(&p, gamestring);
-			fprintf(fp, "%s", gamestring.c_str());
-		}
+		// the games before it, and the separator before the old game
+		fwrite(dbstring, 1, gametext - dbstring, fp);
 
-		// skip current game
-		PDNparseGetnextgame(&p, gamestring);
-
-		// write replaced game
+		// the new game, without its final line end; the text after the old game supplies it
 		PDNgametoPDNstring(cbgame, gamestring, "\n");
-		if (replaceindex != 0)
-			fprintf(fp, "\n\n%s", gamestring.c_str());
-		else
-			fprintf(fp, "%s", gamestring.c_str());
+		while (!gamestring.empty() && gamestring.back() == '\n')
+			gamestring.pop_back();
+		fputs(gamestring.c_str(), fp);
 
-		// and read the rest of the file
-		while (PDNparseGetnextgame(&p, gamestring))
-			fprintf(fp, "%s", gamestring.c_str());
+		// the rest of the file
+		if (*p == 0)
+			fputs("\n", fp);
+		else
+			fputs(p, fp);
 
 		write_ok = !ferror(fp);
 		if (fclose(fp) != 0)
