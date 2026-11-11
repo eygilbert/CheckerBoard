@@ -844,10 +844,11 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				/* Detect fen or game, load it in either case. */
 				if (is_fen(gamestring)) {
 					if (!FENtoboard8(cbboard8, gamestring, &cbcolor, cbgame.gametype)) {
-						if (doload(&cbgame, gamestring, &cbcolor, cbboard8, errormsg))
-							MessageBox(hwnd, errormsg.c_str(), "Error", MB_OK);
-
-						sprintf(statusbar_txt, "game copied");
+						/* It looks like a FEN but is not a valid one. Leave the board and game alone. */
+						free(gamestring);
+						sprintf(statusbar_txt, "no valid FEN position in clipboard!");
+						MessageBox(hwnd, "The clipboard has an invalid FEN position.", "Error", MB_OK);
+						break;
 					}
 					else {
 						reset_game(cbgame);
