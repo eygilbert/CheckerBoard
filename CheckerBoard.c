@@ -4759,8 +4759,8 @@ int enginecommand(const char *command, char reply[ENGINECOMMAND_REPLY_SIZE])
 int enginename(char Lstr[MAXNAME])
 // returns the name of the current engine in Lstr
 {
-	// set a default
-	sprintf(Lstr, "no engine found");
+	// set a default, for an empty engine slot
+	sprintf(Lstr, "no %s engine (use Engine > Select)", currentengine == 2 ? "secondary" : "primary");
 	SetCurrentDirectory(CBdirectory);
 
 	if (currentengine == 1) {
