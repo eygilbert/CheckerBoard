@@ -18,6 +18,7 @@
 #include "dialogs.h"
 #include "CheckerBoard.h"
 #include "pdnfind.h"
+#include "utility.h"
 
 #ifdef _WIN64
 #define GWL_HINSTANCE	GWLP_HINSTANCE
@@ -733,7 +734,7 @@ BOOL CALLBACK EngineOptionsFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM 
 	int i, egdb_max;
 	MEMORYSTATUSEX memstat;
 
-	extern char reply[MAXNAME];
+	extern char reply[ENGINECOMMAND_REPLY_SIZE];
 	extern int currentengine;
 
 
@@ -894,7 +895,7 @@ int setengineoptions(HWND hdwnd, int availableMB, ENGINE_OPTIONS *oldoptions, EN
 {
 	char Lstr[MAXNAME];
 	char commandstring[MAXNAME];
-	char reply[MAXNAME];
+	char reply[ENGINECOMMAND_REPLY_SIZE];
 
 	if (newoptions->db_MB + newoptions->hash_MB > availableMB - 32) {
 		sprintf(Lstr,
@@ -940,7 +941,7 @@ int setengineoptions(HWND hdwnd, int availableMB, ENGINE_OPTIONS *oldoptions, EN
 
 int getengineoptions(HWND hdwnd, ENGINE_OPTIONS *options)
 {
-	char reply[256];
+	char reply[ENGINECOMMAND_REPLY_SIZE];
 	HWND hwndControl;
 
 	//get current options for current engine
@@ -1058,13 +1059,16 @@ int getengineoptions(HWND hdwnd, ENGINE_OPTIONS *options)
 int get_more_engine_options(HWND hwnd, MORE_ENGINE_OPTIONS *options)
 {
 	int i;
-	char reply[MAX_PATH];
+	char reply[ENGINECOMMAND_REPLY_SIZE];
 	char buf[100];
 	HWND hctrl;
 
-	/* Check if the engine supports the "dbpath" engine command. */
+	/* Check if the engine supports the "dbpath" engine command.
+	 * The engine may write up to ENGINECOMMAND_REPLY_SIZE bytes, so get the paths in reply.
+	 */
 	hctrl = GetDlgItem(hwnd, IDC_WLD_DIR_EDIT);
-	if (enginecommand("get dbpath", options->wld_directory)) {
+	if (enginecommand("get dbpath", reply)) {
+		strncpy_terminated(options->wld_directory, reply, sizeof(options->wld_directory));
 		EnableWindow(hctrl, 1);
 		SetDlgItemText(hwnd, IDC_WLD_DIR_EDIT, (LPSTR) options->wld_directory);
 
@@ -1139,7 +1143,8 @@ int get_more_engine_options(HWND hwnd, MORE_ENGINE_OPTIONS *options)
 
 	/* Check if the engine supports the "mtcpath" engine command. */
 	hctrl = GetDlgItem(hwnd, IDC_MTC_DIR_EDIT);
-	if (enginecommand("get mtcpath", options->mtc_directory)) {
+	if (enginecommand("get mtcpath", reply)) {
+		strncpy_terminated(options->mtc_directory, reply, sizeof(options->mtc_directory));
 		EnableWindow(hctrl, 1);
 		SetDlgItemText(hwnd, IDC_MTC_DIR_EDIT, (LPSTR) options->mtc_directory);
 
@@ -1167,7 +1172,8 @@ int get_more_engine_options(HWND hwnd, MORE_ENGINE_OPTIONS *options)
 
 	/* Check if the engine supports the "bookfile" engine command. */
 	hctrl = GetDlgItem(hwnd, IDC_BOOKFILE_EDIT);
-	if (enginecommand("get bookfile", options->book_filename)) {
+	if (enginecommand("get bookfile", reply)) {
+		strncpy_terminated(options->book_filename, reply, sizeof(options->book_filename));
 		EnableWindow(hctrl, 1);
 		SetDlgItemText(hwnd, IDC_BOOKFILE_EDIT, (LPSTR) options->book_filename);
 

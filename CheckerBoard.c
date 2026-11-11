@@ -1484,8 +1484,8 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			oldengine = currentengine;
 			DialogBox(g_hInst, "IDD_ENGINEOPTIONS", hwnd, (DLGPROC) EngineOptionsFunc);
 			setcurrentengine(oldengine);
-			enginecommand("get book", Lstr);
-			book_state = atoi(Lstr);
+			enginecommand("get book", reply);
+			book_state = atoi(reply);
 			break;
 
 		case ENGINEEVAL:
@@ -1506,11 +1506,11 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 		case ENGINEHELP:
 			// get a help-filename from engine and display file with default viewer
-			if (enginecommand("help", str2)) {
-				if (strcmp(str2, "")) {
+			if (enginecommand("help", reply)) {
+				if (strcmp(reply, "")) {
 					SetCurrentDirectory(CBdirectory);
 					SetCurrentDirectory("engines");
-					showfile(str2);
+					showfile(reply);
 					SetCurrentDirectory(CBdirectory);
 				}
 				else
@@ -3148,7 +3148,7 @@ int createcheckerboard(HWND hwnd)
 
 	// display the engine name in the window title
 	sprintf(windowtitle, "loading engine - please wait...");
-	sprintf(str2, "CheckerBoard%s: %s", windowtitle, g_app_instance_suffix);
+	sprintf(str2, "CheckerBoard%s: %s", g_app_instance_suffix, windowtitle);
 	SetWindowText(hwnd, str2);
 
 	// initialize the board which is stored in board8
@@ -3651,7 +3651,7 @@ DWORD SearchThreadFunc(LPVOID param)
 	case ENGINEMATCH:
 		{
 			char filename[MAX_PATH];
-			char name[250];
+			char name[MAXNAME];
 			double total;
 
 			/* Elapsed has already been subtracted from time_remaining, but we want to print the engine's
@@ -4087,7 +4087,7 @@ DWORD AutoThreadFunc(LPVOID param)
 	static int movecount;
 	int i;
 	static char FEN[256];
-	char engine1[MAXNAME], engine2[MAXNAME];	// holds engine names
+	char engine1[ENGINECOMMAND_REPLY_SIZE], engine2[ENGINECOMMAND_REPLY_SIZE];	// holds engine names (engine replies)
 	int matchcontinues = 0;
 
 	// autothread is started at startup, and keeps running until the program
@@ -4747,7 +4747,7 @@ void togglecurrentengine(void)
 
 void setcurrentengine(int engineN)
 {
-	char reply[256], windowtitle[256];
+	char reply[ENGINECOMMAND_REPLY_SIZE], windowtitle[256];
 
 	// set the engine
 	if (engineN == 1) {
@@ -4764,8 +4764,7 @@ void setcurrentengine(int engineN)
 
 	if (CBstate != ENGINEMATCH) {
 		enginename(reply);
-		sprintf(windowtitle, "CheckerBoard%s: ", g_app_instance_suffix);
-		strcat(windowtitle, reply);
+		sprintf(windowtitle, "CheckerBoard%.20s: %.200s", g_app_instance_suffix, reply);
 		SetWindowText(hwnd, windowtitle);
 	}
 
@@ -4817,36 +4816,35 @@ int enginecommand(const char *command, char reply[ENGINECOMMAND_REPLY_SIZE])
 
 int enginename(char Lstr[MAXNAME])
 // returns the name of the current engine in Lstr
+// The engine writes into a buffer of the protocol's reply size, and the name is truncated to MAXNAME.
 {
+	char name[ENGINECOMMAND_REPLY_SIZE];
+	int found = 0;
+
 	// set a default, for an empty engine slot
-	sprintf(Lstr, "no %s engine (use Engine > Select)", currentengine == 2 ? "secondary" : "primary");
+	sprintf(name, "no %s engine (use Engine > Select)", currentengine == 2 ? "secondary" : "primary");
 	SetCurrentDirectory(CBdirectory);
 
 	if (currentengine == 1) {
-		if (enginecommand1 != 0) {
-			if ((enginecommand1)("name", Lstr))
-				return 1;
-		}
-
-		if (enginename1 != 0) {
-			(enginename1)(Lstr);
-			return 1;
+		if (enginecommand1 != 0 && (enginecommand1)("name", name))
+			found = 1;
+		else if (enginename1 != 0) {
+			(enginename1)(name);
+			found = 1;
 		}
 	}
 
 	if (currentengine == 2) {
-		if (enginecommand2 != 0) {
-			if ((enginecommand2)("name", Lstr))
-				return 1;
-		}
-
-		if (enginename2 != 0) {
-			(enginename2)(Lstr);
-			return 1;
+		if (enginecommand2 != 0 && (enginecommand2)("name", name))
+			found = 1;
+		else if (enginename2 != 0) {
+			(enginename2)(name);
+			found = 1;
 		}
 	}
 
-	return 0;
+	strncpy_terminated(Lstr, name, MAXNAME);
+	return found;
 }
 
 int domove(const CBmove &m, Board8x8 b)
