@@ -869,6 +869,17 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				sprintf(statusbar_txt, "clipboard open failed");
 			break;
 
+		case AUTOMOVESPLAY:
+			/* Posted by the AutoThread, with the state it was in as lParam. Ignore it if that
+			 * mode has ended since (e.g. the user pressed Escape to stop an engine match),
+			 * else handle it like MOVESPLAY.
+			 */
+			if (lParam != (LPARAM)CBstate) {
+				setenginestarting(FALSE);
+				break;
+			}
+			/* fall through */
+
 		case MOVESPLAY:
 			// force the engine to either play now, or to start calculating
 			// this is the only place where the engine is started
@@ -3696,6 +3707,10 @@ int changeCBstate(int newstate)
 	// engine is not running
 	PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
 
+	/* Stop and reset the clocks when leaving a mode where engines play each other. */
+	if ((CBstate == ENGINEMATCH || CBstate == AUTOPLAY || CBstate == ENGINEGAME) && newstate != CBstate)
+		reset_game_clocks();
+
 	// toolbar buttons
 	if (CBstate == BOOKVIEW)
 		SendMessage(tbwnd, TB_CHECKBUTTON, (WPARAM) BOOKMODE_VIEW, MAKELONG(0, 0));
@@ -3936,6 +3951,16 @@ int game0_to_match0(int game0)
 	return(game0 / (2 * num_ballots()));
 }
 
+/*
+ * The AutoThread asks the main thread to start a search by posting AUTOMOVESPLAY,
+ * with the state it is in as lParam. The handler ignores a request left over from a
+ * mode that has ended since (e.g. the user pressed Escape to stop an engine match).
+ */
+static void post_auto_play(void)
+{
+	PostMessage(hwnd, WM_COMMAND, AUTOMOVESPLAY, (LPARAM)CBstate);
+}
+
 DWORD AutoThreadFunc(LPVOID param)
 {
 	//	this thread drives autoplay,analyze game and engine match.
@@ -3979,7 +4004,7 @@ DWORD AutoThreadFunc(LPVOID param)
 
 				/* after determining the user move startengine flag is set and the move is animated. */
 				setenginestarting(TRUE);
-				PostMessage(hwnd, (UINT) WM_COMMAND, (WPARAM) MOVESPLAY, (LPARAM) 0);
+				post_auto_play();
 				startengine = FALSE;
 			}
 			break;
@@ -4029,8 +4054,8 @@ DWORD AutoThreadFunc(LPVOID param)
 			updateboardgraphics(hwnd);
 			reset_move_history = true;
 			newposition = TRUE;
-			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
 			setenginestarting(TRUE);
+			post_auto_play();
 			Sleep(SLEEPTIME);
 			break;
 
@@ -4044,7 +4069,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			else {
 				// else continue game by sending a play command
 				setenginestarting(TRUE);
-				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+				post_auto_play();
 
 				// sleep a bit to allow engine to start
 				Sleep(SLEEPTIME);
@@ -4070,7 +4095,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			}
 
 			setenginestarting(TRUE);
-			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+			post_auto_play();
 
 			break;
 
@@ -4101,7 +4126,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			logtofile(analysisfilename, statusbar_txt, "a");
 
 			setenginestarting(TRUE);
-			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+			post_auto_play();
 
 			// go into a for loop until the game is completely analyzed
 			for (;;) {
@@ -4112,7 +4137,7 @@ DWORD AutoThreadFunc(LPVOID param)
 					PostMessage(hwnd, WM_COMMAND, MOVESBACK, 0);
 					if (CBstate == ANALYZEGAME && gameover == FALSE) {
 						setenginestarting(TRUE);
-						PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+						post_auto_play();
 					}
 				}
 			}
@@ -4155,7 +4180,7 @@ DWORD AutoThreadFunc(LPVOID param)
 
 			PostMessage(hwnd, WM_COMMAND, MOVESFORWARDALL, 0);
 			setenginestarting(TRUE);
-			PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+			post_auto_play();
 
 			// analyze entire game in this for loop
 			for (;;) {
@@ -4169,7 +4194,7 @@ DWORD AutoThreadFunc(LPVOID param)
 					// we are at the end of the game
 					if (CBstate == ANALYZEPDN && gameover == FALSE) {
 						setenginestarting(TRUE);
-						PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+						post_auto_play();
 					}
 				}
 			}
@@ -4180,7 +4205,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			if (newposition) {
 				playnow = 0;
 				setenginestarting(TRUE);
-				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+				post_auto_play();
 				newposition = 0;
 			}
 			break;
@@ -4390,7 +4415,7 @@ DWORD AutoThreadFunc(LPVOID param)
 				}
 
 				setenginestarting(TRUE);
-				PostMessage(hwnd, WM_COMMAND, MOVESPLAY, 0);
+				post_auto_play();
 
 				// give main thread some time to handle this message
 				Sleep(SLEEPTIME);

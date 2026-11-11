@@ -159,6 +159,7 @@ extern char CBdocuments[MAX_PATH];
 #define MOVESCOMMENT 207
 #define INTERRUPTENGINE 206
 #define ABORTENGINE 208
+#define AUTOMOVESPLAY 209	/* MOVESPLAY posted by the AutoThread; lParam is its CBstate. */
 
 // options menu
 #define LEVELEXACT 340
