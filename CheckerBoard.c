@@ -907,6 +907,16 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			// this is the only place where the engine is started
 			if (setup_mode)
 				set_setup_mode(false);
+			if (getmove == NULL && !getenginebusy()) {
+				/* No engine in the current slot (Engine > Select set it to none, or it failed to load). */
+				setenginestarting(FALSE);
+				if (CBstate != NORMAL)
+					changeCBstate(NORMAL);
+				sprintf(statusbar_txt, "There is no engine. Please use the Engine > Select command to select one.");
+				SendMessage(hStatusWnd, SB_SETTEXT, (WPARAM) 0, (LPARAM) statusbar_txt);
+				clicks.clear();
+				break;
+			}
 			if (!getenginebusy() && !getanimationbusy()) {
 
 				// TODO think about synchronization issues here!
@@ -1405,8 +1415,13 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case CM_ENGINEMATCH:
 			if (CBstate == BOOKVIEW || CBstate == BOOKADD)
 				break;
-			if (!enginecommand1 || !enginecommand2)
+			if (!enginecommand1 || !enginecommand2) {
+				MessageBox(hwnd,
+						   "An engine match needs both a primary and a secondary engine.\n\nPlease use the Engine > Select command\nto select them.",
+						   "Engine Match",
+						   MB_OK);
 				break;
+			}
 			if (DialogBox(g_hInst, MAKEINTRESOURCE(IDD_START_ENGINE_MATCH), hwnd, (DLGPROC)DialogStartEngineMatchFunc)) {
 				startmatch = TRUE;
 				changeCBstate(ENGINEMATCH);
@@ -1414,6 +1429,13 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			break;
 
 		case ENGINEVSENGINE:
+			if (!getmove1 || !getmove2) {
+				MessageBox(hwnd,
+						   "Engine - Engine needs both a primary and a secondary engine.\n\nPlease use the Engine > Select command\nto select them.",
+						   "Engine - Engine",
+						   MB_OK);
+				break;
+			}
 			startmatch = TRUE;
 			changeCBstate(ENGINEGAME);
 			break;
@@ -5578,7 +5600,7 @@ void InitCheckerBoard(Board8x8 b)
 
 /*
  * Load an engine dll, and get pointers to the exported functions in the dll.
- * Return non-zero on error.
+ * Return non-zero on error, after telling the user; the output arguments are then not changed.
  */
 int load_engine
 	(
@@ -5591,53 +5613,105 @@ int load_engine
 		const char *pri_or_sec
 	)
 {
-	char buf[256];
+	char buf[512];
+	HINSTANCE newlib;
+	CB_GETMOVE newgetmove;
 
 	// go to the right directory to load engines
 	SetCurrentDirectory(CBdirectory);
-	sprintf(buf, "engines\\%s", dllname);
-	*lib = LoadLibrary(buf);
+	sprintf(buf, "engines\\%.200s", dllname);
+	newlib = LoadLibrary(buf);
 
 	// go back to the working dir
 	SetCurrentDirectory(CBdirectory);
 
-	// If the handle is valid, try to get the function addresses
-	if (*lib != NULL) {
-		*cmdfn = (CB_ENGINECOMMAND) GetProcAddress(*lib, "enginecommand");
-		*namefn = (CB_GETSTRING) GetProcAddress(*lib, "enginename");
-		*getmovefn = (CB_GETMOVE) GetProcAddress(*lib, "getmove");
-		*islegalfn = (CB_ISLEGAL) GetProcAddress(*lib, "islegal");
-		if (*islegalfn == NULL)
-			*islegalfn = builtinislegal;
-		return(0);
-	}
-	else {
+	if (newlib == NULL) {
 		sprintf(buf,
-				"CheckerBoard could not find\nthe %s engine dll.\n\nPlease use the \n'Engine->Select..' command\nto select a new %s engine",
-			pri_or_sec,
+				"CheckerBoard could not load the %s engine,\n%.200s\n\nPlease use the Engine > Select command\nto select a new %s engine.",
+				pri_or_sec,
+				dllname,
 				pri_or_sec);
 		MessageBox(hwnd, buf, "Error", MB_OK);
+		return(1);
+	}
+
+	// A dll without getmove() is not an engine.
+	newgetmove = (CB_GETMOVE) GetProcAddress(newlib, "getmove");
+	if (newgetmove == NULL) {
+		FreeLibrary(newlib);
+		sprintf(buf,
+				"%.200s\nis not a CheckerBoard engine.\n\nPlease use the Engine > Select command\nto select a new %s engine.",
+				dllname,
+				pri_or_sec);
+		MessageBox(hwnd, buf, "Error", MB_OK);
+		return(1);
+	}
+
+	*lib = newlib;
+	*getmovefn = newgetmove;
+	*cmdfn = (CB_ENGINECOMMAND) GetProcAddress(newlib, "enginecommand");
+	*namefn = (CB_GETSTRING) GetProcAddress(newlib, "enginename");
+	*islegalfn = (CB_ISLEGAL) GetProcAddress(newlib, "islegal");
+	if (*islegalfn == NULL)
+		*islegalfn = builtinislegal;
+	return(0);
+}
+
+/*
+ * Change the engine in one slot (primary or secondary) to dllname, or empty the slot if
+ * dllname is "". Each slot holds one LoadLibrary reference. The old dll is not freed here;
+ * its handle is returned in *oldlib for the caller to free after both slots are changed, so
+ * that a dll which stays in use (e.g. when the two engines are swapped) is never unloaded
+ * and reloaded. If the new engine cannot be loaded, the slot is not changed.
+ */
+static void change_engine
+	(
+		char *dllname,
+		char *enginestring,
+		HINSTANCE *lib,
+		CB_ENGINECOMMAND *cmdfn,
+		CB_GETSTRING *namefn,
+		CB_GETMOVE *getmovefn,
+		CB_ISLEGAL *islegalfn,
+		const char *pri_or_sec,
+		HINSTANCE *oldlib
+	)
+{
+	char buf[512];
+	HINSTANCE prevlib = *lib;
+
+	*oldlib = NULL;
+	if (dllname[0] != 0) {
+		if (strlen(dllname) >= sizeof(cboptions.primaryenginestring)) {
+			sprintf(buf, "The %s engine file name is too long:\n%.200s", pri_or_sec, dllname);
+			MessageBox(hwnd, buf, "Error", MB_OK);
+		}
+		else if (load_engine(lib, dllname, cmdfn, namefn, getmovefn, islegalfn, pri_or_sec) == 0) {
+			strcpy(enginestring, dllname);
+			*oldlib = prevlib;
+		}
+	}
+	else {
+		*lib = NULL;
+		*oldlib = prevlib;
+	}
+
+	// An empty slot, whether asked for or because loading failed.
+	if (*lib == NULL) {
 		*cmdfn = NULL;
 		*namefn = NULL;
 		*getmovefn = NULL;
-		*islegalfn = NULL;
-		return(1);
+		*islegalfn = builtinislegal;
+		enginestring[0] = 0;
 	}
 }
 
 void loadengines(char *pri_fname, char *sec_fname)
-// sets the engines
-// this is first called from WinMain on the WM_CREATE command.
-// the global strings "primaryenginestring",
-// "secondaryenginestring"  contain
-// the filenames of these engines.
-// TODO: need to unload engines properly, first unload, then load
-// new engines. for this, however, CB needs to know which engines
-// are loaded right now.
+// sets the engines.
+// this is first called from the initengines thread at startup, with the engine names saved
+// in the registry. An empty name means no engine in that slot.
 {
-	int status;
-	HMODULE primaryhandle, secondaryhandle;
-	char Lstr[256];
+	HINSTANCE oldlib1 = NULL, oldlib2 = NULL;
 
 	/* An engine may be unloaded below, so stop a search in progress first. */
 	abortengine();
@@ -5645,96 +5719,33 @@ void loadengines(char *pri_fname, char *sec_fname)
 	// set built in functions
 	CBgametype = (CB_GETGAMETYPE) builtingametype;
 
-	// load engine dlls
-	// first, primary engine
-	// is there a way to check whether a module is already loaded?
-	primaryhandle = GetModuleHandle(pri_fname);
-	sprintf(Lstr, "handle = %i (primary engine)", PtrToLong(primaryhandle));
-	CBlog(Lstr);
-	secondaryhandle = GetModuleHandle(sec_fname);
-	sprintf(Lstr, "secondaryhandle = %i (secondary engine)", PtrToLong(secondaryhandle));
-	CBlog(Lstr);
+	if (!hinstLib1 || strcmp(pri_fname, cboptions.primaryenginestring))
+		change_engine(pri_fname,
+					  cboptions.primaryenginestring,
+					  &hinstLib1,
+					  &enginecommand1,
+					  &enginename1,
+					  &getmove1,
+					  &islegal1,
+					  "primary",
+					  &oldlib1);
 
-	// now, if one of the two handles, primaryhandle or secondaryhandle is
-	// != 0, then that engine is already loaded and doesn't need to be loaded
-	// again.
-	// however, if these handles are 0, then we have to unload the engine
-	// that is currently loaded. or, put differently, if one of the
-	// handles oldprimary/oldsecondary is not equal to one of the new
-	// handles, then it has to be unloaded.
-	// free up engine modules that are no longer used!
-	// in fact, we should do this first, before loading the new engines!!
+	if (!hinstLib2 || strcmp(sec_fname, cboptions.secondaryenginestring))
+		change_engine(sec_fname,
+					  cboptions.secondaryenginestring,
+					  &hinstLib2,
+					  &enginecommand2,
+					  &enginename2,
+					  &getmove2,
+					  &islegal2,
+					  "secondary",
+					  &oldlib2);
 
-	/*
-	 * If there was a primary engine loaded, and it is different from the new primary and secondary
-	 * engine handles, then unload it.
-	 */
-	if (hinstLib1) {
-		if (hinstLib1 != primaryhandle && hinstLib1 != secondaryhandle) {
-			status = FreeLibrary(hinstLib1);
-			hinstLib1 = 0;
-			enginecommand1 = NULL;
-			enginename1 = NULL;
-			getmove1 = NULL;
-			islegal1 = NULL;
-		}
-	}
-
-	/* If there was a secondary engine loaded, and it is different from the new primary and secondary
-	 * engine handles, then unload it.
-	 */
-	if (hinstLib2) {
-		if (hinstLib2 != primaryhandle && hinstLib2 != secondaryhandle) {
-			status = FreeLibrary(hinstLib2);
-			hinstLib2 = 0;
-			enginecommand2 = NULL;
-			enginename2 = NULL;
-			getmove2 = NULL;
-			islegal2 = NULL;
-		}
-	}
-
-	/* Load a new primary engine if there isn't one already loaded, or
-	 * if the requested new engine filename is different from the one presently loaded (this happens
-	 * if the presently loaded primary engine handle is same as the secondary engine handle).
-	 */
-	if (!hinstLib1 || strcmp(pri_fname, cboptions.primaryenginestring)) {
-		status = load_engine(&hinstLib1, pri_fname, &enginecommand1, &enginename1, &getmove1, &islegal1, "primary");
-		if (!status)
-			strcpy(cboptions.primaryenginestring, pri_fname);	/* Success. */
-		else {
-			if (strcmp(pri_fname, cboptions.primaryenginestring)) {
-				status = load_engine(&hinstLib1,
-									 cboptions.primaryenginestring,
-									 &enginecommand1,
-									 &enginename1,
-									 &getmove1,
-									 &islegal1,
-									 "primary");
-				if (status)
-					cboptions.primaryenginestring[0] = 0;
-			}
-		}
-	}
-
-	if (!hinstLib2 || strcmp(sec_fname, cboptions.secondaryenginestring)) {
-		status = load_engine(&hinstLib2, sec_fname, &enginecommand2, &enginename2, &getmove2, &islegal2, "secondary");
-		if (!status)
-			strcpy(cboptions.secondaryenginestring, sec_fname); /* Success. */
-		else {
-			if (strcmp(sec_fname, cboptions.secondaryenginestring)) {
-				status = load_engine(&hinstLib2,
-									 cboptions.secondaryenginestring,
-									 &enginecommand2,
-									 &enginename2,
-									 &getmove2,
-									 &islegal2,
-									 "secondary");
-				if (status)
-					cboptions.secondaryenginestring[0] = 0;
-			}
-		}
-	}
+	// Now free the engines that were replaced. A dll still used by a slot keeps its reference.
+	if (oldlib1)
+		FreeLibrary(oldlib1);
+	if (oldlib2)
+		FreeLibrary(oldlib2);
 
 	// set current engine
 	setcurrentengine(1);

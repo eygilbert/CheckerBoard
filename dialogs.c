@@ -1317,6 +1317,43 @@ int set_more_engine_options(HWND hwnd, MORE_ENGINE_OPTIONS *old_options, MORE_EN
 	return(1);
 }
 
+#define NO_ENGINE_TEXT "(none)"
+
+/*
+ * Fill an engine listbox with the dlls in the engines directory, with "(none)" as the first
+ * item, and select the current engine (an empty name selects "(none)").
+ */
+static void init_engine_list(HWND hdwnd, int id, const char *current)
+{
+	LRESULT i;
+
+	SendDlgItemMessage(hdwnd, id, LB_DIR, 0, (LPARAM) "*.dll");
+	SendDlgItemMessage(hdwnd, id, LB_INSERTSTRING, 0, (LPARAM) NO_ENGINE_TEXT);
+	if (current[0] == 0)
+		i = 0;
+	else
+		i = SendDlgItemMessage(hdwnd, id, LB_FINDSTRINGEXACT, 0, (LPARAM) current);
+	if (i != LB_ERR)
+		SendDlgItemMessage(hdwnd, id, LB_SETCURSEL, i, 0);
+}
+
+/*
+ * Get the engine chosen in an engine listbox: "" for "(none)", or the current engine
+ * if nothing is selected.
+ */
+static void get_engine_selection(HWND hdwnd, int id, const char *current, char fname[MAX_PATH])
+{
+	int i;
+
+	i = (int)SendDlgItemMessage(hdwnd, id, LB_GETCURSEL, 0, 0L);
+	if (i == 0)
+		fname[0] = 0;
+	else if (i > 0 && SendDlgItemMessage(hdwnd, id, LB_GETTEXTLEN, i, 0) < MAX_PATH)
+		SendDlgItemMessage(hdwnd, id, LB_GETTEXT, i, (LPARAM) fname);
+	else
+		strcpy(fname, current);
+}
+
 BOOL CALLBACK EngineDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	/* this dialog box lets the user change the engines CheckerBoard is using.
@@ -1328,8 +1365,6 @@ BOOL CALLBACK EngineDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM l
 		
 		if the new primary engine is playing dama italiana (gametype 22) the mirror flag is set.
 	*/
-	int i;
-
 	char pri_fname[MAX_PATH], sec_fname[MAX_PATH];
 	extern char CBdirectory[MAX_PATH];
 	extern CBoptions cboptions;
@@ -1343,11 +1378,9 @@ BOOL CALLBACK EngineDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM l
 		SetCurrentDirectory(CBdirectory);
 		SetCurrentDirectory("engines");
 
-		// initialize the comboboxes
-		SendDlgItemMessage(hdwnd, IDC_PRIMARY, LB_DIR, 0, (LPARAM) "*.dll");
-		SendDlgItemMessage(hdwnd, IDC_SECONDARY, LB_DIR, 0, (LPARAM) "*.dll");
-		SendDlgItemMessage(hdwnd, IDC_PRIMARY, LB_SELECTSTRING, -1, (LPARAM) cboptions.primaryenginestring);
-		SendDlgItemMessage(hdwnd, IDC_SECONDARY, LB_SELECTSTRING, -1, (LPARAM) cboptions.secondaryenginestring);
+		// initialize the listboxes
+		init_engine_list(hdwnd, IDC_PRIMARY, cboptions.primaryenginestring);
+		init_engine_list(hdwnd, IDC_SECONDARY, cboptions.secondaryenginestring);
 		return 1;
 
 	case WM_COMMAND:
@@ -1358,18 +1391,8 @@ BOOL CALLBACK EngineDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM l
 			return 1;
 
 		case IDC_OK:
-			i = (int)SendDlgItemMessage(hdwnd, IDC_PRIMARY, LB_GETCURSEL, 0, 0L);
-			if (i > -1)
-				SendDlgItemMessage(hdwnd, IDC_PRIMARY, LB_GETTEXT, i, (LPARAM) pri_fname);
-			else
-				pri_fname[0] = 0;
-
-			// new version code below
-			i = (int)SendDlgItemMessage(hdwnd, IDC_SECONDARY, LB_GETCURSEL, 0, 0L);
-			if (i > -1)
-				SendDlgItemMessage(hdwnd, IDC_SECONDARY, LB_GETTEXT, i, (LPARAM) sec_fname);
-			else
-				sec_fname[0] = 0;
+			get_engine_selection(hdwnd, IDC_PRIMARY, cboptions.primaryenginestring, pri_fname);
+			get_engine_selection(hdwnd, IDC_SECONDARY, cboptions.secondaryenginestring, sec_fname);
 
 			// if we have a new engine, call loadengines.
 			if
