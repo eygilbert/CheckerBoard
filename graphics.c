@@ -41,6 +41,24 @@ static HFONT myfont;	// font for board numbers
 static bool animation_state = true;
 static HANDLE memdc_lock;		/* Prevent multiple threads from simultaneous access to memdc. */
 
+/*
+ * The main thread, the animation thread and the AutoThread all draw into memdc
+ * (and bgdc, bmpdc, stretchdc, boarddc). A GDI device context must not be used by two
+ * threads at the same time, so every function that uses these DCs takes memdc_lock.
+ * GDI batches calls per thread, so flush them before letting another thread in.
+ * The mutex is recursive, so a function holding the lock can call another one that takes it.
+ */
+static void lock_memdc(void)
+{
+	WaitForSingleObject(memdc_lock, INFINITE);
+}
+
+static void unlock_memdc(void)
+{
+	GdiFlush();
+	ReleaseMutex(memdc_lock);
+}
+
 int setoffsets(int _offset, int _upperoffset)
 {
 	// receives offsets from checkerboard.c instead of using extern variables.
@@ -107,6 +125,7 @@ int updategraphics(HWND hwnd)
 		return 0;
 	}
 
+	lock_memdc();
 	BitBlt(hdc,
 		   paintstruct.rcPaint.left,
 		   paintstruct.rcPaint.top,
@@ -116,8 +135,8 @@ int updategraphics(HWND hwnd)
 		   paintstruct.rcPaint.left,
 		   paintstruct.rcPaint.top,
 		   SRCCOPY);
+	unlock_memdc();
 	EndPaint(hwnd, &paintstruct);
-	ReleaseDC(hwnd, hdc);
 	return 1;
 }
 
@@ -130,6 +149,7 @@ int resizegraphics(HWND hwnd)
 	int success;
 	double xmetric, ymetric;
 
+	lock_memdc();
 	getxymetrics(&xmetric, &ymetric, hwnd);
 	size = xmetric;
 
@@ -210,6 +230,7 @@ int resizegraphics(HWND hwnd)
 						DEFAULT_PITCH | FF_SCRIPT,
 						"Courier New");
 
+	unlock_memdc();
 	return 1;
 }
 
@@ -231,6 +252,7 @@ int diagramtoclipboard(HWND hwnd)
 	GetClientRect(hwnd, &WinDim);
 	cxClient = WinDim.right;
 	cyClient = WinDim.bottom;
+	lock_memdc();
 	clipbitmap = CreateCompatibleBitmap(bgdc, cxClient, cyClient - offset);
 
 	// select bitmap in animation device context
@@ -252,6 +274,7 @@ int diagramtoclipboard(HWND hwnd)
 
 	SelectObject(bgdc, bgbitmap);
 	DeleteObject(clipbitmap);
+	unlock_memdc();
 
 	return 1;
 }
@@ -272,6 +295,7 @@ int samplediagramtoclipboard(HWND hwnd)
 	x /= 8;
 	x *= 3;
 	y = x;
+	lock_memdc();
 	clipbitmap = CreateCompatibleBitmap(bgdc, x, y);
 
 	// select bitmap in animation device context
@@ -296,6 +320,7 @@ int samplediagramtoclipboard(HWND hwnd)
 
 	// restore old board, else the sample bitmap is shown in CB
 	printboard(hwnd, memdc, bmpdc, stretchdc, cbboard8);
+	unlock_memdc();
 
 	return 1;
 }
@@ -399,7 +424,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 
 		// a normal move without jumps
 			for (i = 0; i <= STEPS; i++) {
-				WaitForSingleObject(memdc_lock, INFINITE);
+				lock_memdc();
 				timer = clock();
 
 				// find redrawing rectangle
@@ -447,7 +472,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 				r.right += 5;
 				r.bottom += 5;
 				InvalidateRect(hwnd, &r, 0);
-				ReleaseMutex(memdc_lock);
+				unlock_memdc();
 				SendMessage(hwnd, WM_PAINT, (WPARAM) 0, (LPARAM) 0);
 
 				//-----------------------------------------------
@@ -476,7 +501,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 
 				// now animate the part-move:
 				for (i = 0; i <= 2 * STEPS; i++) {
-					WaitForSingleObject(memdc_lock, INFINITE);
+					lock_memdc();
 					timer = clock();
 
 					// find redrawing region
@@ -517,7 +542,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 					StretchBlt(memdc, r.left, r.top, size, size, bmpdc, 0, 0, BMPSIZE, BMPSIZE, SRCPAINT);
 
 					InvalidateRect(hwnd, &r, 0);
-					ReleaseMutex(memdc_lock);
+					unlock_memdc();
 					SendMessage(hwnd, WM_PAINT, (WPARAM) 0, (LPARAM) 0);
 
 					//-----------------------------------------------
@@ -545,7 +570,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 
 	// if move highlighting is on, we do it!
 	// this should go in a separate function!
-	WaitForSingleObject(memdc_lock, INFINITE);
+	lock_memdc();
 	if (cboptions.highlight) {
 
 		// create a pen:
@@ -572,7 +597,7 @@ DWORD AnimationThreadFunc(HWND hwnd)
 	r.top = upperoffset;
 
 	InvalidateRect(hwnd, &r, 0);
-	ReleaseMutex(memdc_lock);
+	unlock_memdc();
 
 	// TODO: should not mix game state stuff with animation!
 	cbcolor = CB_CHANGECOLOR(cbcolor);
@@ -701,16 +726,29 @@ void drawclock(HWND hwnd, HDC hdc)
 		format_clock(black_clock, black_txt);
 		format_clock(white_clock, white_txt);
 		sprintf(clocktext, "    Black %s         White %s", black_txt, white_txt);
-		SetTextColor(hdc, PALETTERGB(0, 0, 0));
+
+		/* Select the clock's own font and text settings rather than relying on whatever
+		 * is currently selected in hdc (printboard selects the board numbers font), and
+		 * restore the previous ones afterwards.
+		 */
+		HFONT oldfont = (HFONT)SelectObject(hdc, GetStockObject(SYSTEM_FONT));
+		COLORREF oldcolor = SetTextColor(hdc, PALETTERGB(0, 0, 0));
+		COLORREF oldbkcolor = SetBkColor(hdc, PALETTERGB(255, 255, 255));
+		int oldbkmode = SetBkMode(hdc, OPAQUE);
 		TextOut(hdc, 5 + xoffset, upperoffset + yoffset - (CLOCKHEIGHT - 3), clocktext, (int)strlen(clocktext));
+		SetBkMode(hdc, oldbkmode);
+		SetBkColor(hdc, oldbkcolor);
+		SetTextColor(hdc, oldcolor);
+		if (oldfont)
+			SelectObject(hdc, oldfont);
 	}
 }
 
 void refresh_clock(HWND hwnd)
 {
-	WaitForSingleObject(memdc_lock, INFINITE);
+	lock_memdc();
 	drawclock(hwnd, memdc);
-	ReleaseMutex(memdc_lock);
+	unlock_memdc();
 }
 
 int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, Board8x8 b)
@@ -742,7 +780,7 @@ int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, Board8x8 b)
 		return 0;
 	}
 
-	WaitForSingleObject(memdc_lock, INFINITE);
+	lock_memdc();
 	getxymetrics(&xmetric, &ymetric, hwnd);
 	size = xmetric;
 
@@ -917,7 +955,7 @@ int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, Board8x8 b)
 	r.bottom = r.top + 8 * size;
 
 	InvalidateRect(hwnd, &r, 0);
-	ReleaseMutex(memdc_lock);
+	unlock_memdc();
 
 	return 1;
 }
@@ -1043,9 +1081,11 @@ void selectstone(int x, int y, HWND hwnd)
 	hPen = CreatePen(PS_SOLID, 1, cboptions.colors[0]);
 	coorstocoors(&x, &y, cboptions.invert, cboptions.mirror);
 	getxymetrics(&xmetric, &ymetric, hwnd);
+	lock_memdc();
 	hOldPen = (HPEN) SelectObject(memdc, hPen);
 	draw_highlight(x, y, 0, 0, xmetric);
 	SelectObject(memdc, hOldPen);
+	unlock_memdc();
 	DeleteObject(hPen);
 
 	// get redrawing region
