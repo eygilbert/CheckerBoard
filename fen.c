@@ -40,9 +40,10 @@ int is_fen(const char *buf)
 int FENtoboard8(Board8x8 board, const char *buf, int *poscolor, int gametype)
 {
 	int square, square2, s;
-	int color, piece_type;
+	int color, piece_type, tomove;
 	int i, j;
 	const char *lastp;
+	Board8x8 newboard;
 
 	/* Allow possible extraneous stuff at the beginning, since it is used by the clipboard paste handler. */
 	lastp = strchr(buf, ':');
@@ -51,17 +52,17 @@ int FENtoboard8(Board8x8 board, const char *buf, int *poscolor, int gametype)
 
 	/* Get the side-to-move color. */
 	buf = lastp - 1;
-	if (toupper(*buf) == 'B')
-		*poscolor = CB_BLACK;
-	else if (toupper(*buf) == 'W')
-		*poscolor = CB_WHITE;
+	if (toupper((unsigned char)*buf) == 'B')
+		tomove = CB_BLACK;
+	else if (toupper((unsigned char)*buf) == 'W')
+		tomove = CB_WHITE;
 	else
 		return(0);
 
-	/* Reset board. */
+	/* Parse into a local board, so that board and *poscolor are only changed on success. */
 	for (i = 0; i < 8; ++i) {
 		for (j = 0; j < 8; ++j)
-			board[i][j] = 0;
+			newboard[i][j] = 0;
 	}
 
 	++buf;
@@ -70,46 +71,50 @@ int FENtoboard8(Board8x8 board, const char *buf, int *poscolor, int gametype)
 
 	++buf;
 	lastp = buf;
+	color = 0;		/* No piece color seen yet. */
 	while (*buf) {
 		piece_type = CB_MAN;
 		if (*buf == '"') {
 			++buf;
 			continue;
 		}
-		if (std::toupper(*buf) == 'W') {
+		if (std::toupper((unsigned char)*buf) == 'W') {
 			color = CB_WHITE;
 			++buf;
 			continue;
 		}
-		if (std::toupper(*buf) == 'B') {
+		if (std::toupper((unsigned char)*buf) == 'B') {
 			color = CB_BLACK;
 			++buf;
 			continue;
 		}
-		if (std::toupper(*buf) == 'K') {
+		if (std::toupper((unsigned char)*buf) == 'K') {
 			piece_type = CB_KING;
 			++buf;
 		}
-		for (square = 0; std::isdigit(*buf); ++buf)
+		for (square = 0; std::isdigit((unsigned char)*buf) && square <= 32; ++buf)
 			square = 10 * square + (*buf - '0');
 
 		square2 = square;
 		if (*buf == ',' || *buf == ':')
 			++buf;
 
-		else if (*buf == '-' && std::isdigit(buf[1])) {
+		else if (*buf == '-' && std::isdigit((unsigned char)buf[1])) {
 			++buf;
-			for (square2 = 0; std::isdigit(*buf); ++buf)
+			for (square2 = 0; std::isdigit((unsigned char)*buf) && square2 <= 32; ++buf)
 				square2 = 10 * square2 + (*buf - '0');
 			if (*buf == ',' || *buf == ':')
 				++buf;
 		}
 
-
 		if (square && square <= square2) {
+
+			/* Reject squares off the board, and pieces before a W or B color. */
+			if (square2 > 32 || color == 0)
+				return(0);
 			for (s = square; s <= square2; ++s) {
 				numbertocoors(s, &i, &j, gametype);
-				board[i][j] = piece_type | color;
+				newboard[i][j] = piece_type | color;
 			}
 		}
 
@@ -122,6 +127,8 @@ int FENtoboard8(Board8x8 board, const char *buf, int *poscolor, int gametype)
 		lastp = buf;
 	}
 
+	memcpy(board, newboard, sizeof(newboard));
+	*poscolor = tomove;
 	return(1);
 }
 
