@@ -275,15 +275,31 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPSTR lpszArgs, int
 						NULL			// no additional arguments
 						);
 
+	/* A PDN file to load, from a shell double-click on a *.pdn file or the command line.
+	 * Get it before createcheckerboard(), which uses it, and which changes the current
+	 * directory (so make a relative path absolute now). Explorer puts the path in quotes.
+	 */
+	{
+		char arg[MAX_PATH];
+		const char *p = lpszArgs;
+		size_t len;
+
+		while (*p == ' ' || *p == '"')
+			++p;
+		strncpy_terminated(arg, p, sizeof(arg));
+		for (len = strlen(arg); len > 0 && (arg[len - 1] == ' ' || arg[len - 1] == '"'); --len)
+			arg[len - 1] = 0;
+		savegame_filename[0] = 0;
+		if (arg[0] && GetFullPathName(arg, sizeof(savegame_filename), savegame_filename, NULL) == 0)
+			savegame_filename[0] = 0;
+	}
+
 	// load settings from the registry
 	createcheckerboard(hwnd);
 
 	// display the window
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
-
-	// set database filename in case of shell-doubleclick on a *.pdn file
-	strncpy_terminated(savegame_filename, lpszArgs, sizeof(savegame_filename));
 
 	// initialize common controls - toolbar and status bar need this
 	iccex.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -3031,12 +3047,6 @@ int createcheckerboard(HWND hwnd)
 	setmenuchecks(&cboptions, hmenu);
 	checklevelmenu(&cboptions, hmenu, timelevel_to_token(cboptions.level));
 
-	// in case of shell double click
-	if (strcmp(savegame_filename, "") != 0) {
-		sprintf(pdn_filename, "%s", savegame_filename);
-		PostMessage(hwnd, WM_COMMAND, GAMELOAD, 0);
-	}
-
 	// support drag and drop
 	DragAcceptFiles(hwnd, 1);
 
@@ -3047,6 +3057,13 @@ int createcheckerboard(HWND hwnd)
 
 	// and issue a newgame command
 	PostMessage(hwnd, WM_COMMAND, GAMENEW, 0);
+
+	// in case of shell double click, or a file on the command line.
+	// Posted after GAMENEW, so that the new game does not replace the loaded one.
+	if (strcmp(savegame_filename, "") != 0) {
+		sprintf(pdn_filename, "%s", savegame_filename);
+		PostMessage(hwnd, WM_COMMAND, GAMELOAD, 0);
+	}
 
 	// display the engine name in the window title
 	sprintf(windowtitle, "loading engine - please wait...");
