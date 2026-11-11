@@ -117,6 +117,7 @@ int testset_number;
 int playnow;						/* playnow is passed to the checkers engines, it is set to nonzero if the user chooses 'play' */
 bool reset_move_history;			/* send option to engine to reset its list of game moves. */
 int gameindex;						/* game to load/replace from/in a database */
+char replace_db[MAX_PATH];			/* database cbgame was loaded from (game gameindex), for Replace Game; "" if none */
 
 /* dll globals */
 
@@ -646,10 +647,16 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			break;
 
 		case GAMEREPLACE:
-			// replace a game in the pdn database
-			// assumption: you have loaded a game, so now "pdn_filename" holds the db filename
-			// and gameindex is the index of the game in the file
-			handlegamereplace(gameindex, pdn_filename);
+			// replace a game in the pdn database: the game on the board must have been loaded
+			// from a database; replace_db holds its filename and gameindex its index in the file
+			if (replace_db[0] == 0) {
+				MessageBox(hwnd,
+						   "There is no game to replace.\n\nReplace Game saves a game that you loaded with Game > Load\nback into its database, in place of the original game.",
+						   "Replace Game",
+						   MB_OK);
+				break;
+			}
+			handlegamereplace(gameindex, replace_db);
 			break;
 
 		case GAMESAVE:
@@ -1710,6 +1717,10 @@ void reset_game(PDNgame &game)
 	game.moves.clear();
 	game.movesindex = 0;
 	game.gametype = gametype();
+
+	// a new game on the board was not loaded from a database (loadgamefromPDNstring sets it after loading)
+	if (&game == &cbgame)
+		replace_db[0] = 0;
 }
 
 int SetMenuLanguage(int language)
@@ -2894,6 +2905,8 @@ int loadgamefromPDNstring(int gameindex, char *dbstring)
 	//	it into a cbgame
 	if (doload(&cbgame, gamestring.c_str(), &cbcolor, cbboard8, errormsg))
 		MessageBox(hwnd, errormsg.c_str(), "Error", MB_OK);
+	else
+		strcpy(replace_db, pdn_filename);	/* Replace Game may write it back. Not after an error, which may have truncated it. */
 
 	// game is fully loaded, clean up
 	updateboardgraphics(hwnd);
