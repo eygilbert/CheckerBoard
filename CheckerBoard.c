@@ -1723,8 +1723,24 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 	case WM_DESTROY:
 		// terminate the program
-		// save window size:
-		GetWindowRect(hwnd, &windowrect);
+		/* Save the window position and size. Use the normal (restored) rectangle, so that closing
+		 * the window while it is minimized or maximized saves the size it has when restored.
+		 * rcNormalPosition is in work-area coordinates; convert to screen coordinates for MoveWindow.
+		 */
+		{
+			WINDOWPLACEMENT wp;
+			MONITORINFO mi;
+
+			wp.length = sizeof(wp);
+			if (GetWindowPlacement(hwnd, &wp)) {
+				windowrect = wp.rcNormalPosition;
+				mi.cbSize = sizeof(mi);
+				if (GetMonitorInfo(MonitorFromRect(&windowrect, MONITOR_DEFAULTTONEAREST), &mi))
+					OffsetRect(&windowrect, mi.rcWork.left - mi.rcMonitor.left, mi.rcWork.top - mi.rcMonitor.top);
+			}
+			else
+				GetWindowRect(hwnd, &windowrect);
+		}
 		cboptions.window_x = windowrect.left;
 		cboptions.window_y = windowrect.top;
 		cboptions.window_width = windowrect.right - windowrect.left;
