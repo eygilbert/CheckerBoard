@@ -4127,6 +4127,7 @@ DWORD AutoThreadFunc(LPVOID param)
 	static int gamenumber;
 	static int movecount;
 	int i;
+	bool found;
 	static char FEN[256];
 	char engine1[ENGINECOMMAND_REPLY_SIZE], engine2[ENGINECOMMAND_REPLY_SIZE];	// holds engine names (engine replies)
 	int matchcontinues = 0;
@@ -4177,26 +4178,42 @@ DWORD AutoThreadFunc(LPVOID param)
 			PathAppend(testsetname, "testset.txt");
 			Lfp = fopen(testsetname, "r");
 			if (Lfp == NULL) {
+				changeCBstate(NORMAL);
 				sprintf(statusbar_txt, "could not find %s", testsetname);
 				break;
 			}
 
-			for (i = 0; i <= testset_number; i++) {
-				fgets(FEN, 255, Lfp);
-				if (feof(Lfp)) {
-					changeCBstate(NORMAL);
+			/* Read position number testset_number (counting from 0), skipping blank lines.
+			 * If there is none, the test set is finished: stop without searching again.
+			 */
+			found = false;
+			i = 0;
+			while (fgets(FEN, sizeof(FEN), Lfp) != NULL) {
+				if (strspn(FEN, " \t\r\n") == strlen(FEN))
+					continue;
+				if (i++ == testset_number) {
+					found = true;
+					break;
 				}
 			}
-
 			fclose(Lfp);
+			if (!found) {
+				changeCBstate(NORMAL);
+				sprintf(statusbar_txt, "test set finished, %i positions", testset_number);
+				break;
+			}
 			testset_number++;
 
 			// write FEN in testlog
 			sprintf(statusbar_txt, "#%i: %s", testset_number, FEN);
 			logtofile(testlogname, statusbar_txt, "a");
 
-			// convert position to internal board
-			FENtoboard8(cbboard8, FEN, &cbcolor, cbgame.gametype);
+			// convert position to internal board; skip a line that is not a valid FEN
+			if (!FENtoboard8(cbboard8, FEN, &cbcolor, cbgame.gametype)) {
+				sprintf(statusbar_txt, "#%i: not a valid FEN position, skipped", testset_number);
+				logtofile(testlogname, statusbar_txt, "a");
+				break;
+			}
 			updateboardgraphics(hwnd);
 			reset_move_history = true;
 			newposition = TRUE;
