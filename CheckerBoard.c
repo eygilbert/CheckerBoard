@@ -1682,6 +1682,31 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 		case CM_RUNTESTSET:
 			// let CB run over a set of test positions in the current pdn database
+			{
+				// The positions are read from testset.txt and the results written to testlog.txt,
+				// both in the CheckerBoard documents folder. Check both before starting.
+				char path[MAX_PATH];
+
+				strcpy(path, CBdocuments);
+				PathAppend(path, "testset.txt");
+				fp = fopen(path, "r");
+				if (fp == NULL) {
+					sprintf(str1024, "Could not find the test positions file\n%s\n\nIt should hold one FEN position per line.", path);
+					MessageBox(hwnd, str1024, "Run Test Set", MB_OK);
+					break;
+				}
+				fclose(fp);
+
+				strcpy(path, CBdocuments);
+				PathAppend(path, "testlog.txt");
+				fp = fopen(path, "w");
+				if (fp == NULL) {
+					sprintf(str1024, "Could not create the test log file\n%s\n\nThe file may be read-only or in use. The test set was not started.", path);
+					MessageBox(hwnd, str1024, "Run Test Set", MB_OK);
+					break;
+				}
+				fclose(fp);
+			}
 			testset_number = 0;
 			changeCBstate(RUNTESTSET);
 			break;
