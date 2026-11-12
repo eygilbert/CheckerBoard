@@ -1238,7 +1238,7 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			sprintf(statusbar_txt, "piece set %i: %s", cboptions.piecesetindex, piecesetname[cboptions.piecesetindex]);
 			SetCurrentDirectory(CBdirectory);
 			SetCurrentDirectory("bmp");
-			initbmp(hwnd, piecesetname[cboptions.piecesetindex]);
+			change_pieceset(hwnd, piecesetname[cboptions.piecesetindex]);
 			resizegraphics(hwnd);
 			updateboardgraphics(hwnd);
 			InvalidateRect(hwnd, NULL, 1);
@@ -3092,10 +3092,10 @@ void add_piecesets_to_menu(HMENU hmenu)
 	hfind = FindFirstFile("*", &FileData);
 
 	DeleteMenu(hsubpop, 0, MF_BYPOSITION);
-	while (i < MAXPIECESET) {
-		if (hfind == INVALID_HANDLE_VALUE)
-			return;
+	if (hfind == INVALID_HANDLE_VALUE)
+		return;
 
+	do {
 		if (FileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 			if (strlen(FileData.cFileName) > 3 && FileData.cFileName[0] != '.') {
 
@@ -3106,10 +3106,9 @@ void add_piecesets_to_menu(HMENU hmenu)
 				maxpieceset = 1;
 			}
 		}
+	} while (i < MAXPIECESET && FindNextFile(hfind, &FileData));
 
-		if (FindNextFile(hfind, &FileData) == 0)
-			return;
-	}
+	FindClose(hfind);
 }
 
 int createcheckerboard(HWND hwnd)

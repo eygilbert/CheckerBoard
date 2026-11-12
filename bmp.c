@@ -69,6 +69,12 @@ int initbmp(HWND hwnd, char dir[256])
 {
 	static HDC hdc;
 	char filename[256];
+	int i;
+
+	/* The previous piece set, freed after the new one is loaded. The caller makes sure
+	 * that none of them is selected into a DC (see change_pieceset() in graphics.c).
+	 */
+	HBITMAP old[] = {bmp_manmask, bmp_kingmask, bmp_bm, bmp_bk, bmp_wm, bmp_wk, bmp_light, bmp_dark};
 
 	// get device context
 	hdc = GetDC(hwnd);
@@ -112,6 +118,10 @@ int initbmp(HWND hwnd, char dir[256])
 	bmp_dark = CreateBitmapObjectFromDibFile(hdc, filename);
 
 	ReleaseDC(hwnd, hdc);
+
+	for (i = 0; i < (int)(sizeof(old) / sizeof(old[0])); ++i)
+		if (old[i] != NULL)
+			DeleteObject(old[i]);
 
 	return 0;
 }

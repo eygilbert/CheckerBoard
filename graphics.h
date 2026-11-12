@@ -14,6 +14,7 @@ void updatestretchDC(HWND hwnd, HDC bmpdc, HDC stretchdc, int size);
 int updategraphics(HWND hwnd);
 int resizegraphics(HWND hwnd);
 int updateboardgraphics(HWND hwnd);
+int change_pieceset(HWND hwnd, char dir[256]);
 void refresh_clock(HWND hwnd);
 int initgraphics(HWND hwnd);
 int diagramtoclipboard(HWND hwnd);

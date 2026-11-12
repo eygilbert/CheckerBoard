@@ -242,6 +242,27 @@ int updateboardgraphics(HWND hwnd)
 	return 1;
 }
 
+/*
+ * Load the piece set bitmaps from directory dir; initbmp() frees the previous set.
+ * The drawing code leaves a piece bitmap selected in bmpdc, and a bitmap that is selected
+ * into a DC cannot be deleted, so select a placeholder into bmpdc first. At startup this is
+ * called before initgraphics(), when there is no bmpdc yet.
+ */
+int change_pieceset(HWND hwnd, char dir[256])
+{
+	static HBITMAP placeholder;
+
+	lock_memdc();
+	if (bmpdc != NULL) {
+		if (placeholder == NULL)
+			placeholder = CreateBitmap(1, 1, 1, 1, NULL);
+		SelectObject(bmpdc, placeholder);
+	}
+	initbmp(hwnd, dir);
+	unlock_memdc();
+	return 1;
+}
+
 int diagramtoclipboard(HWND hwnd)
 {
 	//copies a diagram to the clipboard

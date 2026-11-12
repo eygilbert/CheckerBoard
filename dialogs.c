@@ -66,10 +66,11 @@ INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
 
 int browse_to_dir(const char *title, char *path)
 {
-	int status;
+	BOOL status;
 	BROWSEINFO bi;
 	LPITEMIDLIST pidl;
 	char init_path[MAX_PATH];
+	char new_path[MAX_PATH];
 
 	memset(&bi, 0, sizeof(bi));
 	bi.lpszTitle = title;
@@ -81,15 +82,17 @@ int browse_to_dir(const char *title, char *path)
 	bi.lParam = (LPARAM) init_path;
 
 	pidl = SHBrowseForFolder(&bi);
-	if (pidl != 0) {
-		status = SHGetPathFromIDList(pidl, path);
-		if (SUCCEEDED(status)) {
-			CoTaskMemFree(pidl);
-			return(1);
-		}
-	}
+	if (pidl == 0)
+		return(0);
 
-	return(0);
+	/* SHGetPathFromIDList returns a BOOL, not an HRESULT. The caller's path is changed only on success. */
+	status = SHGetPathFromIDList(pidl, new_path);
+	CoTaskMemFree(pidl);
+	if (!status)
+		return(0);
+
+	strcpy(path, new_path);
+	return(1);
 }
 
 BOOL CALLBACK AboutDialogFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
