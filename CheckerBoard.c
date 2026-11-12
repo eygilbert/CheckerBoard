@@ -84,6 +84,7 @@ int g_app_instance;					/* 0, 1, 2, ... */
 char g_app_instance_suffix[10];		/* "", "[1]", "[2]", ... */
 DWORD g_SearchThreadId, g_AniThreadId, AutoThreadId;
 HANDLE hSearchThread, hAniThread, hAutoThread;
+volatile bool cb_exiting;			/* Set in WM_DESTROY: the AutoThread returns and no new search starts. */
 int enginethreadpriority = THREAD_PRIORITY_NORMAL;	/* default priority setting*/
 int usersetpriority = THREAD_PRIORITY_NORMAL;		/* default priority setting*/
 HICON hIcon;						/* CB icon for the window */
@@ -188,6 +189,7 @@ int maxpieceset;
 CRITICAL_SECTION ani_criticalsection, engine_criticalsection;
 int handletooltiprequest(LPTOOLTIPTEXT TTtext);
 void reset_game(PDNgame &game);
+static bool wait_for_autothread(DWORD ms);
 void forward_to_game_end(void);
 
 // checkerboard goes finite-state: it can be in one of the modes above.
@@ -928,6 +930,11 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case MOVESPLAY:
 			// force the engine to either play now, or to start calculating
 			// this is the only place where the engine is started
+			if (cb_exiting) {
+				/* Posted before WM_DESTROY, handled after it: the engines may be unloaded. */
+				setenginestarting(FALSE);
+				break;
+			}
 			if (setup_mode)
 				set_setup_mode(false);
 			if (getmove == NULL && !getenginebusy()) {
@@ -1725,11 +1732,15 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		// save settings
 		savesettings(&cboptions);
 
-		// stop a search in progress, then unload engines
+		/* Stop the AutoThread and a search in progress before unloading the engines; either
+		 * could otherwise call into an unloaded dll. If one of them does not stop in time,
+		 * leave the engines loaded; Windows unloads them when the process exits.
+		 */
+		cb_exiting = true;
 		abortengine();
-		{
-			BOOL fFreeResult = FreeLibrary(hinstLib1);
-			fFreeResult = FreeLibrary(hinstLib2);
+		if (wait_for_autothread(3000) && !getenginebusy()) {
+			FreeLibrary(hinstLib1);
+			FreeLibrary(hinstLib2);
 		}
 
 		PostQuitMessage(0);
@@ -4140,6 +4151,10 @@ DWORD AutoThreadFunc(LPVOID param)
 		// approximately 100x per second
 		Sleep(AUTOSLEEPTIME);
 
+		// CheckerBoard is closing (WM_DESTROY waits for this thread before unloading the engines)
+		if (cb_exiting)
+			return 0;
+
 		// if CB is doing something else, wait for it to finish by dropping back to sleep command above
 		if (getanimationbusy() || getenginebusy() || getenginestarting())
 			continue;
@@ -4298,7 +4313,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			// go into a for loop until the game is completely analyzed
 			for (;;) {
 				Sleep(SLEEPTIME);
-				if ((CBstate != ANALYZEGAME) || (gameover == TRUE))
+				if ((CBstate != ANALYZEGAME) || (gameover == TRUE) || cb_exiting)
 					break;
 				if (!getenginebusy() && !getanimationbusy()) {
 					PostMessage(hwnd, WM_COMMAND, MOVESBACK, 0);
@@ -4352,7 +4367,7 @@ DWORD AutoThreadFunc(LPVOID param)
 			// analyze entire game in this for loop
 			for (;;) {
 				Sleep(SLEEPTIME);
-				if ((CBstate != ANALYZEPDN) || (gameover == TRUE))
+				if ((CBstate != ANALYZEPDN) || (gameover == TRUE) || cb_exiting)
 					break;
 				if (!getenginebusy() && !getanimationbusy()) {
 					PostMessage(hwnd, WM_COMMAND, MOVESBACK, 0);
@@ -6075,6 +6090,37 @@ void abortengine()
 		Sleep(10);
 		if ((int)(clock() - t0) > 2000)
 			break;
+	}
+}
+
+/*
+ * Wait up to ms milliseconds for the AutoThread to return (after cb_exiting is set).
+ * The AutoThread may be waiting in SendMessage to the main window, so let sent messages
+ * through while we wait, or the two threads would wait for each other.
+ * Return true if the thread has ended.
+ */
+static bool wait_for_autothread(DWORD ms)
+{
+	DWORD t0, elapsed, status;
+	MSG msg;
+
+	if (hAutoThread == NULL)
+		return(true);
+
+	t0 = GetTickCount();
+	for (;;) {
+		elapsed = GetTickCount() - t0;
+		if (elapsed >= ms)
+			return(false);
+
+		status = MsgWaitForMultipleObjects(1, &hAutoThread, FALSE, ms - elapsed, QS_SENDMESSAGE);
+		if (status == WAIT_OBJECT_0)
+			return(true);
+		if (status != WAIT_OBJECT_0 + 1)
+			return(false);
+
+		// a sent message is waiting; PeekMessage handles it
+		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
 	}
 }
 
