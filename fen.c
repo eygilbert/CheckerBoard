@@ -42,6 +42,7 @@ int FENtoboard8(Board8x8 board, const char *buf, int *poscolor, int gametype)
 	int square, square2, s;
 	int color, piece_type, tomove;
 	int i, j;
+	int nwhite, nblack;
 	const char *lastp;
 	Board8x8 newboard;
 
@@ -126,6 +127,20 @@ int FENtoboard8(Board8x8 board, const char *buf, int *poscolor, int gametype)
 			break;
 		lastp = buf;
 	}
+
+	/* Reject more than 12 pieces of one color; the move generators are sized for that. */
+	nwhite = 0;
+	nblack = 0;
+	for (i = 0; i < 8; ++i) {
+		for (j = 0; j < 8; ++j) {
+			if (newboard[i][j] & CB_WHITE)
+				++nwhite;
+			else if (newboard[i][j] & CB_BLACK)
+				++nblack;
+		}
+	}
+	if (nwhite > 12 || nblack > 12)
+		return(0);
 
 	memcpy(board, newboard, sizeof(newboard));
 	*poscolor = tomove;

@@ -283,7 +283,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 			for (i = 0; i < nwk; i++) {
 				x = wk[i].x;
 				y = wk[i].y;
-				if (board[x + 1][y + 1] == 0) {
+				if (board[x + 1][y + 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -299,7 +299,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 					n++;
 				}
 
-				if (board[x + 1][y - 1] == 0) {
+				if (board[x + 1][y - 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -315,7 +315,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 					n++;
 				}
 
-				if (board[x - 1][y + 1] == 0) {
+				if (board[x - 1][y + 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -331,7 +331,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 					n++;
 				}
 
-				if (board[x - 1][y - 1] == 0) {
+				if (board[x - 1][y - 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -354,7 +354,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 			for (i = nws - 1; i >= 0; i--) {
 				x = ws[i].x;
 				y = ws[i].y;
-				if (board[x + 1][y + 1] == 0) {
+				if (board[x + 1][y + 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -374,7 +374,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 					n++;
 				}
 
-				if (board[x - 1][y + 1] == 0) {
+				if (board[x - 1][y + 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -452,7 +452,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 			for (i = 0; i < nbk; i++) {
 				x = bk[i].x;
 				y = bk[i].y;
-				if (board[x + 1][y + 1] == 0) {
+				if (board[x + 1][y + 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -468,7 +468,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 					n++;
 				}
 
-				if (board[x + 1][y - 1] == 0) {
+				if (board[x + 1][y - 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -484,7 +484,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 					n++;
 				}
 
-				if (board[x - 1][y + 1] == 0) {
+				if (board[x - 1][y + 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -500,7 +500,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 					n++;
 				}
 
-				if (board[x - 1][y - 1] == 0) {
+				if (board[x - 1][y - 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -523,7 +523,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 			for (i = 0; i < nbs; i++) {
 				x = bs[i].x;
 				y = bs[i].y;
-				if (board[x + 1][y - 1] == 0) {
+				if (board[x + 1][y - 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -543,7 +543,7 @@ int makemovelist(int color, CBmove movelist[MAXMOVES], int board[12][12], int *i
 					n++;
 				}
 
-				if (board[x - 1][y - 1] == 0) {
+				if (board[x - 1][y - 1] == 0 && n < MAXMOVES) {
 					movelist[n].jumps = 0;
 					movelist[n].from.x = x;
 					movelist[n].from.y = y;
@@ -623,7 +623,7 @@ void whitecapture(int board[12][12], CBmove movelist[MAXMOVES], CBmove m, int x,
 		}
 	}
 
-	if (end) {
+	if (end && *n < MAXMOVES) {
 		m.jumps = d;
 		movelist[*n] = m;
 		movelist[*n].oldpiece = 1;
@@ -716,7 +716,7 @@ void whitekingcapture(int board[12][12], CBmove movelist[MAXMOVES], CBmove m, in
 		end = 0;
 	}
 
-	if (end) {
+	if (end && *n < MAXMOVES) {
 		m.jumps = d;
 		movelist[*n] = m;
 		movelist[*n].oldpiece = 2;
@@ -778,7 +778,7 @@ void blackcapture(int board[12][12], CBmove movelist[MAXMOVES], CBmove m, int x,
 		}
 	}
 
-	if (end) {
+	if (end && *n < MAXMOVES) {
 		m.jumps = d;
 		movelist[*n] = m;
 		movelist[*n].oldpiece = -1;
@@ -871,7 +871,7 @@ void blackkingcapture(int board[12][12], CBmove movelist[MAXMOVES], CBmove m, in
 		end = 0;
 	}
 
-	if (end) {
+	if (end && *n < MAXMOVES) {
 		m.jumps = d;
 		movelist[*n] = m;
 		movelist[*n].oldpiece = -2;

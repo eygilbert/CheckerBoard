@@ -1928,6 +1928,28 @@ int handlesetupcc(int *color)
 	return 1;
 }
 
+/*
+ * Setup mode: may another piece of this color be placed? At most 12 per side,
+ * which is what the move generators are sized for.
+ */
+static bool setup_place_ok(int color)
+{
+	int i, j, count;
+
+	count = 0;
+	for (i = 0; i < 8; ++i) {
+		for (j = 0; j < 8; ++j) {
+			if (cbboard8[i][j] & color)
+				++count;
+		}
+	}
+	if (count < 12)
+		return(true);
+
+	sprintf(statusbar_txt, "%s already has 12 pieces", color == CB_WHITE ? "White" : "Black");
+	return(false);
+}
+
 int handle_rbuttondown(int x, int y)
 {
 	if (setup_mode) {
@@ -1943,7 +1965,8 @@ int handle_rbuttondown(int x, int y)
 				break;
 
 			default:
-				cbboard8[x][y] = CB_WHITE | CB_MAN;
+				if (setup_place_ok(CB_WHITE))
+					cbboard8[x][y] = CB_WHITE | CB_MAN;
 				break;
 			}
 		}
@@ -1977,7 +2000,8 @@ int handle_lbuttondown(int x, int y)
 			break;
 
 		default:
-			cbboard8[x][y] = CB_BLACK | CB_MAN;
+			if (setup_place_ok(CB_BLACK))
+				cbboard8[x][y] = CB_BLACK | CB_MAN;
 			break;
 		}
 
