@@ -66,8 +66,8 @@ void loadsettings(CBoptions *options, char CBdirectory[256])
 	sprintf(subkey, "%s%s", CB_REGISTRY_NAME, VERSION);
 
 	// open registry key for checkerboard,
-	// if it doesnt exist, create it
-	RegCreateKeyEx(HKEY_CURRENT_USER, subkey, 0, reg_class, 0, KEY_READ, NULL, &hKey, &result);
+	// if it doesnt exist, create it. Write access too: the default settings are written below.
+	RegCreateKeyEx(HKEY_CURRENT_USER, subkey, 0, reg_class, 0, KEY_READ | KEY_WRITE, NULL, &hKey, &result);
 
 	/* Initialize the CBdirectory with the location of the executable.
 	 * If that fails, then initialize it with the current directory and 
@@ -191,10 +191,23 @@ void loadsettings(CBoptions *options, char CBdirectory[256])
 		// if window size is too small, enlarge it
 		options->window_height = max(options->window_height, 480);
 		options->window_width = max(options->window_width, 400);
-		if (options->window_x < 0 || options->window_x > 500)
-			options->window_x = 1;
-		if (options->window_y < 0 || options->window_y > 500)
-			options->window_y = 1;
+
+		/* Keep the saved position if the title bar is on a monitor, so a window on the right
+		 * of the screen or on a second monitor (possibly at negative coordinates) reopens there.
+		 * Otherwise, e.g. after a monitor was removed, move it to the top left.
+		 */
+		{
+			RECT titlebar;
+
+			titlebar.left = options->window_x;
+			titlebar.top = options->window_y;
+			titlebar.right = options->window_x + options->window_width;
+			titlebar.bottom = options->window_y + GetSystemMetrics(SM_CYCAPTION);
+			if (MonitorFromRect(&titlebar, MONITOR_DEFAULTTONULL) == NULL) {
+				options->window_x = 1;
+				options->window_y = 1;
+			}
+		}
 	}
 
 	SetCurrentDirectory(CBdirectory);
