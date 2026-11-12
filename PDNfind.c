@@ -177,7 +177,7 @@ int pdnopen(char filename[256], int gametype)
 	int color = CB_BLACK;
 	char headername[MAXNAME], headervalue[MAXNAME];
 	PDN_RESULT result;
-	char FEN[255];
+	char FEN[MAXNAME];				/* holds a header value, up to MAXNAME - 1 characters */
 	Board8x8 board8;
 	READ_TEXT_FILE_ERROR_TYPE etype;
 	PDN_position position;
@@ -228,7 +228,12 @@ int pdnopen(char filename[256], int gametype)
 		}
 
 		if (strlen(FEN) > 0) {
-			FENtoboard8(board8, FEN, &color, gametype);
+			if (!FENtoboard8(board8, FEN, &color, gametype)) {
+
+				// not a valid FEN: skip this game
+				gamenumber++;
+				continue;
+			}
 
 			// it's a setup position - have to parse FEN!
 			boardtobitboard(board8, &p);

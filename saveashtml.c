@@ -421,7 +421,7 @@ void PDNgametoPDNHTMLstring(PDNgame *game, std::string &pdnstring)
 	/* is used for PDN to html*/
 
 	/* warning! \n is no good for printf, it s actually \r\n*/
-	char s[256];
+	char s[MAXNAME + 32];		/* a header line: up to MAXNAME - 1 characters of value, plus the tag */
 	int counter, i;
 	size_t movei;
 

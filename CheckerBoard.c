@@ -1389,18 +1389,19 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				userbooknum--;
 
 				// if we deleted last position, move to new last position.
-				if (userbookcur == userbooknum)
+				if (userbookcur == userbooknum && userbookcur > 0)
 					userbookcur--;
 
 				// display what position we have:
-				sprintf(statusbar_txt,
-						"position %d of %d: %i-%i",
-						userbookcur + 1,
-						userbooknum,
-						coortonumber(userbook[userbookcur].move.from, cbgame.gametype),
-						coortonumber(userbook[userbookcur].move.to, cbgame.gametype));
 				if (userbooknum == 0)
 					sprintf(statusbar_txt, "no moves in user book");
+				else
+					sprintf(statusbar_txt,
+							"position %d of %d: %i-%i",
+							userbookcur + 1,
+							userbooknum,
+							coortonumber(userbook[userbookcur].move.from, cbgame.gametype),
+							coortonumber(userbook[userbookcur].move.to, cbgame.gametype));
 
 				// set up position
 				if (userbookcur < userbooknum && userbooknum != 0) {
@@ -3474,7 +3475,7 @@ DWORD SearchThreadFunc(LPVOID param)
 	bool found_move, have_valid_movelist;
 	int iscapture;
 	pos userbookpos;
-	double elapsed, maxtime;
+	double elapsed = 0, maxtime = 0;		/* stay 0 when the move comes from the user book */
 
 	PDN[0] = 0;
 	found_move = false;
