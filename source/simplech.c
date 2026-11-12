@@ -220,7 +220,11 @@ int WINAPI enginecommand(const char *str, char reply[256])
 	// eg it has no engine options.
 	char command[256], param1[256], param2[256];
 
-	sscanf(str, "%s %s %s", command, param1, param2);
+	/* A command may have fewer than 3 words; the missing ones stay empty. */
+	command[0] = 0;
+	param1[0] = 0;
+	param2[0] = 0;
+	sscanf(str, "%255s %255s %255s", command, param1, param2);
 
 	// check for command keywords
 	if (strcmp(command, "name") == 0) {
@@ -507,14 +511,16 @@ int checkers(int b[46], int color, double maxtime, char *str)
 	evaluations = 0;
 #endif
 
-	/*--------> check if there is only one move */
+	/*--------> check if there is only one move. Captures are compulsory, so look at the
+	 * non-capture moves only if there are no captures.
+	 */
 	numberofmoves = generatecapturelist(b, movelist, color);
 	if (numberofmoves == 1) {
 		domove(b, movelist[0]);
 		sprintf(str, "forced capture");
 		return(1);
 	}
-	else {
+	else if (numberofmoves == 0) {
 		numberofmoves = generatemovelist(b, movelist, color);
 		if (numberofmoves == 1) {
 			domove(b, movelist[0]);
@@ -527,6 +533,10 @@ int checkers(int b[46], int color, double maxtime, char *str)
 			return(0);
 		}
 	}
+
+	/* A legal move to play if the search is stopped before it has found one. */
+	best = movelist[0];
+	lastbest = movelist[0];
 
 	eval = firstalphabeta(b, 1, -10000, 10000, color, &best);
 	for (i = 2; (i <= MAXDEPTH) && ((clock() - starttime) / (double)CLK_TCK < maxtime); i++) {
@@ -1214,7 +1224,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 
 					if ((b[i + 5] & FREE) != 0) {
@@ -1234,7 +1245,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 				}
 
@@ -1253,7 +1265,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 
 					if ((b[i + 5] & FREE) != 0) {
@@ -1270,7 +1283,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 
 					if ((b[i - 4] & FREE) != 0) {
@@ -1287,7 +1301,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 
 					if ((b[i - 5] & FREE) != 0) {
@@ -1304,7 +1319,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 				}
 			}
@@ -1333,7 +1349,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 
 					if ((b[i - 5] & FREE) != 0) {
@@ -1353,7 +1370,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 				}
 
@@ -1374,7 +1392,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 
 					if ((b[i + 5] & FREE) != 0) {
@@ -1391,7 +1410,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 
 					if ((b[i - 4] & FREE) != 0) {
@@ -1408,7 +1428,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 
 					if ((b[i - 5] & FREE) != 0) {
@@ -1425,7 +1446,8 @@ int generatemovelist(int b[46], move2 movelist[MAXMOVES], int color)
 						m = m << 8;
 						m += i;
 						movelist[n].m[0] = m;
-						n++;
+						if (n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
+							n++;
 					}
 				}
 			}
@@ -1884,7 +1906,7 @@ void blackmancapture(int b[46], int *n, move2 movelist[MAXMOVES], int i)
 		}
 	}
 
-	if (!found)
+	if (!found && *n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
 		(*n)++;
 }
 
@@ -1997,7 +2019,7 @@ void blackkingcapture(int b[46], int *n, move2 movelist[MAXMOVES], int i)
 		}
 	}
 
-	if (!found)
+	if (!found && *n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
 		(*n)++;
 }
 
@@ -2059,7 +2081,7 @@ void whitemancapture(int b[46], int *n, move2 movelist[MAXMOVES], int i)
 		}
 	}
 
-	if (!found)
+	if (!found && *n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
 		(*n)++;
 }
 
@@ -2172,7 +2194,7 @@ void whitekingcapture(int b[46], int *n, move2 movelist[MAXMOVES], int i)
 		}
 	}
 
-	if (!found)
+	if (!found && *n < MAXMOVES - 1)		/* the last slot is scratch space; never write past it */
 		(*n)++;
 }
 

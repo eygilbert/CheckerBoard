@@ -2,7 +2,7 @@
  * to be included in other programs (such as Perft).
  */
 
-#define MAXMOVES 28
+#define MAXMOVES 64		/* positions with many kings can have more than 28 moves */
 
 struct move2 {
 	short n;		/* number of entries in move array m[]. */
