@@ -124,9 +124,8 @@ inline void numbertocoors(int number, int *x, int *y, int gametype)
 			(*x)++;
 		break;
 
-	case GT_CZECH:						// TODO: check that this is correct!
-		number--;						// number e 0...31
-		number = 33 - number;
+	case GT_CZECH:						// the inverse of coorstonumber(): Italian numbering, reversed
+		number = 32 - number;			// number e 0...31
 		*y = number / 4;				// *y e 0...7
 		*x = 2 * ((number % 4));		// *x e {0,2,4,6}
 		if (((*y) % 2))					// adjust x on odd rows
