@@ -6192,13 +6192,17 @@ enum MLTOK {
 
 int getmltok(char msg[], int &idx, char num[])
 {
-	if (isdigit(msg[idx])) {
-		while(isdigit(msg[idx])) {
-			*num = msg[idx];
-			++idx;
-			++num;
+	int len;
+
+	if (isdigit((unsigned char)msg[idx])) {
+
+		/* At most 9 digits, so the value fits in an int; a longer number is an error. */
+		for (len = 0; isdigit((unsigned char)msg[idx]); ++len, ++idx) {
+			if (len == 9)
+				return(MLEND);
+			num[len] = msg[idx];
 		}
-		*num = 0;
+		num[len] = 0;
 		return(MLNUM);
 	}
 	if (msg[idx] == ',') {
@@ -6217,23 +6221,45 @@ int getmltok(char msg[], int &idx, char num[])
 }
 
 /*
- * If the current engine has the optional "get movelist" engine command, then use it to obtain a movelist
- * The function returns a non-zero value if the engine cannot use "get movelist" engine command.
+ * Parse "<number>" from a movelist reply, and check that the number is in lo..hi.
+ * Return false on error.
  */
-int get_movelist_from_engine(Board8x8 board8, int color, CBmove movelist[], int *nmoves, int *iscapture)
+static bool ml_num(char msg[], int &idx, int &value, int lo, int hi)
 {
-	int idx, square;
-	char buf[256];
-	char command[256];
-	char reply[ENGINECOMMAND_REPLY_SIZE];
+	char buf[16];
 
-	if (!has_getmovelist)
-		return(1);
+	if (getmltok(msg, idx, buf) != MLNUM)
+		return(false);
+	value = atoi(buf);
+	return(value >= lo && value <= hi);
+}
 
-	board8toFEN(board8, buf, color, cbgame.gametype);
-	sprintf(command, "get movelist %s", buf);
-	if (!enginecommand(command, reply))
-		return(1);
+/* Parse ",<number>", as ml_num(). */
+static bool ml_comma_num(char msg[], int &idx, int &value, int lo, int hi)
+{
+	char buf[16];
+
+	if (getmltok(msg, idx, buf) != MLCOMMA)
+		return(false);
+	return(ml_num(msg, idx, value, lo, hi));
+}
+
+/* A piece value from an engine's movelist reply: a man or king of either color. */
+static bool ml_is_piece(int piece)
+{
+	return(piece == (CB_WHITE | CB_MAN) || piece == (CB_WHITE | CB_KING) ||
+		   piece == (CB_BLACK | CB_MAN) || piece == (CB_BLACK | CB_KING));
+}
+
+/*
+ * Parse the engine's movelist reply into movelist. Every number is checked: the move count
+ * against MAXMOVES, the number of jumps against the path and del arrays of CBmove, the squares
+ * against 1..32, and the pieces. Return false if the reply is not valid.
+ */
+static bool parse_engine_movelist(char reply[], CBmove movelist[], int *nmoves)
+{
+	int idx, n, square, value;
+	char buf[16];
 
 	/* Reply should look like:
 	 * "movelist <nmoves>,<njumps1>,<oldpiece1>,<newpiece1>,<from sq1>,<to sq1>,
@@ -6243,74 +6269,88 @@ int get_movelist_from_engine(Board8x8 board8, int color, CBmove movelist[], int 
 	 */
 	idx = 0;
 	if (getmltok(reply, idx, buf) != MLCMD)
-		return(1);
+		return(false);
 	if (getmltok(reply, idx, buf) != MLNUM)
-		return(1);
-	*nmoves = atoi(buf);
-	if (*nmoves == 0)
-		return(0);
+		return(false);
+	n = atoi(buf);
+	if (n > MAXMOVES)
+		return(false);
+	if (n == 0) {
+		*nmoves = 0;
+		return(getmltok(reply, idx, buf) == MLEND);
+	}
+
+	/* A comma follows the count; each move then starts with its number of jumps. */
 	if (getmltok(reply, idx, buf) != MLCOMMA)
-		return(0);
-	for (int mv = 0; mv < *nmoves; ++mv) {
-		if (getmltok(reply, idx, buf) != MLNUM)
-			return(1);
-		movelist[mv].jumps = atoi(buf);
+		return(false);
+	for (int mv = 0; mv < n; ++mv) {
 
-		if (getmltok(reply, idx, buf) != MLCOMMA)
-			return(1);
-		if (getmltok(reply, idx, buf) != MLNUM)
-			return(1);
-		movelist[mv].oldpiece = atoi(buf);
-
-		if (getmltok(reply, idx, buf) != MLCOMMA)
-			return(1);
-		if (getmltok(reply, idx, buf) != MLNUM)
-			return(1);
-		movelist[mv].newpiece = atoi(buf);
-
-		if (getmltok(reply, idx, buf) != MLCOMMA)
-			return(1);
-		if (getmltok(reply, idx, buf) != MLNUM)
-			return(1);
-		square = atoi(buf);
+		/* path[] has 12 entries and the landing squares go in path[1..jumps]. */
+		if (!ml_num(reply, idx, movelist[mv].jumps, 0, 11))
+			return(false);
+		if (!ml_comma_num(reply, idx, movelist[mv].oldpiece, 0, CB_BLACK | CB_KING) || !ml_is_piece(movelist[mv].oldpiece))
+			return(false);
+		if (!ml_comma_num(reply, idx, movelist[mv].newpiece, 0, CB_BLACK | CB_KING) || !ml_is_piece(movelist[mv].newpiece))
+			return(false);
+		if (!ml_comma_num(reply, idx, square, 1, 32))
+			return(false);
 		numbertocoors(square, &movelist[mv].from, cbgame.gametype);
-
-		if (getmltok(reply, idx, buf) != MLCOMMA)
-			return(1);
-		if (getmltok(reply, idx, buf) != MLNUM)
-			return(1);
-		square = atoi(buf);
+		if (!ml_comma_num(reply, idx, square, 1, 32))
+			return(false);
 		numbertocoors(square, &movelist[mv].to, cbgame.gametype);
 
 		for (int i = 0; i < movelist[mv].jumps; ++i) {
-			if (getmltok(reply, idx, buf) != MLCOMMA)
-				return(1);
-			if (getmltok(reply, idx, buf) != MLNUM)
-				return(1);
-			square = atoi(buf);
+			if (!ml_comma_num(reply, idx, square, 1, 32))
+				return(false);
 			numbertocoors(square, &movelist[mv].path[i + 1], cbgame.gametype);
 
-			if (getmltok(reply, idx, buf) != MLCOMMA)
-				return(1);
-			if (getmltok(reply, idx, buf) != MLNUM)
-				return(1);
-			square = atoi(buf);
+			if (!ml_comma_num(reply, idx, square, 1, 32))
+				return(false);
 			numbertocoors(square, &movelist[mv].del[i], cbgame.gametype);
 
-			if (getmltok(reply, idx, buf) != MLCOMMA)
-				return(1);
-			if (getmltok(reply, idx, buf) != MLNUM)
-				return(1);
-			movelist[mv].delpiece[i] = atoi(buf);
+			if (!ml_comma_num(reply, idx, value, 0, CB_BLACK | CB_KING) || !ml_is_piece(value))
+				return(false);
+			movelist[mv].delpiece[i] = value;
 		}
 
 		if (getmltok(reply, idx, buf) != MLSEMI)
-			return(1);
+			return(false);
 	}
 	if (getmltok(reply, idx, buf) != MLEND)
+		return(false);
+
+	*nmoves = n;
+	return(true);
+}
+
+/*
+ * If the current engine has the optional "get movelist" engine command, then use it to obtain a movelist
+ * The function returns a non-zero value if the engine cannot use "get movelist" engine command,
+ * or its reply is not valid. Then *nmoves is 0, since some callers ignore the return value.
+ */
+int get_movelist_from_engine(Board8x8 board8, int color, CBmove movelist[], int *nmoves, int *iscapture)
+{
+	char buf[256];
+	char command[256];
+	char reply[ENGINECOMMAND_REPLY_SIZE];
+
+	*nmoves = 0;
+	*iscapture = 0;
+	if (!has_getmovelist)
 		return(1);
 
-	*iscapture = movelist[0].jumps;
+	board8toFEN(board8, buf, color, cbgame.gametype);
+	sprintf(command, "get movelist %s", buf);
+	if (!enginecommand(command, reply))
+		return(1);
+
+	if (!parse_engine_movelist(reply, movelist, nmoves)) {
+		*nmoves = 0;
+		return(1);
+	}
+
+	if (*nmoves > 0)
+		*iscapture = movelist[0].jumps;
 	return(0);
 }
 
