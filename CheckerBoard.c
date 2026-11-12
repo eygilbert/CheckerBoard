@@ -3510,7 +3510,8 @@ DWORD SearchThreadFunc(LPVOID param)
 		// set thread priority
 		// next lower ist '_LOWEST', higher '_NORMAL'
 		enginethreadpriority = usersetpriority;
-		SetThreadPriority(hSearchThread, enginethreadpriority);
+		// GetCurrentThread(), not hSearchThread: MOVESPLAY may not have stored the new handle yet.
+		SetThreadPriority(GetCurrentThread(), enginethreadpriority);
 
 		// set directory to CB directory
 		SetCurrentDirectory(CBdirectory);
