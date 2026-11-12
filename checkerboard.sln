@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Perft", "Perft\Perft.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Perft-Italian", "Perft-Italian\Perft-Italian.vcxproj", "{9F6E6EA0-7AC1-4A42-B752-6B4964E7B895}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Perft-CB", "Perft-CB\Perft-CB.vcxproj", "{43630A50-E2C2-4D2D-8C64-03CCA0062F59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -84,6 +86,18 @@ Global
 		{9F6E6EA0-7AC1-4A42-B752-6B4964E7B895}.Release|x64.Build.0 = Release|x64
 		{9F6E6EA0-7AC1-4A42-B752-6B4964E7B895}.ReleaseDLL|Win32.ActiveCfg = Release|Win32
 		{9F6E6EA0-7AC1-4A42-B752-6B4964E7B895}.ReleaseDLL|x64.ActiveCfg = Release|x64
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.Debug|Win32.ActiveCfg = Debug|Win32
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.Debug|Win32.Build.0 = Debug|Win32
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.Debug|x64.ActiveCfg = Debug|x64
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.Debug|x64.Build.0 = Debug|x64
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.DebugDLL|Win32.ActiveCfg = Debug|Win32
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.DebugDLL|x64.ActiveCfg = Debug|x64
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.Release|Win32.ActiveCfg = Release|Win32
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.Release|Win32.Build.0 = Release|Win32
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.Release|x64.ActiveCfg = Release|x64
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.Release|x64.Build.0 = Release|x64
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.ReleaseDLL|Win32.ActiveCfg = Release|Win32
+		{43630A50-E2C2-4D2D-8C64-03CCA0062F59}.ReleaseDLL|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
