@@ -266,14 +266,18 @@ int diagramtoclipboard(HWND hwnd)
 	BitBlt(bgdc, 0, 0, cxClient, cyClient - offset, memdc, 0, upperoffset, BLACKNESS);
 	BitBlt(bgdc, 0, 0, cxClient, cyClient - offset, memdc, 0, upperoffset, SRCCOPY);
 
+	// The bitmap must not be selected into a DC when it goes on the clipboard.
+	SelectObject(bgdc, bgbitmap);
 	if (OpenClipboard(hwnd)) {
 		EmptyClipboard();
-		SetClipboardData(CF_BITMAP, clipbitmap);
+
+		// After SetClipboardData succeeds the clipboard owns the bitmap, so only delete it on failure.
+		if (SetClipboardData(CF_BITMAP, clipbitmap) == NULL)
+			DeleteObject(clipbitmap);
 		CloseClipboard();
 	}
-
-	SelectObject(bgdc, bgbitmap);
-	DeleteObject(clipbitmap);
+	else
+		DeleteObject(clipbitmap);
 	unlock_memdc();
 
 	return 1;
@@ -309,14 +313,18 @@ int samplediagramtoclipboard(HWND hwnd)
 	BitBlt(bgdc, 0, 0, cxClient, cyClient - offset, memdc, 0, upperoffset, BLACKNESS);
 	BitBlt(bgdc, 0, 0, cxClient, cyClient - offset, memdc, 0, upperoffset, SRCCOPY);
 
+	// The bitmap must not be selected into a DC when it goes on the clipboard.
+	SelectObject(bgdc, bgbitmap);
 	if (OpenClipboard(hwnd)) {
 		EmptyClipboard();
-		SetClipboardData(CF_BITMAP, clipbitmap);
+
+		// After SetClipboardData succeeds the clipboard owns the bitmap, so only delete it on failure.
+		if (SetClipboardData(CF_BITMAP, clipbitmap) == NULL)
+			DeleteObject(clipbitmap);
 		CloseClipboard();
 	}
-
-	SelectObject(bgdc, bgbitmap);
-	DeleteObject(clipbitmap);
+	else
+		DeleteObject(clipbitmap);
 
 	// restore old board, else the sample bitmap is shown in CB
 	printboard(hwnd, memdc, bmpdc, stretchdc, cbboard8);
