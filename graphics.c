@@ -32,6 +32,7 @@ extern PDNgame cbgame;
 // disable double-to-int warning in this file to avoid getting dozens of warnings
 #pragma warning(disable : 4244)
 static int g_size = 0;	// holds size of square, if it is different from previous call, we have to update stuff
+static bool graphics_ready;		/* the memory DCs exist; drawing errors before this are not logged */
 static HDC memdc, bgdc, bmpdc, stretchdc, boarddc;						// stores the virtual device handle
 static HBITMAP hbit, bgbitmap, clipbitmap, stretchbitmap, boardbitmap;	// store the virtual bitmap
 static HBRUSH hbrush;
@@ -82,6 +83,7 @@ int initgraphics(HWND hwnd)
 
 	memdc = CreateCompatibleDC(hdc);
 	bmpdc = CreateCompatibleDC(hdc);
+	graphics_ready = true;
 	bgdc = CreateCompatibleDC(hdc);
 	stretchdc = CreateCompatibleDC(hdc);
 	boarddc = CreateCompatibleDC(hdc);
@@ -165,11 +167,9 @@ int resizegraphics(HWND hwnd)
 	// TODO: all of this should be done just once on resize?!
 	hOldBitmap = (HBITMAP) SelectObject(bmpdc, bmp_dark);
 
-	if (hOldBitmap == NULL)
-		CBlog("dark square bitmap is null");
-
-	if (bmp_dark == NULL)
-		CBlog("bmp dark is null");
+	/* Before the bitmaps are loaded bmp_dark is null; a bitmap that fails to load is logged then. */
+	if (hOldBitmap == NULL && graphics_ready && bmp_dark != NULL)
+		CBlog("cannot select the dark square bitmap");
 
 	if (cboptions.mirror) {
 
@@ -829,7 +829,8 @@ int printboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc, Board8x8 b)
 	HFONT oldfont;
 
 	if (hdc == NULL) {
-		CBlog("hdc is null in printboard");
+		if (graphics_ready)
+			CBlog("hdc is null in printboard");
 		return 0;
 	}
 
@@ -1034,7 +1035,8 @@ int printsampleboard(HWND hwnd, HDC hdc, HDC bmpdc, HDC stretchdc)
 	bmp_light = getCBbitmap(BMPLIGHT);
 
 	if (hdc == NULL) {
-		CBlog("hdc is null in printboard");
+		if (graphics_ready)
+			CBlog("hdc is null in printboard");
 		return 0;
 	}
 

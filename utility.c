@@ -503,6 +503,17 @@ void cblog_init()
 	}
 }
 
+/*
+ * Start a log line with the time of day.
+ */
+static void cblog_time(FILE *fp)
+{
+	SYSTEMTIME t;
+
+	GetLocalTime(&t);
+	fprintf(fp, "%02d:%02d:%02d ", t.wHour, t.wMinute, t.wSecond);
+}
+
 void CBlog(const char *str)
 {
 	FILE *cblogfile;
@@ -515,15 +526,19 @@ void CBlog(const char *str)
 	if (cblogfile == NULL)
 		return;
 
+	cblog_time(cblogfile);
 	fprintf(cblogfile, "%s\n", str);
 	fclose(cblogfile);
 }
 
+/*
+ * printf to the log file. Each call writes one line, starting with the time of day;
+ * fmt should end with a newline.
+ */
 void cblog(const char *fmt, ...)
 {
 	FILE *fp;
 	va_list args;
-	va_start(args, fmt);
 
 	cblog_init();
 	if (fmt == NULL)
@@ -533,7 +548,10 @@ void cblog(const char *fmt, ...)
 	if (fp == NULL)
 		return;
 
+	cblog_time(fp);
+	va_start(args, fmt);
 	vfprintf(fp, fmt, args);
+	va_end(args);
 	fclose(fp);
 }
 

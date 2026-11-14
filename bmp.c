@@ -79,43 +79,46 @@ int initbmp(HWND hwnd, char dir[256])
 	// get device context
 	hdc = GetDC(hwnd);
 
-	GetCurrentDirectory(255, filename);
-	cblog("initbmp(): current directory is %s\n", filename);
-	cblog("bitmap dir is %s\n", dir);
-	CBlog("loading bitmaps...");
-
 	// load bitmaps.
 	sprintf(filename, "%s\\manmask.bmp", dir);
-	CBlog(filename);
 	bmp_manmask = CreateBitmapObjectFromDibFile(hdc, filename);
+	if (bmp_manmask == NULL)
+		cblog("could not load bitmap %s\n", filename);
 
 	sprintf(filename, "%s\\kingmask.bmp", dir);
-	CBlog(filename);
 	bmp_kingmask = CreateBitmapObjectFromDibFile(hdc, filename);
+	if (bmp_kingmask == NULL)
+		cblog("could not load bitmap %s\n", filename);
 
 	sprintf(filename, "%s\\bm.bmp", dir);
-	CBlog(filename);
 	bmp_bm = CreateBitmapObjectFromDibFile(hdc, filename);
+	if (bmp_bm == NULL)
+		cblog("could not load bitmap %s\n", filename);
 
 	sprintf(filename, "%s\\bk.bmp", dir);
-	CBlog(filename);
 	bmp_bk = CreateBitmapObjectFromDibFile(hdc, filename);
+	if (bmp_bk == NULL)
+		cblog("could not load bitmap %s\n", filename);
 
 	sprintf(filename, "%s\\wm.bmp", dir);
-	CBlog(filename);
 	bmp_wm = CreateBitmapObjectFromDibFile(hdc, filename);
+	if (bmp_wm == NULL)
+		cblog("could not load bitmap %s\n", filename);
 
 	sprintf(filename, "%s\\wk.bmp", dir);
-	CBlog(filename);
 	bmp_wk = CreateBitmapObjectFromDibFile(hdc, filename);
+	if (bmp_wk == NULL)
+		cblog("could not load bitmap %s\n", filename);
 
 	sprintf(filename, "%s\\light.bmp", dir);
-	CBlog(filename);
 	bmp_light = CreateBitmapObjectFromDibFile(hdc, filename);
+	if (bmp_light == NULL)
+		cblog("could not load bitmap %s\n", filename);
 
 	sprintf(filename, "%s\\dark.bmp", dir);
-	CBlog(filename);
 	bmp_dark = CreateBitmapObjectFromDibFile(hdc, filename);
+	if (bmp_dark == NULL)
+		cblog("could not load bitmap %s\n", filename);
 
 	ReleaseDC(hwnd, hdc);
 

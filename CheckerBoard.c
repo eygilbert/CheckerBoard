@@ -164,6 +164,7 @@ char pdn_filename[MAX_PATH];			// current PDN database
 char userbookname[MAX_PATH];			// current userbook
 CBmove cbmove;
 char savegame_filename[MAX_PATH];
+std::string match_logname;					// "engine1 - engine2" while a logged engine match runs
 emstats_t emstats;						// engine match stats and state
 std::vector<BALLOT_INFO> user_ballots;
 
@@ -744,7 +745,6 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 		case GAMELOAD:
 			// call selectgame with GAMELOAD to let the user select from all games
-			cblog("pdn load game\n");
 			selectgame(GAMELOAD);
 			break;
 
@@ -771,44 +771,37 @@ LRESULT CALLBACK WindowFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		case SEARCHMASK:
 			// call selectgame with SEARCHMASK to let the user
 			// select from games of a certain player/event/date
-			cblog("pdn search with player, event, or date.\n");
 			selectgame(SEARCHMASK);
 			break;
 
 		case RE_SEARCH:
-			cblog("pdn research\n");
 			selectgame(RE_SEARCH);
 			break;
 
 		case GAMEFIND:
 			// find a game with the current position in the current database
 			// index the database
-			cblog("find current pos\n");
 			selectgame(GAMEFIND);
 			break;
 
 		case GAMEFINDCR:
 			// find games with current position color-reversed
 			selectgame(GAMEFINDCR);
-			cblog("find colors reversed pos\n");
 			break;
 
 		case GAMEFINDTHEME:
 			// find a game with the current position in the current database
 			// index the database
 			selectgame(GAMEFINDTHEME);
-			cblog("find theme\n");
 			break;
 
 		case LOADNEXT:
 			sprintf(statusbar_txt, "load next game");
-			cblog("load next game\n");
 			loadnextgame();
 			break;
 
 		case LOADPREVIOUS:
 			sprintf(statusbar_txt, "load previous game");
-			cblog("load previous game\n");
 			loadpreviousgame();
 			break;
 
@@ -3163,6 +3156,83 @@ void add_piecesets_to_menu(HMENU hmenu)
 	FindClose(hfind);
 }
 
+/*
+ * Write the program version, its folders and the language at the start of the log.
+ */
+void log_startup(void)
+{
+	static const char *languages[] = {"English", "Espanol", "Italiano", "Deutsch", "Francais"};
+	time_t now = time(NULL);
+
+	cblog("CheckerBoard %s %s, started %s", VERSION, sizeof(void *) == 8 ? "64-bit" : "32-bit", ctime(&now));
+	cblog("program folder %s\n", CBdirectory);
+	cblog("documents folder %s\n", CBdocuments);
+	if (g_app_instance > 0)
+		cblog("instance %d\n", g_app_instance);
+	if (cboptions.language >= 0 && cboptions.language < ARRAY_SIZE(languages))
+		cblog("language %s\n", languages[cboptions.language]);
+}
+
+
+/*
+ * The text of the last Windows error, without the trailing newline.
+ */
+std::string last_error_text(DWORD err)
+{
+	char buf[512];
+
+	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err, 0, buf, sizeof(buf), NULL))
+		return "error " + std::to_string(err);
+	std::string text = buf;
+	while (!text.empty() && (text.back() == '\n' || text.back() == '\r' || text.back() == ' '))
+		text.pop_back();
+	return text;
+}
+
+
+/*
+ * Log the start of an engine match: the engines, the time control and the start positions.
+ */
+void log_match_start(const char *engine1, const char *engine2)
+{
+	char tc[100];
+
+	match_logname = std::string(engine1) + " - " + engine2;
+	if (cboptions.use_incremental_time)
+		sprintf(tc, "initial time %.0f sec, increment %.3f sec", cboptions.initial_time, cboptions.time_increment);
+	else
+		sprintf(tc, "%.1f sec/move", timelevel_to_time(cboptions.level));
+	cblog("Engine match started: %s, %s%s\n", match_logname.c_str(), tc,
+			cboptions.handicap_enable ? ", engine 2 time handicapped" : "");
+	if (cboptions.em_start_positions == START_POS_FROM_FILE)
+		cblog("  ballots %s, %d ballots, %d match(es)\n", cboptions.start_pos_filename, num_ballots(), cboptions.match_repeat_count);
+	else
+		cblog("  3-move ballots, %d match(es)\n", cboptions.match_repeat_count);
+	if (emstats.games)
+		cblog("  resuming at game %d\n", emstats.games + 1);
+}
+
+
+/*
+ * Log the end of an engine match. finished is false if it was stopped before the last game.
+ */
+void log_match_end(bool finished)
+{
+	if (match_logname.empty())
+		return;
+	/* emstats.games is only set when a match resumes; count the results. */
+	cblog("Engine match %s: %s, %d games, +%d -%d =%d unknown %d\n",
+			finished ? "finished" : "stopped",
+			match_logname.c_str(),
+			emstats.wins + emstats.losses + emstats.draws + emstats.unknowns,
+			emstats.wins,
+			emstats.losses,
+			emstats.draws,
+			emstats.unknowns);
+	match_logname.clear();
+}
+
+
 int createcheckerboard(HWND hwnd)
 {
 	FILE *fp;
@@ -3178,6 +3248,7 @@ int createcheckerboard(HWND hwnd)
 	// load settings from registry: &cboptions is one key, CBdirectory another.
 	loadsettings(&cboptions, CBdirectory);
 	SetMenuLanguage(cboptions.language);
+	log_startup();
 
 	// set appropriate pieceset - load bitmaps for the board
 	SendMessage(hwnd, WM_COMMAND, PIECESET + cboptions.piecesetindex, 0);
@@ -3629,15 +3700,6 @@ DWORD SearchThreadFunc(LPVOID param)
 			/* Display the Play! bitmap with black foreground when the engine is not searching. */
 			PostMessage(tbwnd, TB_CHANGEBITMAP, (WPARAM) MOVESPLAY, MAKELPARAM(2, 0));
 
-#ifdef LOG_CUMULATIVE_TIME_USED
-			if (CBstate == ENGINEMATCH) {
-				time_ctrl.cumulative_time_used[currentengine] += elapsed;
-				++time_ctrl.searchcount;
-				if ((time_ctrl.searchcount & 127) == 0)
-					cblog("Total time used (engine 1, engine 2): %.2f min, %.2f min\n",
-						time_ctrl.cumulative_time_used[1] / 60, time_ctrl.cumulative_time_used[2] / 60);
-			}
-#endif
 			if (cboptions.use_incremental_time) {
 				double increment = cboptions.time_increment;
 
@@ -3903,6 +3965,9 @@ int changeCBstate(int newstate)
 	// when we change the state, we first of all make sure that the
 	// engine is not running
 	PostMessage(hwnd, WM_COMMAND, ABORTENGINE, 0);
+
+	if (CBstate == ENGINEMATCH && newstate != ENGINEMATCH)
+		log_match_end(false);
 
 	/* Stop and reset the clocks when leaving a mode where engines play each other. */
 	if ((CBstate == ENGINEMATCH || CBstate == AUTOPLAY || CBstate == ENGINEGAME) && newstate != CBstate)
@@ -4465,6 +4530,7 @@ DWORD AutoThreadFunc(LPVOID param)
 				sprintf(Lstr, ": W-L-D:%i-%i-%i", emstats.wins, emstats.losses, emstats.draws + emstats.unknowns);
 				strcat(windowtitle, Lstr);
 				SetWindowText(hwnd, windowtitle);
+				log_match_start(engine1, engine2);
 
 				/* Do a quick search with each engine to init endgame dbs if not already done. */
 				quick_search_both_engines();
@@ -4594,6 +4660,7 @@ DWORD AutoThreadFunc(LPVOID param)
 				sprintf(statusbar_txt, "gamenumber is %i\n", gamenumber);
 
 				if (matchcontinues == 0) {
+					log_match_end(true);
 					changeCBstate(NORMAL);
 					setcurrentengine(1);
 
@@ -5797,11 +5864,13 @@ int load_engine
 	SetCurrentDirectory(CBdirectory);
 	sprintf(buf, "engines\\%.200s", dllname);
 	newlib = LoadLibrary(buf);
+	DWORD load_error = GetLastError();
 
 	// go back to the working dir
 	SetCurrentDirectory(CBdirectory);
 
 	if (newlib == NULL) {
+		cblog("Cannot load %s engine %s: %s\n", pri_or_sec, dllname, last_error_text(load_error).c_str());
 		sprintf(buf,
 				"CheckerBoard could not load the %s engine,\n%.200s\n\nPlease use the Engine > Select command\nto select a new %s engine.",
 				pri_or_sec,
@@ -5814,6 +5883,7 @@ int load_engine
 	// A dll without getmove() is not an engine.
 	newgetmove = (CB_GETMOVE) GetProcAddress(newlib, "getmove");
 	if (newgetmove == NULL) {
+		cblog("Cannot load %s engine %s: it has no getmove()\n", pri_or_sec, dllname);
 		FreeLibrary(newlib);
 		sprintf(buf,
 				"%.200s\nis not a CheckerBoard engine.\n\nPlease use the Engine > Select command\nto select a new %s engine.",
@@ -5830,6 +5900,13 @@ int load_engine
 	*islegalfn = (CB_ISLEGAL) GetProcAddress(newlib, "islegal");
 	if (*islegalfn == NULL)
 		*islegalfn = builtinislegal;
+
+	char name[ENGINECOMMAND_REPLY_SIZE];
+	SetCurrentDirectory(CBdirectory);
+	if (*cmdfn && (*cmdfn)("name", name))
+		cblog("Loaded %s engine %s: %s\n", pri_or_sec, dllname, name);
+	else
+		cblog("Loaded %s engine %s\n", pri_or_sec, dllname);
 	return(0);
 }
 
@@ -5860,6 +5937,7 @@ static void change_engine
 	if (dllname[0] != 0) {
 		if (strlen(dllname) >= sizeof(cboptions.primaryenginestring)) {
 			sprintf(buf, "The %s engine file name is too long:\n%.200s", pri_or_sec, dllname);
+			cblog("Cannot load %s engine, the file name is too long: %.200s\n", pri_or_sec, dllname);
 			MessageBox(hwnd, buf, "Error", MB_OK);
 		}
 		else if (load_engine(lib, dllname, cmdfn, namefn, getmovefn, islegalfn, pri_or_sec) == 0) {

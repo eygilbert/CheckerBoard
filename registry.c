@@ -212,8 +212,5 @@ void loadsettings(CBoptions *options, char CBdirectory[256])
 
 	SetCurrentDirectory(CBdirectory);
 
-	sprintf(lstr, "language is %i", options->language);
-	CBlog(lstr);
-
 	RegCloseKey(hKey);
 }

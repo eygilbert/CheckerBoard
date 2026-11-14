@@ -107,7 +107,6 @@ int pdnfind(pos *p, int color, std::vector<int> &matching_games)
 	/* Log the results. */
 	bitboardtoboard8(p, b);
 	board8toFEN(b, FEN, color, gametype());
-	cblog("pdnfind(): \"%s\", %d games found\n", FEN, nfound);
 	return nfound;
 }
 
@@ -154,7 +153,6 @@ int pdnfindtheme(pos *p, std::vector<int> &matching_games)
 		}
 	}
 
-	cblog("pdnfindtheme(): %d matching games found\n", nfound);
 	return nfound;
 }
 
@@ -324,7 +322,6 @@ int pdnopen(char filename[256], int gametype)
 		gamenumber++;
 	}
 
-	cblog("pdnopen(): games %d, positions %zd\n", gamenumber, pdn_positions.size());
 	free(buffer);
 	return 1;
 }
