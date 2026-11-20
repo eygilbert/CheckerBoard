@@ -123,8 +123,6 @@ struct time_ctrl_t {
 	clock_t starttime;
 	double black_time_remaining;
 	double white_time_remaining;
-	double cumulative_time_used[3];		/* Indexed by engine number, 1 or 2. */
-	int searchcount;
 };
 
 struct emstats_t {
@@ -136,6 +134,11 @@ struct emstats_t {
 	int blacklosses;
 	int games;
 	int opening_index;	/* index into 3-move table, 1 less than the ACF ballot number. */
+
+	/* Search times of the engines' moves, indexed by engine number, 1 or 2. Saved in stats.txt. */
+	int timed_moves[3];
+	double total_time[3];	/* Seconds used on those moves. */
+	double max_time[3];
 
 	inline bool is_odd(int n) {return((n & 1) == 1);}
 

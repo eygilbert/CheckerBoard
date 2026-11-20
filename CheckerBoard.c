@@ -3825,6 +3825,14 @@ DWORD SearchThreadFunc(LPVOID param)
 			else
 				writefile(filename, "a", "%s played %s; Times (clock, given to engine, used): %.3f, %.3f, %.3f\nanalysis: %s\n",
 					name, PDN, total, maxtime, elapsed, statusbar_txt);
+
+			/* Time per move, for stats.txt. */
+			if (currentengine == 1 || currentengine == 2) {
+				++emstats.timed_moves[currentengine];
+				emstats.total_time[currentengine] += elapsed;
+				if (elapsed > emstats.max_time[currentengine])
+					emstats.max_time[currentengine] = elapsed;
+			}
 		}
 		break;
 	}
@@ -4111,9 +4119,21 @@ void emlog_filename(char *filename)
 	sprintf(filename, "%s\\matchlog%s.txt", cboptions.matchdirectory, g_app_instance_suffix);
 }
 
+/* Clear the engines' move times in emstats. */
+static void clear_move_times(void)
+{
+	for (int e = 0; e < 3; ++e) {
+		emstats.timed_moves[e] = 0;
+		emstats.total_time[e] = 0;
+		emstats.max_time[e] = 0;
+	}
+}
+
 /*
  * Read engine match stats.txt file, write stats to emstats struct.
  * Return the number of games that have been played.
+ * The engines' move times are on a "move time totals" line after the Elo lines. A stats.txt written by
+ * an older CheckerBoard has none, and the times then start again from 0.
  */
 int read_match_stats(void)
 {
@@ -4123,6 +4143,7 @@ int read_match_stats(void)
 	int count;
 
 	emstats.games = 0;
+	clear_move_times();
 	emstats_filename(filename);
 	fp = fopen(filename, "r");
 	if (fp != NULL) {
@@ -4139,6 +4160,13 @@ int read_match_stats(void)
 				&emstats.unknowns,
 				&emstats.blackwins,
 				&emstats.blacklosses);
+		while (fgets(linebuf, sizeof(linebuf), fp)) {
+			if (sscanf(linebuf, "move time totals (for resume): %d %lf %lf %d %lf %lf", &emstats.timed_moves[1], &emstats.total_time[1],
+					&emstats.max_time[1], &emstats.timed_moves[2], &emstats.total_time[2], &emstats.max_time[2]) != 6)
+				clear_move_times();
+			else
+				break;
+		}
 		fclose(fp);
 		if (count == 6)
 			emstats.games = emstats.wins + emstats.losses + emstats.draws + emstats.unknowns;
@@ -4150,6 +4178,7 @@ int read_match_stats(void)
 			emstats.unknowns = 0;
 			emstats.blackwins = 0;
 			emstats.blacklosses = 0;
+			clear_move_times();
 		}
 	}
 	return(emstats.games);
@@ -4196,9 +4225,98 @@ void reset_match_stats(void)
 	emstats.losses = 0;
 	emstats.unknowns = 0;
 	emstats.wins = 0;
-	time_ctrl.cumulative_time_used[1] = 0;
-	time_ctrl.cumulative_time_used[2] = 0;
-	time_ctrl.searchcount = 0;
+	clear_move_times();
+}
+
+static double score_to_elo(double score)
+{
+	return(-400.0 * log10(1.0 / score - 1.0) + 0.0);	/* + 0.0 turns -0.0 into 0.0 for printing. */
+}
+
+/*
+ * The Elo estimate and its 95% interval, from the scores of the samples, games or ballot pairs.
+ * The same as kr_cli's match results.
+ */
+static std::string elo_text(std::vector<double> &scores)
+{
+	char buf[200];
+	double mean, var, stderror, lo, hi;
+
+	if (scores.size() < 2)
+		return("n/a");
+	mean = var = 0;
+	for (size_t i = 0; i < scores.size(); ++i)
+		mean += scores[i];
+	mean /= scores.size();
+	for (size_t i = 0; i < scores.size(); ++i)
+		var += (scores[i] - mean) * (scores[i] - mean);
+	var /= scores.size();
+	stderror = sqrt(var / scores.size());
+
+	if (mean <= 0 || mean >= 1)
+		return("n/a (no games won or no games lost)");
+	if (stderror == 0) {
+		sprintf(buf, "%+.1f, no interval (every sample has the same score)", score_to_elo(mean));
+		return(buf);
+	}
+	lo = mean - 1.96 * stderror;
+	hi = mean + 1.96 * stderror;
+	if (lo <= 0 || hi >= 1)
+		sprintf(buf, "%+.1f, 95%% interval too wide to compute", score_to_elo(mean));
+	else
+		sprintf(buf, "%+.1f, 95%% interval %+.1f to %+.1f", score_to_elo(mean), score_to_elo(lo), score_to_elo(hi));
+	return(buf);
+}
+
+/*
+ * Write stats.txt. The first two lines are the ones read back when a match is resumed; the rest are
+ * the same as kr_cli's match results. The Elo comes from the game results in match_progress.txt,
+ * one +, -, = or ? per game in the order played. A ? (unknown) counts as a draw. Games 1 and 2 are a
+ * ballot played with each engine on each side, and so on: a ballot pair's score is the mean of its two
+ * games, and it doesn't depend on which side the ballot favors.
+ */
+static void write_match_stats(const char *engine1, const char *engine2, const char *wld)
+{
+	FILE *fp;
+	char filename[MAX_PATH];
+	int c;
+	std::vector<double> scores, pairs;
+
+	emprogress_filename(filename);
+	fp = fopen(filename, "r");
+	if (fp != NULL) {
+		while ((c = fgetc(fp)) != EOF) {
+			if (c == '+')
+				scores.push_back(1);
+			else if (c == '-')
+				scores.push_back(0);
+			else if (c == '=' || c == '?')
+				scores.push_back(0.5);
+			else
+				continue;
+			if ((scores.size() & 1) == 0)
+				pairs.push_back((scores[scores.size() - 2] + scores.back()) / 2);
+		}
+		fclose(fp);
+	}
+
+	emstats_filename(filename);
+	fp = fopen(filename, "w");
+	if (fp == NULL)
+		return;
+	fprintf(fp, "%s - %s %s\n", engine1, engine2, wld);
+	fprintf(fp, "+:%i =:%i -:%i unknown:%i +B:%i -B:%i\n", emstats.wins, emstats.draws, emstats.losses,
+			emstats.unknowns, emstats.blackwins, emstats.blacklosses);
+	fprintf(fp, "games played: %d of %d\n", (int)scores.size(), 2 * num_ballots() * cboptions.match_repeat_count);
+	fprintf(fp, "Elo of engine 1, per game:     %s\n", elo_text(scores).c_str());
+	fprintf(fp, "Elo of engine 1, ballot pairs: %s (%d pairs)\n", elo_text(pairs).c_str(), (int)pairs.size());
+	for (int e = 1; e <= 2; ++e)
+		if (emstats.timed_moves[e])
+			fprintf(fp, "Time per move, engine %d: mean %.3f sec, max %.3f sec (%d moves)\n", e,
+					emstats.total_time[e] / emstats.timed_moves[e], emstats.max_time[e], emstats.timed_moves[e]);
+	fprintf(fp, "move time totals (for resume): %d %.3f %.3f %d %.3f %.3f\n", emstats.timed_moves[1], emstats.total_time[1],
+			emstats.max_time[1], emstats.timed_moves[2], emstats.total_time[2], emstats.max_time[2]);
+	fclose(fp);
 }
 
 /* Given a 0-based game number, return a 0-based ballot number. */
@@ -4595,21 +4713,7 @@ DWORD AutoThreadFunc(LPVOID param)
 					}
 
 					// write match statistics
-					emstats_filename(statsfilename);
-					Lfp = fopen(statsfilename, "w");
-					if (Lfp != NULL) {
-						fprintf(Lfp, "%s - %s", engine1, engine2);
-						fprintf(Lfp, " %s\n", Lstr);
-						fprintf(Lfp,
-								"+:%i =:%i -:%i unknown:%i +B:%i -B:%i",
-								emstats.wins,
-								emstats.draws,
-								emstats.losses,
-								emstats.unknowns,
-								emstats.blackwins,
-								emstats.blacklosses);
-						fclose(Lfp);
-					}
+					write_match_stats(engine1, engine2, Lstr);
 
 					// save the game
 					// gamenumber is base 1 here.
